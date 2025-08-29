@@ -94,7 +94,6 @@
       <div id="carbCol" style="display:none">
         <label>糖質摂取量（目安）</label>
         <select id="carbIntake">
-          <option value="10">〜10g</option>
           <option value="30" selected>〜30g</option>
           <option value="50">〜50g</option>
           <option value="70">〜70g</option>
@@ -217,9 +216,9 @@ function dayFactorBy(diet, fitness){
   return fitness==="workout" ? 1.07 : 0.97; // TKD
 }
 
-// 糖質（食事法×選択値）※Ketovore/TKDは常に選択値、Carnivoreは5〜10gの範囲で固定表示
+// 糖質（食事法×選択値）※Ketovore/TKDは常に選択値、Carnivoreは5〜10g想定（内部代表8g）
 function carbsBy(diet, carbSel){
-  if(diet==="Carnivore") return 8; // 内部代表値（表示は5〜10gと注記）
+  if(diet==="Carnivore") return 8;
   return carbSel || 30;
 }
 
@@ -236,12 +235,11 @@ function classText(bmi){
 // 食材配分（比率）
 function splitsBy(diet, carbSel, fitness){
   let s = {meat:0.7, dairy:0.2, veg:0.1};
-  const level = (carbSel<=10)?10:(carbSel<=30)?30:(carbSel<=50)?50:70;
+  const level = (carbSel<=30)?30:(carbSel<=50)?50:70; // 30/50/70 の3段階に整理
 
   if(diet==="Carnivore"){
     s = {meat:0.78, dairy:0.22, veg:0.0};
   } else if(diet==="Ketovore"){
-    if(level===10) s = {meat:0.75, dairy:0.20, veg:0.05};
     if(level===30) s = {meat:0.70, dairy:0.20, veg:0.10};
     if(level===50) s = {meat:0.62, dairy:0.18, veg:0.20};
     if(level===70) s = {meat:0.58, dairy:0.17, veg:0.25};
@@ -249,12 +247,10 @@ function splitsBy(diet, carbSel, fitness){
     if(fitness==="rest"){ s.dairy+=0.03; s.meat=Math.max(0,s.meat-0.02); s.veg=Math.max(0,s.veg-0.01); }
   } else { // TKD
     if(fitness==="workout"){
-      if(level===10) s = {meat:0.70, dairy:0.15, veg:0.15};
       if(level===30) s = {meat:0.65, dairy:0.15, veg:0.20};
       if(level===50) s = {meat:0.58, dairy:0.15, veg:0.27};
       if(level===70) s = {meat:0.54, dairy:0.15, veg:0.31};
     } else {
-      if(level===10) s = {meat:0.72, dairy:0.18, veg:0.10};
       if(level===30) s = {meat:0.65, dairy:0.20, veg:0.15};
       if(level===50) s = {meat:0.60, dairy:0.20, veg:0.20};
       if(level===70) s = {meat:0.56, dairy:0.20, veg:0.24};
