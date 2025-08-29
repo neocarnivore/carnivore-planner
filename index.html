@@ -23,24 +23,18 @@
   input,select,button{width:100%;padding:12px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
   button{cursor:pointer;background:var(--acc);border:none;color:#fff;font-weight:700}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media (min-width:760px){ .row-3{grid-template-columns:1fr 1fr 1fr} }
   .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .kpi{background:var(--input);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
   .kpi b{display:block;font-size:18px;margin-top:2px}
   .big{font-size:22px;font-weight:800;color:var(--acc)}
   .small{font-size:12px;color:var(--muted)}
   .warn{color:var(--red);font-size:12px;margin-top:6px}
-  details{user-select:none}
-  a{color:#088a70}
-  .top-buttons{display:flex;gap:10px}
 </style>
 </head>
 <body>
 <header>
-  <div>カーニボア・プランナー（Carnivore / Ketovore / TKD）</div>
-  <div class="top-buttons">
-    <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
-  </div>
+  <div>カーニボア・プランナー</div>
+  <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
 </header>
 
 <div class="wrap">
@@ -56,6 +50,7 @@
         <input id="age" type="number" value="30" min="12" max="99">
       </div>
     </div>
+
     <div class="row">
       <div>
         <label>身長（cm）</label>
@@ -66,15 +61,16 @@
         <input id="weight" type="number" value="65" min="30" max="250">
       </div>
     </div>
+
     <div class="row">
       <div>
-        <label>活動係数</label>
-        <select id="af">
-          <option value="1.2">1.20（ほぼ運動なし）</option>
-          <option value="1.375">1.375（軽め：週1–3）</option>
-          <option value="1.55" selected>1.55（中程度：週3–5）</option>
-          <option value="1.725">1.725（高い：週6–7）</option>
-          <option value="1.9">1.90（非常に高い/肉体労働）</option>
+        <label>運動習慣</label>
+        <select id="habit">
+          <option value="1.2">ほぼ運動しない</option>
+          <option value="1.375">週1〜2日</option>
+          <option value="1.55" selected>週3〜4日</option>
+          <option value="1.725">週5〜6日</option>
+          <option value="1.9">毎日/肉体労働</option>
         </select>
       </div>
       <div>
@@ -86,13 +82,19 @@
         </select>
       </div>
     </div>
+
     <div class="row">
       <div>
-        <label>Ketovore 糖質上限（g/日）</label>
-        <input id="ketoCap" type="number" value="30" min="5" max="100">
+        <label>KETOVORE/肉食寄りTKD 糖質上限量（g/日）</label>
+        <select id="carbCap">
+          <option value="30">30g</option>
+          <option value="50" selected>50g</option>
+          <option value="70">70g</option>
+          <option value="none">該当なし</option>
+        </select>
       </div>
       <div>
-        <label>フィットネス</label>
+        <label>フィットネス（運動習慣のある方）</label>
         <select id="fitness">
           <option value="none">該当なし</option>
           <option value="rest">休息日</option>
@@ -100,16 +102,7 @@
         </select>
       </div>
     </div>
-    <div class="row">
-      <div>
-        <label>TKD ベース糖質（g/日）</label>
-        <input id="tkdBase" type="number" value="10" min="0" max="100">
-      </div>
-      <div>
-        <label>TKD 糖質（g/kg・運動時加算）</label>
-        <input id="tkdPerKg" type="number" value="0.5" step="0.1" min="0" max="2">
-      </div>
-    </div>
+
     <div style="margin-top:10px">
       <button id="calcBtn">計算</button>
     </div>
@@ -136,76 +129,14 @@
     </div>
     <div class="grid" style="margin-top:10px">
       <div class="kpi"><span class="small">炭水化物</span><b id="c">–</b><span class="small">g/日</span></div>
-      <div class="kpi"><span class="small">タンパク質からのkcal</span><b id="pkcal">–</b></div>
-      <div class="kpi"><span class="small">脂質からのkcal</span><b id="fkcal">–</b></div>
+      <div class="kpi"><span class="small">タンパク質からの摂取カロリー</span><b id="pkcal">–</b></div>
+      <div class="kpi"><span class="small">脂質からの摂取カロリー</span><b id="fkcal">–</b></div>
     </div>
     <div class="warn" id="fatWarn" style="display:none">※脂質が負になりました。カロリー目標を上げるか糖質/タンパク質を下げてください。</div>
   </div>
 
-  <!-- 簡易ミクロ栄養（FoodDB＋3行） -->
-  <div class="card result" id="resultMicro" style="display:none">
-    <h3>ビタミン・ミネラル（サンプル献立合計）</h3>
-    <div class="small" style="margin-bottom:8px">数値は概算（100gあたりの代表値）です。食材や部位で変動します。</div>
-    <div class="row-3 row">
-      <div>
-        <label>食品1</label>
-        <select class="foodSel">
-          <option value="ribeye">牛リブアイ</option>
-          <option value="liver">牛レバー</option>
-          <option value="egg">卵</option>
-          <option value="salmon">サーモン</option>
-          <option value="cheese">チーズ</option>
-        </select>
-        <label>g</label>
-        <input class="foodGram" type="number" value="200" min="0" step="10">
-      </div>
-      <div>
-        <label>食品2</label>
-        <select class="foodSel">
-          <option value="ribeye">牛リブアイ</option>
-          <option value="liver">牛レバー</option>
-          <option value="egg">卵</option>
-          <option value="salmon">サーモン</option>
-          <option value="cheese">チーズ</option>
-        </select>
-        <label>g</label>
-        <input class="foodGram" type="number" value="50" min="0" step="10">
-      </div>
-      <div>
-        <label>食品3</label>
-        <select class="foodSel">
-          <option value="ribeye">牛リブアイ</option>
-          <option value="liver">牛レバー</option>
-          <option value="egg">卵</option>
-          <option value="salmon">サーモン</option>
-          <option value="cheese">チーズ</option>
-        </select>
-        <label>g</label>
-        <input class="foodGram" type="number" value="100" min="0" step="10">
-      </div>
-    </div>
-    <div class="grid" style="margin-top:10px">
-      <div class="kpi"><span class="small">B12 (µg)</span><b id="b12">–</b></div>
-      <div class="kpi"><span class="small">鉄 (mg)</span><b id="iron">–</b></div>
-      <div class="kpi"><span class="small">亜鉛 (mg)</span><b id="zinc">–</b></div>
-    </div>
-    <div class="grid" style="margin-top:10px">
-      <div class="kpi"><span class="small">セレン (µg)</span><b id="selen">–</b></div>
-      <div class="kpi"><span class="small">ビタミンA RA (µg)</span><b id="vita">–</b></div>
-      <div class="kpi"><span class="small">カリウム (mg)</span><b id="k">–</b></div>
-    </div>
-    <div class="grid" style="margin-top:10px">
-      <div class="kpi"><span class="small">マグネシウム (mg)</span><b id="mg">–</b></div>
-      <div class="kpi"><span class="small">ナトリウム (mg)</span><b id="na">–</b></div>
-      <div class="kpi"><span class="small">タンパク質 (g)</span><b id="pMicro">–</b></div>
-    </div>
-    <div style="margin-top:10px">
-      <button id="microBtn" style="background:transparent;border:1px solid var(--border);color:var(--text)">↑ 食品の量を変えたら押す（再計算）</button>
-    </div>
-  </div>
-
   <div class="wrap small" style="opacity:.85;padding-bottom:24px">
-    ※プラン設計はカーニボア・ケトジェニックを支持する医師・医学博士らの文献・研究・著書に基づきます。<br>
+    ※各種食事プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・研究・著書のもと設計しています。<br>
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank">YouTube</a>）/ The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank">YouTube</a>）
   </div>
 </div>
@@ -222,22 +153,11 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.textContent = document.body.classList.contains('light') ? '☀︎→🌙' : '🌙→☀︎';
 });
 
-// 入力
 const $ = id => document.getElementById(id);
 const calcBtn = $("calcBtn");
-const microBtn = $("microBtn");
-const resultSections = [$("resultBase"), $("resultMacro"), $("resultMicro")];
+const resultSections = [$("resultBase"), $("resultMacro")];
 
-// 簡易FoodDB（100gあたり概算値）
-const FOOD = {
-  ribeye: {name:"牛リブアイ", P:20, B12:2.5, Fe:2.1, Zn:4.0, Se:28, VitA:20, K:330, Mg:22, Na:60},
-  liver:  {name:"牛レバー",   P:20, B12:70, Fe:6.2, Zn:4.0, Se:40, VitA:9000, K:350, Mg:18, Na:70},
-  egg:    {name:"卵",         P:13, B12:1.1, Fe:1.8, Zn:1.3, Se:30, VitA:160,  K:126, Mg:12, Na:124},
-  salmon: {name:"サーモン",   P:21, B12:3.0, Fe:0.5, Zn:0.6, Se:36, VitA:50,   K:360, Mg:27, Na:59},
-  cheese: {name:"チーズ",     P:25, B12:1.5, Fe:0.7, Zn:3.0, Se:14, VitA:265,  K:98,  Mg:28, Na:620}
-};
-
-// BMI→表示テキスト
+// BMI区分テキスト
 function classText(bmi){
   if(bmi < 18.5) return "低体重(<18.5)";
   if(bmi < 25)   return "普通(18.5–24.9)";
@@ -254,12 +174,10 @@ function calc(){
   const age = +$("age").value||0;
   const h   = +$("height").value||0;
   const w   = +$("weight").value||0;
-  const af  = +$("af").value||1.2;
-  const diet= $("diet").value;
-  const ketoCap = +$("ketoCap").value||30;
-  const fit = $("fitness").value;
-  const tkdBase = +$("tkdBase").value||10;
-  const tkdPerKg= +$("tkdPerKg").value||0.5;
+  const af  = +$("habit").value||1.2; // 運動習慣→AF
+  const diet= $("diet").value;        // CARNIVORE / KETOVORE / TKD
+  const capSel = $("carbCap").value;  // 30/50/70/none
+  const fit = $("fitness").value;     // none/rest/train
 
   if(!h || !w || !age){ alert("年齢・身長・体重を入力してください"); return; }
 
@@ -267,19 +185,20 @@ function calc(){
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
   const tdee = bmr * af;
 
-  // 係数：Pは固定2.2 g/kg（要望6）、カロリーはTDEE×1.00（普通体重想定）
-  const protPerKg = 2.2;
+  // 係数：P = 1.8 g/kg（要望7）、カロリーはTDEE×1.00
+  const protPerKg = 1.8;
   const calFac = 1.00;
   const prot_g = protPerKg * w;
   const calTarget = tdee * calFac;
 
-  // Carb
-  let carb_g = 5; // CARNIVORE 痕跡分
-  if(diet==="Ketovore") carb_g = ketoCap;
-  if(diet==="TKD"){
-    carb_g = tkdBase + (fit==="train" ? tkdPerKg * w : 0);
-    if(fit==="none") carb_g = tkdBase; // 該当なしはベースのみ
-    if(fit==="rest") carb_g = tkdBase; // 休息日もベースのみ
+  // 糖質ロジック
+  let carb_g = 5; // CARNIVOREは痕跡分
+  if(diet==="Ketovore"){
+    carb_g = (capSel==="none") ? 0 : Number(capSel);
+  } else if(diet==="TKD"){
+    // TKDは運動日のみ上限を適用、休息日/該当なしは0g
+    if(fit==="train") carb_g = (capSel==="none") ? 0 : Number(capSel);
+    else carb_g = 0;
   }
 
   let fat_g = (calTarget - 4*prot_g - 4*carb_g) / 9;
@@ -288,7 +207,7 @@ function calc(){
 
   const kcal = 4*prot_g + 4*carb_g + 9*fat_g;
 
-  // 出力＆表示
+  // 出力
   $("bmi").textContent  = bmi.toFixed(2); // 小数第2位
   $("bmr").textContent  = Math.round(bmr).toLocaleString();
   $("tdee").textContent = Math.round(tdee).toLocaleString();
@@ -303,34 +222,8 @@ function calc(){
   $("fkcal").textContent= Math.round(fat_g*9);
   $("fatWarn").style.display = fatNeg ? "block" : "none";
 
-  // 結果セクションを表示
+  // 結果を表示
   resultSections.forEach(s => s.style.display = "block");
-
-  // 微量栄養素も再計算
-  calcMicro();
-}
-
-// 微量栄養素の再計算
-microBtn.addEventListener("click", calcMicro);
-function calcMicro(){
-  const sels = Array.from(document.querySelectorAll(".foodSel"));
-  const grams= Array.from(document.querySelectorAll(".foodGram")).map(i=>+i.value||0);
-  let sum = {P:0,B12:0,Fe:0,Zn:0,Se:0,VitA:0,K:0,Mg:0,Na:0};
-  sels.forEach((sel,idx)=>{
-    const it = FOOD[sel.value];
-    const g = grams[idx];
-    const factor = g/100;
-    for(const k in sum){ sum[k] += (it[k]||0)*factor; }
-  });
-  $("b12").textContent = Math.round(sum.B12);
-  $("iron").textContent= (Math.round(sum.Fe*10)/10).toFixed(1);
-  $("zinc").textContent= (Math.round(sum.Zn*10)/10).toFixed(1);
-  $("selen").textContent= Math.round(sum.Se);
-  $("vita").textContent = Math.round(sum.VitA);
-  $("k").textContent    = Math.round(sum.K);
-  $("mg").textContent   = Math.round(sum.Mg);
-  $("na").textContent   = Math.round(sum.Na);
-  $("pMicro").textContent = Math.round(sum.P);
 }
 </script>
 </body>
