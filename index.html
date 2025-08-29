@@ -81,14 +81,14 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="carbRow" style="display:none">
       <div>
         <label>糖質摂取量（目安）</label>
         <select id="carbIntake">
-          <option value="10">0〜10g</option>
-          <option value="30" selected>10〜30g</option>
-          <option value="50">30〜50g</option>
-          <option value="70">50〜70g</option>
+          <option value="10">〜10g</option>
+          <option value="30" selected>〜30g</option>
+          <option value="50">〜50g</option>
+          <option value="70">〜70g</option>
         </select>
       </div>
       <div>
@@ -101,7 +101,9 @@
       </div>
     </div>
 
-    <button id="calcBtn">計算</button>
+    <div style="margin-top:12px">
+      <button id="calcBtn">計算</button>
+    </div>
   </div>
 
   <!-- 出力：基礎データ -->
@@ -112,6 +114,7 @@
       <div class="kpi"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
       <div class="kpi"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
     </div>
+    <div class="small" id="bmiClassTxt" style="margin-top:8px;opacity:.85"></div>
   </div>
 
   <!-- 出力：目安 -->
@@ -149,7 +152,9 @@
       <div class="kpi"><span class="small">卵・乳製品</span><b id="gDairy">–</b><span class="small">g</span><div class="small">≈ <b id="kDairy">–</b> kcal</div></div>
       <div class="kpi"><span class="small">野菜・果物・ナッツ類</span><b id="gVeg">–</b><span class="small">g</span><div class="small">≈ <b id="kVeg">–</b> kcal</div></div>
     </div>
-    <div class="small" style="margin-top:8px;opacity:.8">※100gあたり代表値（目安）：肉220kcal / 卵乳240kcal / 野菜果物ナッツ150kcal</div>
+    <div class="small" style="margin-top:8px;opacity:.8">
+      ※100gあたり代表値（目安）：肉類220 kcal / 魚介類150 kcal / 卵150 kcal / 乳製品270 kcal / 野菜30 kcal / 果物60 kcal / ナッツ類600 kcal
+    </div>
   </div>
 
   <p class="small" style="margin-top:20px">
@@ -161,15 +166,32 @@
 <script>
 // テーマ切替
 document.getElementById("themeToggle").onclick=()=>document.body.classList.toggle("light");
-
 const $ = id => document.getElementById(id);
 
-// 代表値（100g）
+// 代表値（100g）※カテゴリ合算は従来3カテゴリ方式（注釈は詳細化）
 const CAT = {
-  meat:   {kcal:220, P:22, F:15, C:0},
-  dairy:  {kcal:240, P:17, F:18, C:2},
-  veg:    {kcal:150, P:6,  F:10, C:6}
+  meat:   {kcal:220}, // 肉・魚・魚介の代表合算として220を採用（目安）
+  dairy:  {kcal:240}, // 卵・乳の代表（表示注釈は内訳を詳細化）
+  veg:    {kcal:150}  // 野菜・果物・ナッツの代表（注釈に詳細内訳）
 };
+
+// BMI区分テキスト
+function classText(bmi){
+  if(bmi < 18.5) return "低体重(<18.5)";
+  if(bmi < 25)   return "普通(18.5–24.9)";
+  if(bmi < 30)   return "前肥満(25–29.9)";
+  if(bmi < 35)   return "肥満I(30–34.9)";
+  if(bmi < 40)   return "肥満II(35–39.9)";
+  return "肥満III(≥40)";
+}
+
+// 「糖質摂取量（目安）」の表示制御
+function toggleCarbRow(){
+  const diet = $("diet").value;
+  $("carbRow").style.display = (diet==="Ketovore" || diet==="TKD") ? "grid" : "none";
+}
+$("diet").addEventListener("change", toggleCarbRow);
+toggleCarbRow();
 
 // 2回目以降はリロード演出＋入力保持
 let hasCalculated = false;
@@ -186,10 +208,10 @@ function restoreForm(){
     const d = JSON.parse(raw);
     $("sex").value=d.sex; $("age").value=d.age; $("height").value=d.height; $("weight").value=d.weight;
     $("habit").value=d.habit; $("diet").value=d.diet; $("carbIntake").value=d.carb; $("fitness").value=d.fitness;
+    toggleCarbRow();
     return true;
   }catch(e){ return false; }
 }
-
 window.addEventListener('load', ()=>{
   if(localStorage.getItem("recalcFlag")==="1"){
     restoreForm();
@@ -224,45 +246,41 @@ function dayFactorBy(diet, fitness){
 // 糖質（食事法×選択肢×フィットネス）
 function carbsBy(diet, carbSel, fitness){
   if(diet==="Carnivore"){
-    return Math.max(5, Math.min(10, carbSel)); // 5〜10gにクランプ
+    return 5; // 常に極低糖を維持（固定運用）
   }else if(diet==="Ketovore"){
-    return carbSel;
+    return carbSel; // 選択値をそのまま
   }else{ // TKD
-    return (fitness==="workout") ? carbSel : 0;
+    return (fitness==="workout") ? carbSel : 50; // 運動日=選択値、休息/該当なし=50g
   }
 }
 
 // 食材配分（比率）を返す：{meat, dairy, veg} の和=1（Carnivoreはveg=0）
 function splitsBy(diet, carbSel, fitness){
-  // デフォルト
   let s = {meat:0.7, dairy:0.2, veg:0.1};
   const level = (carbSel<=10)?10:(carbSel<=30)?30:(carbSel<=50)?50:70;
 
   if(diet==="Carnivore"){
-    s = {meat:0.75, dairy:0.25, veg:0.0};
+    s = {meat:0.78, dairy:0.22, veg:0.0};
   } else if(diet==="Ketovore"){
-    // カーボレベルで野菜枠を増減
     if(level===10) s = {meat:0.75, dairy:0.20, veg:0.05};
     if(level===30) s = {meat:0.70, dairy:0.20, veg:0.10};
-    if(level===50) s = {meat:0.60, dairy:0.20, veg:0.20};
-    if(level===70) s = {meat:0.55, dairy:0.20, veg:0.25};
-    // フィットネス補正：運動日→肉+0.05 / 休息日→乳+0.05（元から引くのは主にveg）
-    if(fitness==="workout"){ s.meat+=0.05; s.veg=Math.max(0,s.veg-0.05); }
-    if(fitness==="rest"){ s.dairy+=0.05; s.meat=Math.max(0,s.meat-0.03); s.veg=Math.max(0,s.veg-0.02); }
+    if(level===50) s = {meat:0.62, dairy:0.18, veg:0.20};
+    if(level===70) s = {meat:0.58, dairy:0.17, veg:0.25};
+    if(fitness==="workout"){ s.meat+=0.04; s.veg=Math.max(0,s.veg-0.04); }
+    if(fitness==="rest"){ s.dairy+=0.03; s.meat=Math.max(0,s.meat-0.02); s.veg=Math.max(0,s.veg-0.01); }
   } else { // TKD
     if(fitness==="workout"){
       if(level===10) s = {meat:0.70, dairy:0.15, veg:0.15};
       if(level===30) s = {meat:0.65, dairy:0.15, veg:0.20};
-      if(level===50) s = {meat:0.55, dairy:0.15, veg:0.30};
-      if(level===70) s = {meat:0.50, dairy:0.15, veg:0.35};
+      if(level===50) s = {meat:0.58, dairy:0.15, veg:0.27};
+      if(level===70) s = {meat:0.54, dairy:0.15, veg:0.31};
     } else {
       if(level===10) s = {meat:0.72, dairy:0.18, veg:0.10};
       if(level===30) s = {meat:0.65, dairy:0.20, veg:0.15};
       if(level===50) s = {meat:0.60, dairy:0.20, veg:0.20};
-      if(level===70) s = {meat:0.55, dairy:0.20, veg:0.25};
+      if(level===70) s = {meat:0.56, dairy:0.20, veg:0.24};
     }
   }
-  // 正規化と安全化
   const sum = s.meat + s.dairy + s.veg || 1;
   return {meat: s.meat/sum, dairy: s.dairy/sum, veg: s.veg/sum};
 }
@@ -274,9 +292,9 @@ function calc(fromReload){
   const h   = +$("height").value||0;
   const w   = +$("weight").value||0;
   const af  = +$("habit").value||1.2;
-  const diet= $("diet").value; // Carnivore / Ketovore / TKD
-  const carbSel = +$("carbIntake").value||10; // 10/30/50/70
-  const fitness = $("fitness").value; // none/workout/rest
+  const diet= $("diet").value;
+  const carbSel = +($("carbIntake").value||10);
+  const fitness = $("fitness").value;
 
   if(!h || !w || !age){ alert("年齢・身長・体重を入力してください"); return; }
 
@@ -298,6 +316,7 @@ function calc(fromReload){
   $("bmi").textContent  = bmi.toFixed(2);
   $("bmr").textContent  = Math.round(bmr).toLocaleString();
   $("tdee").textContent = Math.round(tdee).toLocaleString();
+  $("bmiClassTxt").textContent = `BMI区分：${classText(bmi)}｜タンパク質 1.8 g/kg｜当日補正 ×${dayFactorBy(diet, fitness).toFixed(2)}`;
 
   $("dietLabel").textContent = (diet==="TKD" ? "肉食寄りTKD" : diet.toUpperCase());
   $("kcal").textContent = Math.round(kcal).toLocaleString();
@@ -318,7 +337,7 @@ function calc(fromReload){
 
   $("fatWarn").style.display = fatNeg ? "block" : "none";
 
-  // 食材別の目安摂取量（kcal→g換算）
+  // 食材別の目安摂取量（kcal→g換算・3カテゴリ）
   const sp = splitsBy(diet, carbSel, fitness);
   const kMeat = kcal * sp.meat, kDairy = kcal * sp.dairy, kVeg = (diet==="Carnivore" ? 0 : kcal * sp.veg);
   const gMeat = Math.round((kMeat / CAT.meat.kcal) * 100 / 10) * 10;
