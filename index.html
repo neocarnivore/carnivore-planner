@@ -158,9 +158,28 @@
 </div>
 
 <script>
-// テーマ切替
-document.getElementById("themeToggle").onclick=()=>document.body.classList.toggle("light");
 const $ = id => document.getElementById(id);
+
+/* ===== テーマ保持（ライト/ダーク） ===== */
+function applyThemeFromStorage(){
+  const t = localStorage.getItem('theme'); // 'light' or 'dark'
+  if(t === 'light'){ document.body.classList.add('light'); }
+  else{ document.body.classList.remove('light'); }
+  updateThemeBtn();
+}
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  updateThemeBtn();
+}
+function updateThemeBtn(){
+  const btn = $('themeToggle');
+  const isLight = document.body.classList.contains('light');
+  btn.textContent = isLight ? '☀︎/🌙' : '🌙/☀︎';
+}
+$('themeToggle').addEventListener('click', toggleTheme);
+applyThemeFromStorage();
+/* ===== ここまでテーマ保持 ===== */
 
 // 糖質タブ表示：Ketovore / TKD のときだけ
 function toggleCarb(){
@@ -191,6 +210,7 @@ function restoreForm(){
 }
 window.addEventListener('load', ()=>{
   if(localStorage.getItem("recalcFlag")==="1"){
+    applyThemeFromStorage(); // ← リロード後もテーマ維持
     restoreForm();
     calc(true);
     localStorage.removeItem("recalcFlag");
@@ -201,6 +221,7 @@ $("calcBtn").addEventListener("click", ()=>{
   if(hasCalculated){
     saveForm();
     localStorage.setItem("recalcFlag","1");
+    // テーマも保存済みなのでこのまま
     location.reload();
   }else{
     calc(false);
@@ -216,7 +237,7 @@ function dayFactorBy(diet, fitness){
   return fitness==="workout" ? 1.07 : 0.97; // TKD
 }
 
-// 糖質（食事法×選択値）※Ketovore/TKDは常に選択値、Carnivoreは5〜10g想定（内部代表8g）
+// 糖質（食事法×選択値）※Ketovore/TKDは選択値、Carnivoreは5〜10g想定（内部代表8g）
 function carbsBy(diet, carbSel){
   if(diet==="Carnivore") return 8;
   return carbSel || 30;
@@ -235,7 +256,7 @@ function classText(bmi){
 // 食材配分（比率）
 function splitsBy(diet, carbSel, fitness){
   let s = {meat:0.7, dairy:0.2, veg:0.1};
-  const level = (carbSel<=30)?30:(carbSel<=50)?50:70; // 30/50/70 の3段階に整理
+  const level = (carbSel<=30)?30:(carbSel<=50)?50:70; // 30/50/70
 
   if(diet==="Carnivore"){
     s = {meat:0.78, dairy:0.22, veg:0.0};
