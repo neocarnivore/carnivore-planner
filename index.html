@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carnivore / Ketovore / TKD 計算機</title>
+<style>
+  :root{--bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#9fb0c3;--acc:#48d1b5;--red:#ff7575}
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#0b0b0f,#10131b);color:var(--text)}
+  header{padding:16px 14px 6px;font-weight:700;font-size:20px}
+  .wrap{padding:10px;max-width:760px;margin:auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+  label{display:block;font-size:13px;color:var(--muted);margin:8px 0 6px}
+  input,select{width:100%;padding:12px 10px;border-radius:10px;border:1px solid #243046;background:#0f1218;color:var(--text)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (min-width:720px){ .row-3{grid-template-columns:1fr 1fr 1fr} }
+  .pill{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .pill > *{flex:1}
+  .result h3{margin:8px 0 6px;font-size:16px}
+  .big{font-size:22px;font-weight:800;color:var(--acc)}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .kpi{background:#0f1218;border:1px solid #23304a;border-radius:12px;padding:10px;text-align:center}
+  .kpi b{display:block;font-size:18px;margin-top:2px}
+  .small{font-size:12px;color:var(--muted)}
+  .warn{color:var(--red);font-size:12px;margin-top:6px}
+  footer{padding:20px 12px;color:#7f91a8;font-size:12px}
+  a{color:#8fe9d7}
+</style>
+</head>
+<body>
+<header>肉食寄りケト計算機（Carnivore / Ketovore / TKD）</header>
+<div class="wrap">
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>性別</label>
+        <select id="sex">
+          <option value="M">男性</option>
+          <option value="F">女性</option>
+        </select>
+      </div>
+      <div>
+        <label>年齢（歳）</label>
+        <input id="age" type="number" inputmode="numeric" value="30" min="12" max="99">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>身長（cm）</label>
+        <input id="height" type="number" inputmode="decimal" value="170" min="120" max="220">
+      </div>
+      <div>
+        <label>体重（kg）</label>
+        <input id="weight" type="number" inputmode="decimal" value="65" min="30" max="250">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>活動係数</label>
+        <select id="af">
+          <option value="1.2">1.20（ほぼ運動なし）</option>
+          <option value="1.375">1.375（軽め：週1–3）</option>
+          <option value="1.55" selected>1.55（中程度：週3–5）</option>
+          <option value="1.725">1.725（高い：週6–7）</option>
+          <option value="1.9">1.90（非常に高い/肉体労働）</option>
+        </select>
+      </div>
+      <div>
+        <label>食事法</label>
+        <select id="diet">
+          <option value="Carnivore">Carnivore（ほぼ動物性）</option>
+          <option value="Ketovore">Ketovore（肉＋低糖質）</option>
+          <option value="TKD">TKD（運動前後のみ糖質）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Ketovore糖質上限（g/日）</label>
+        <input id="ketoCap" type="number" value="30" min="5" max="100">
+      </div>
+      <div>
+        <label>TKD 運動日？</label>
+        <select id="isWorkout">
+          <option value="false">休息日</option>
+          <option value="true">運動日</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>TKD ベース糖質（g/日）</label>
+        <input id="tkdBase" type="number" value="10" min="0" max="100">
+      </div>
+      <div>
+        <label>TKD 糖質（g/kg・運動時加算）</label>
+        <input id="tkdPerKg" type="number" value="0.5" step="0.1" min="0" max="2">
+      </div>
+    </div>
+  </div>
+
+  <div class="card result">
+    <h3>基礎データ</h3>
+    <div class="grid">
+      <div class="kpi"><span class="small">BMI</span><b id="bmi">–</b></div>
+      <div class="kpi"><span class="small">BMR（基礎代謝 kcal）</span><b id="bmr">–</b></div>
+      <div class="kpi"><span class="small">TDEE（総消費 kcal）</span><b id="tdee">–</b></div>
+    </div>
+    <div class="small" id="bmiClassTxt" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card result">
+    <h3>あなたの目安（<span id="dietLabel">—</span>）</h3>
+    <div class="grid">
+      <div class="kpi"><span class="small">カロリー</span><b class="big" id="kcal">–</b><span class="small">kcal/日</span></div>
+      <div class="kpi"><span class="small">タンパク質</span><b id="p">–</b><span class="small">g/日</span></div>
+      <div class="kpi"><span class="small">脂質</span><b id="f">–</b><span class="small">g/日</span></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="kpi"><span class="small">炭水化物</span><b id="c">–</b><span class="small">g/日</span></div>
+      <div class="kpi"><span class="small">Pからのkcal</span><b id="pkcal">–</b></div>
+      <div class="kpi"><span class="small">Fからのkcal</span><b id="fkcal">–</b></div>
+    </div>
+    <div class="warn" id="fatWarn" style="display:none">※脂質が負になりました。カロリー目標を上げるか糖質/タンパク質を下げてください。</div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary style="cursor:pointer">係数ルール（BMI別・食事法）を見る</summary>
+      <div class="small" style="margin-top:8px;line-height:1.6">
+        ・BMI区分（WHO/JASSO準拠）で <b>タンパク質係数[g/kg]</b> と <b>カロリー係数（TDEE×）</b> を自動選択します。<br>
+        &nbsp;&nbsp;〈&lt;18.5: 2.0, ×1.05 / 18.5–24.9: 1.6, ×1.00 / 25–29.9: 1.8, ×0.85 / 30–34.9: 2.0, ×0.80 / 35–39.9: 2.2, ×0.75 / ≥40: 2.4, ×0.75〉<br>
+        ・Carnivoreは糖質5g（痕跡分）を想定。Ketovoreは上限入力値。<br>
+        ・TKDは「ベース糖質 +（運動日なら 体重×g/kg を加算）」で計算します。
+      </div>
+    </details>
+  </div>
+
+  <footer>
+    ※これは一般的な目安ツールです。設計思想は低糖質寄り（Phinney & Volek, Tim Noakes などの研究/講義）に基づきます。<br>
+    参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank">YouTube</a>）/ The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank">YouTube</a>）
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const inputs = ["sex","age","height","weight","af","diet","ketoCap","isWorkout","tkdBase","tkdPerKg"];
+inputs.forEach(id => $(id).addEventListener("input", calc));
+
+function pickByBMI(bmi){
+  // 境界は下側を含む（左閉右開）
+  const edges = [0,18.5,25,30,35,40];
+  const prot  = [2.0,1.6,1.8,2.0,2.2,2.4]; // g/kg
+  const cfac  = [1.05,1.00,0.85,0.80,0.75,0.75];
+  let idx = 0;
+  for(let i=0;i<edges.length;i++){ if(bmi>=edges[i]) idx = i; }
+  return {protPerKg:prot[idx], calFac:cfac[idx], idx};
+}
+
+function classText(idx){
+  return ["低体重(<18.5)","普通(18.5–24.9)","前肥満(25–29.9)","肥満I(30–34.9)","肥満II(35–39.9)","肥満III(≥40)"][idx];
+}
+
+function calc(){
+  const sex = $("sex").value;
+  const age = +$("age").value||0;
+  const h   = +$("height").value||0;
+  const w   = +$("weight").value||0;
+  const af  = +$("af").value||1.2;
+  const diet= $("diet").value;
+  const ketoCap = +$("ketoCap").value||30;
+  const isWorkout = $("isWorkout").value==="true";
+  const tkdBase = +$("tkdBase").value||10;
+  const tkdPerKg= +$("tkdPerKg").value||0.5;
+
+  if(!h || !w || !age){ return; }
+
+  const bmi = w / Math.pow(h/100,2);
+  const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
+  const tdee = bmr * af;
+
+  const pick = pickByBMI(bmi);
+  const prot_g = pick.protPerKg * w;
+  const calTarget = tdee * pick.calFac;
+
+  let carb_g = 5; // default Carnivore trace
+  if(diet==="Ketovore") carb_g = ketoCap;
+  if(diet==="TKD") carb_g = tkdBase + (isWorkout ? (tkdPerKg * w) : 0);
+
+  let fat_g = (calTarget - 4*prot_g - 4*carb_g) / 9;
+  const fatNeg = fat_g < 0;
+  if(fatNeg) fat_g = 0;
+
+  const kcal = 4*prot_g + 4*carb_g + 9*fat_g;
+
+  // 出力（丸め）
+  $("bmi").textContent  = bmi.toFixed(1);
+  $("bmr").textContent  = Math.round(bmr).toLocaleString();
+  $("tdee").textContent = Math.round(tdee).toLocaleString();
+  $("bmiClassTxt").textContent = `BMI区分：${classText(pick.idx)}｜タンパク質 ${pick.protPerKg.toFixed(1)} g/kg｜カロリー係数 ×${pick.calFac}`;
+
+  $("dietLabel").textContent = diet + (diet==="TKD" ? (isWorkout?"（運動日）":"（休息日）"):"");
+
+  $("kcal").textContent = Math.round(kcal).toLocaleString();
+  $("p").textContent    = Math.round(prot_g);
+  $("f").textContent    = Math.round(fat_g);
+  $("c").textContent    = Math.round(carb_g);
+  $("pkcal").textContent= Math.round(prot_g*4);
+  $("fkcal").textContent= Math.round(fat_g*9);
+
+  $("fatWarn").style.display = fatNeg ? "block" : "none";
+}
+calc();
+</script>
+</body>
+</html>
