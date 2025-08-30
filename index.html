@@ -78,6 +78,14 @@
   .footerNote{color:#000 !important}
   .light .footerNote{color:#000 !important}
   .footerNote a{color:var(--p);text-decoration:underline}
+
+  /* 追加: kcal 数値の見た目を g と統一（暗:白 / 明:黒） */
+  .kpi .small > b{
+    color: var(--text);
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1;
+  }
 </style>
 </head>
 <body>
@@ -228,7 +236,7 @@
     <div class="row3">
       <div class="kpi macroBox"><div class="label">タンパク質</div><div class="val" id="p">–</div><div class="small">g/日</div><div class="kcal"><b id="pkcal">–</b><span class="small">kcal</span></div><div class="bar p"><span id="pbar"></span></div></div>
       <div class="kpi macroBox"><div class="label">脂質</div><div class="val" id="f">–</div><div class="small">g/日</div><div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div><div class="bar f"><span id="fbar"></span></div></div>
-      <div class="kpi macroBox"><div class="label">糖質</div><div class="val" id="c">–</div><div class="small">g/日</div><div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div><div class="bar c"><span id="cbar"></span></div></div>
+      <div class="kpi macroBox"><div class="label">糖質</div><div class="val" id="c">–</div><div class="small">g/日</div><div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div></div>
     </div>
     <div class="small" id="macroNote" style="margin-top:6px;opacity:.95"></div>
     <div class="warn" id="fatWarn" style="display:none"></div>
@@ -399,8 +407,7 @@ function enforceHabitRules(){
   }
 }
 
-/* 計算ボタン：保存→リロード→自動計算
-   ※入力時ズーム戻し */
+/* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
