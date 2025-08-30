@@ -74,11 +74,9 @@
   .chartBtns button.active{background:var(--acc);color:#fff;border-color:transparent}
   canvas{width:min(820px,100%);height:auto;display:block;border-radius:10px;margin:0 auto}
 
-  /* フッター表記：ライト=従来通り黒文字／ダーク=黒背景・白文字 */
+  /* フッターは常に黒 */
   .footerNote{color:#000 !important}
   .light .footerNote{color:#000 !important}
-  body:not(.light) .footerNote{background:#000; color:#fff !important}
-  body:not(.light) .footerNote a{color:#fff; text-decoration:underline}
   .footerNote a{color:var(--p);text-decoration:underline}
 </style>
 </head>
@@ -254,7 +252,7 @@
         <div class="kpi"><span class="small">果物</span><b id="gFruit">–</b><span class="small">g</span><div class="small">≈ <b id="kFruit">–</b> kcal</div><div class="bar c"><span id="fruitbar"></span></div></div>
       </div>
       <div class="small" style="margin-top:8px;opacity:.95">
-        ※100gあたり代表値（目安）：肉 220kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 <b>160kcal</b> / 野菜 30kcal / 果物 60kcal
+        ※100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
     </section>
 
@@ -371,7 +369,8 @@ function enforceHabitRules(){
   }
 }
 
-/* 計算ボタン：保存→リロード→自動計算（入力時ズーム戻し） */
+/* 計算ボタン：保存→リロード→自動計算
+   ※入力時ズーム戻し */
 $("calcBtn").addEventListener("click", ()=>{
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
@@ -423,9 +422,7 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
-
-/* ① 乳製品を160kcal/100gに変更 */
-const KCAL_PER_100G = { meat:220, fish:150, eggs:150, dairy:160, veg:30, fruit:60 };
+const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 }; // ← 代表値更新
 
 /* NaN安全化 */
 function splits6By(diet, carbSel, fitnessType, onoff){
@@ -671,7 +668,7 @@ function calc(){
   }
   if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示（③ CARNIVOREの目安テキストを8gに固定表示）
+  // 表示
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
@@ -688,6 +685,7 @@ function calc(){
 
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
+  // CARNIVORE時は固定で8gを表示
   $("macroNote").textContent=`フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"} ｜ 活動係数AF×日別補正＝TDEE｜日別補正±12%内`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
