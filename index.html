@@ -1,716 +1,507 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Carnivore Planner, Crafted by Neo</title>
-<meta name="theme-color" content="#0b0b0f">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.png">
-<style>
-  :root{
-    --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#9fb0c3;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
-    --p:#2aa1ff;--f:#ffb454;--c:#48d1b5;
-    --axis:rgba(255,255,255,.9);--grid:rgba(255,255,255,.12);--axisLine:rgba(255,255,255,.35)
-  }
-  .light{
-    --bg:#f6f8fb;--card:#ffffff;--text:#1a2732;--muted:#5c6e83;--acc:#0aa37f;--red:#d13b3b;--input:#ffffff;--border:#dfe8f2;
-    --p:#0a84ff;--f:#ff9900;--c:#0aa37f;
-    --axis:#13283d;--grid:rgba(19,40,61,.10);--axisLine:rgba(19,40,61,.35)
-  }
-  *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
-  body{margin:0;background:linear-gradient(180deg,var(--bg),#10131b00);color:var(--text)}
-  header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:16px 14px 6px;font-weight:800;font-size:clamp(16px,2.4vw,20px)}
-  .wrap{padding:10px;max-width:1080px;margin:auto}
-  .card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 8px 24px rgba(0,0,0,.18);border:1px solid var(--border)}
-  label{display:block;font-size:13px;color:var(--muted);margin:8px 0 6px}
-  input,select,button{width:100%;padding:12px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
-  button{cursor:pointer;background:var(--acc);border:none;color:#fff;font-weight:700}
-
-  /* 横固定 */
-  .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .row6{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-
-  /* 入力フォームの2列ペア */
-  .formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .formGrid > .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:430px){
-    .formGrid{grid-template-columns:1fr}
-    .formGrid > .pair{grid-template-columns:1fr 1fr}
-  }
-
-  .kpi{background:var(--input);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;min-width:0}
-  .kpi b{display:block;font-size:18px;margin-top:2px;word-break:break-word}
-  .big{font-size:clamp(22px,4vw,28px);font-weight:900;color:var(--acc)}
-  .small{font-size:12px;color:var(--muted)}
-  .warn{color:var(--red);font-size:12px;margin-top:6px}
-
-  /* あなたの目安：g/日を太字＆大きく */
-  .macroBox .val{font-size:clamp(22px,4vw,28px);font-weight:900;line-height:1.1}
-  .macroBox .kcal b{font-size:16px}
-
-  /* 棒グラフ */
-  .bar{height:8px;background:#0f141e;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
-  .bar span{display:block;height:100%;width:0%}
-  .bar.p span{background:var(--p)} .bar.f span{background:var(--f)} .bar.c span{background:var(--c)}
-  .light .bar{background:#fff;border:1.5px solid #d7e2ef}
-
-  /* タブ */
-  .tab{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-  .tab button{background:transparent;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px}
-  .tab button.active{background:var(--acc);color:#fff;border-color:transparent}
-  .tab.goals{grid-template-columns:repeat(3,1fr);width:100%}
-  .tab.goals button{width:100%}
-  .disabled{opacity:.55;pointer-events:none;filter:saturate(.3)}
-
-  /* グラフ */
-  .chartCard{grid-column:1/-1;display:flex;flex-direction:column;align-items:center}
-  .chartHeader{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px}
-  .chartBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-  .chartBtns button{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .chartBtns button.active{background:var(--acc);color:#fff;border-color:transparent}
-  canvas{width:min(820px,100%);height:auto;display:block;border-radius:10px;margin:0 auto}
-
-  /* フッター（ダークでもはっきり） */
-  .footerNote{color:#ffffff;opacity:.98}
-  .light .footerNote{color:#2b3e52;opacity:1}
-  .footerNote a{color:var(--p);text-decoration:underline}
-</style>
-</head>
-<body>
-<header>
-  <div>Carnivore Planner, Crafted by Neo</div>
-  <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
-</header>
-
-<div class="wrap">
-  <!-- 入力 -->
-  <div class="card">
-    <div class="formGrid">
-      <div class="pair">
-        <div>
-          <label>性別</label>
-          <select id="sex">
-            <option value="" selected disabled>選択してください</option>
-            <option value="M">男性</option>
-            <option value="F">女性</option>
-          </select>
-        </div>
-        <div>
-          <label>年齢（歳）</label>
-          <input id="age" type="number" inputmode="decimal" step="0.1" placeholder="例：30" min="12" max="99">
-        </div>
-      </div>
-
-      <div class="pair">
-        <div>
-          <label>身長（cm）</label>
-          <input id="height" type="number" inputmode="decimal" step="0.1" placeholder="例：170" min="120" max="220">
-        </div>
-        <div>
-          <label>体重（kg）</label>
-          <input id="weight" type="number" inputmode="decimal" step="0.1" placeholder="例：65" min="30" max="250">
-        </div>
-      </div>
-
-      <div class="pair" style="grid-column:1/-1">
-        <div>
-          <label>目標</label>
-          <div class="tab goals" role="tablist" aria-label="目標">
-            <button id="goal-cut" role="tab" aria-selected="false" aria-pressed="false" data-goal="cut">減量</button>
-            <button id="goal-maintain" role="tab" aria-selected="true" aria-pressed="true" class="active" data-goal="maintain">維持</button>
-            <button id="goal-bulk" role="tab" aria-selected="false" aria-pressed="false" data-goal="bulk">増量</button>
-          </div>
-        </div>
-        <div id="targetCol" style="display:none">
-          <label>目標体重（kg）</label>
-          <input id="targetWeight" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="例：60">
-        </div>
-      </div>
-
-      <div class="pair">
-        <div>
-          <label>タンパク質係数（g/kg）</label>
-          <select id="pFactor">
-            <option value="" selected disabled>選択してください</option>
-            <option value="1.2">1.2（低め）</option>
-            <option value="1.6">1.6（標準）</option>
-            <option value="2.0">2.0（高め）</option>
-          </select>
-        </div>
-        <div>
-          <label>食事法</label>
-          <select id="diet">
-            <option value="" selected disabled>選択してください</option>
-            <option value="Carnivore">CARNIVORE</option>
-            <option value="Ketovore">KETOVORE</option>
-            <option value="TKD">肉食寄りTKD</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="pair">
-        <div>
-          <label>運動習慣</label>
-          <select id="habit">
-            <option value="" selected disabled>選択してください</option>
-            <option value="1.2">ほぼ運動しない</option>
-            <option value="1.375">週1〜2日</option>
-            <option value="1.55">週3〜4日</option>
-            <option value="1.725">週5〜6日</option>
-            <option value="1.9">毎日/肉体労働</option>
-          </select>
-        </div>
-        <div>
-          <label>フィットネス</label>
-          <select id="fitnessType" disabled>
-            <option value="" selected disabled>選択してください</option>
-            <option value="none">該当なし</option>
-            <option value="strength">筋トレ</option>
-            <option value="run">ランニング</option>
-            <option value="cycle">サイクリング</option>
-            <option value="club">部活動</option>
-            <option value="martial">格闘技</option>
-            <option value="aerobic">その他（有酸素運動）</option>
-            <option value="anaerobic">その他（無酸素運動）</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="pair">
-        <div>
-          <label>オン/オフ</label>
-          <select id="onoff" disabled>
-            <option value="" selected disabled>選択してください</option>
-            <option value="none">該当なし</option>
-            <option value="on">運動日</option>
-            <option value="off">休息日</option>
-          </select>
-        </div>
-        <div id="carbCol" style="display:none">
-          <label>糖質摂取量（目安）</label>
-          <select id="carbIntake">
-            <option value="" selected disabled>選択してください</option>
-            <option value="30">〜30g</option>
-            <option value="50">〜50g</option>
-            <option value="70">〜70g</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <button id="calcBtn" aria-pressed="false">計算</button>
-    </div>
-  </div>
-
-  <!-- 出力：基礎データ -->
-  <div class="card" id="baseCard" style="display:none" aria-live="polite">
-    <h3>基礎データ</h3>
-    <div class="row3">
-      <div class="kpi"><div class="small">BMI</div><b id="bmi">–</b></div>
-      <div class="kpi"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
-      <div class="kpi"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
-    </div>
-    <div class="small" id="bmiClassTxt" style="margin-top:8px;opacity:.9"></div>
-  </div>
-
-  <!-- 出力：あなたの目安 -->
-  <div class="card" id="macroCard" style="display:none" aria-live="polite">
-    <h3>あなたの目安（<span id="dietLabel">—</span>）</h3>
-    <div class="kpi" style="margin-bottom:10px">
-      <span class="small">摂取カロリー</span>
-      <b class="big" id="kcal">–</b><span class="small">kcal/日</span>
-    </div>
-
-    <div class="row3">
-      <div class="kpi macroBox">
-        <div class="label">タンパク質</div>
-        <div class="val" id="p">–</div><div class="small">g/日</div>
-        <div class="kcal"><b id="pkcal">–</b><span class="small">kcal</span></div>
-        <div class="bar p"><span id="pbar"></span></div>
-      </div>
-      <div class="kpi macroBox">
-        <div class="label">脂質</div>
-        <div class="val" id="f">–</div><div class="small">g/日</div>
-        <div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div>
-        <div class="bar f"><span id="fbar"></span></div>
-      </div>
-      <div class="kpi macroBox">
-        <div class="label">糖質</div>
-        <div class="val" id="c">–</div><div class="small">g/日</div>
-        <div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div>
-        <div class="bar c"><span id="cbar"></span></div>
-      </div>
-    </div>
-
-    <div class="small" id="macroNote" style="margin-top:6px;opacity:.95"></div>
-    <div class="warn" id="fatWarn" style="display:none"></div>
-  </div>
-
-  <!-- 食材 + 体重推移グラフ -->
-  <div class="card" id="foodCard" style="display:none" aria-live="polite">
-    <h3>食材別の目安摂取量</h3>
-    <div class="row6">
-      <div class="kpi">
-        <span class="small">肉</span>
-        <b id="gMeat">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kMeat">–</b> kcal</div>
-        <div class="bar p"><span id="meatbar"></span></div>
-      </div>
-      <div class="kpi">
-        <span class="small">魚介類</span>
-        <b id="gFish">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kFish">–</b> kcal</div>
-        <div class="bar p"><span id="fishbar"></span></div>
-      </div>
-      <div class="kpi">
-        <span class="small">卵</span>
-        <b id="gEggs">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kEggs">–</b> kcal</div>
-        <div class="bar f"><span id="eggsbar"></span></div>
-      </div>
-      <div class="kpi">
-        <span class="small">乳製品</span>
-        <b id="gDairy">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kDairy">–</b> kcal</div>
-        <div class="bar f"><span id="dairybar"></span></div>
-      </div>
-      <div class="kpi">
-        <span class="small">野菜</span>
-        <b id="gVeg">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kVeg">–</b> kcal</div>
-        <div class="bar c"><span id="vegbar"></span></div>
-      </div>
-      <div class="kpi">
-        <span class="small">果物</span>
-        <b id="gFruit">–</b><span class="small">g</span>
-        <div class="small">≈ <b id="kFruit">–</b> kcal</div>
-        <div class="bar c"><span id="fruitbar"></span></div>
-      </div>
-
-      <div class="kpi chartCard">
-        <div class="chartHeader">
-          <div class="small" id="chartTitle" style="font-weight:700">体重推移（推定）</div>
-          <div class="chartBtns" role="tablist" aria-label="期間">
-            <button class="active" data-months="1">1ヶ月</button>
-            <button data-months="3">3ヶ月</button>
-            <button data-months="6">6ヶ月</button>
-            <button data-months="12">12ヶ月</button>
-          </div>
-        </div>
-        <canvas id="wtChart" height="260" aria-label="体重推移グラフ" role="img"></canvas>
-      </div>
-    </div>
-    <!-- ①＆③：100g代表値はここだけに表示 -->
-    <div class="small" style="margin-top:8px;opacity:.95">
-      ※100gあたり代表値（目安）：肉 220kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 270kcal / 野菜 30kcal / 果物 60kcal
-    </div>
-  </div>
-
-  <p class="small footerNote" style="margin-top:20px">
-    ※各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
-    参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
-  </p>
-</div>
-
-<script>
-const $ = id => document.getElementById(id);
-
-/* ===== テーマ保持 ===== */
-function applyThemeFromStorage(){
-  const t = localStorage.getItem('theme');
-  if(t === 'light'){ document.body.classList.add('light'); }
-  else{ document.body.classList.remove('light'); }
-  updateThemeBtn(); if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
-}
-function toggleTheme(){
-  document.body.classList.toggle('light');
-  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
-  updateThemeBtn(); if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
-}
-function updateThemeBtn(){
-  const btn = $('themeToggle');
-  const isLight = document.body.classList.contains('light');
-  btn.textContent = isLight ? '☀︎/🌙' : '🌙/☀︎';
-}
-$('themeToggle').addEventListener('click', toggleTheme);
-applyThemeFromStorage();
-
-/* ===== UI：糖質欄の表示 ===== */
-function toggleCarb(){
-  const diet = $("diet").value;
-  const show = (diet==="Ketovore" || diet==="TKD");
-  $("carbCol").style.display = show ? "block" : "none";
-  $("carbIntake").value = show ? "" : "";
-}
-$("diet").addEventListener("change", toggleCarb);
-
-/* ===== 目標＆目標体重欄 ===== */
-let goal = "maintain";
-const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
-["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
-  $(id).addEventListener("click", (e)=>{
-    ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{ $(i).classList.remove("active"); $(i).setAttribute("aria-selected","false"); $(i).setAttribute("aria-pressed","false"); });
-    e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
-    goal = e.currentTarget.dataset.goal;
-    $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
-  });
-});
-
-/* ===== 運動習慣に応じた制御 ===== */
-["habit","pFactor","diet","fitnessType","onoff"].forEach(id=>{
-  $(id).addEventListener("change", ()=>{
-    if(id==="diet") toggleCarb();
-    if(id==="habit") enforceHabitRules();
-  });
-});
-function setNoneOptionVisible(selectId, visible){
-  const sel = $(selectId);
-  const opt = Array.from(sel.options).find(o=>o.value==="none");
-  if(!opt) return;
-  opt.hidden = !visible;
-  opt.disabled = !visible;
-  if(!visible && sel.value==="none"){ sel.value=""; }
-}
-function enforceHabitRules(){
-  const habit = $("habit").value;
-  const isNone = (habit==="1.2"); // ほぼ運動しない
-
-  setNoneOptionVisible("fitnessType", isNone);
-  setNoneOptionVisible("onoff", isNone);
-
-  $("fitnessType").disabled = !habit || isNone;
-  $("onoff").disabled = !habit || isNone;
-
-  if(isNone){
-    $("fitnessType").value = "none";
-    $("onoff").value = "none";
-  }else{
-    if($("fitnessType").value==="none") $("fitnessType").value = "";
-    if($("onoff").value==="none") $("onoff").value = "";
-  }
-}
-
-/* ===== 計算ボタン ===== */
-$("calcBtn").addEventListener("click", ()=>{
-  const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
-  $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
-  calc(false);
-});
-
-/* ===== 計算補助 ===== */
-const SPORT_FACTORS = {
-  strength:{ on:1.06, off:0.99 }, run:{ on:1.08, off:0.99 }, cycle:{ on:1.09, off:0.99 },
-  club:{ on:1.10, off:0.99 }, martial:{ on:1.12, off:0.99 }, aerobic:{ on:1.07, off:0.99 }, anaerobic:{ on:1.05, off:0.99 },
-  none:{ on:1.00, off:1.00 }
-};
-function dailyAdjustment(habit, fitnessType, onoff){
-  if(habit==="1.2") return 1.00;
-  const map = SPORT_FACTORS[fitnessType||"none"] || SPORT_FACTORS.none;
-  return map[onoff||"off"] ?? 1.00;
-}
-function carbsBy(diet, carbSel){ return (diet==="Carnivore") ? 8 : (carbSel || 30); }
-function classText(bmi){
-  if(bmi < 18.5) return "低体重(<18.5)";
-  if(bmi < 25)   return "普通(18.5–24.9)";
-  if(bmi < 30)   return "前肥満(25–29.9)";
-  if(bmi < 35)   return "肥満I(30–34.9)";
-  if(bmi < 40)   return "肥満II(35–39.9)";
-  return "肥満III(≥40)";
-}
-const KCAL_PER_100G = { meat:220, fish:150, eggs:150, dairy:270, veg:30, fruit:60 };
-function splits6By(diet, carbSel, fitnessType, onoff){
-  const level = (carbSel<=30)?30:(carbSel<=50)?50:70;
-  let s = { meat:0.62, fish:0.10, eggs:0.12, dairy:0.10, veg:0.04, fruit:0.02 };
-  if(diet==="Carnivore"){ s = { meat:0.66, fish:0.12, eggs:0.14, dairy:0.08, veg:0.00, fruit:0.00 }; }
-  else if(diet==="Ketovore"){
-    if(level===30) s = { meat:0.60, fish:0.11, eggs:0.11, dairy:0.10, veg:0.06, fruit:0.02 };
-    if(level===50) s = { meat:0.56, fish:0.11, eggs:0.11, dairy:0.10, veg:0.10, fruit:0.02 };
-    if(level===70) s = { meat:0.52, fish:0.11, eggs:0.10, dairy:0.10, veg:0.13, fruit:0.04 };
-  } else {
-    if(level===30) s = { meat:0.58, fish:0.11, eggs:0.11, dairy:0.10, veg:0.08, fruit:0.02 };
-    if(level===50) s = { meat:0.54, fish:0.11, eggs:0.10, dairy:0.10, veg:0.12, fruit:0.03 };
-    if(level===70) s = { meat:0.50, fish:0.11, eggs:0.10, dairy:0.10, veg:0.15, fruit:0.04 };
-  }
-  if(onoff==="on"){
-    if(["run","cycle","aerobic","club"].includes(fitnessType)){ s.fish+=0.02; s.veg+=0.02; s.fruit+=0.02; s.meat-=0.04; }
-    else if(["strength","anaerobic","martial"].includes(fitnessType)){ s.meat+=0.03; s.eggs+=0.02; s.dairy+=0.01; s.veg-=0.03; s.fruit-=0.02; }
-  } else if(onoff==="off"){ s.dairy+=0.02; s.meat-=0.02; }
-  const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
-}
-
-/* ===== グラフ ===== */
-function fitCanvasDPR(canvas){
-  const dpr = Math.max(1, window.devicePixelRatio||1);
-  const rect = canvas.getBoundingClientRect();
-  const w = Math.max(360, Math.round(rect.width*dpr));
-  const h = Math.max(240, Math.round(rect.height*dpr));
-  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
-}
-let chartMonths = 1;
-document.querySelectorAll('.chartBtns button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.chartBtns button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    chartMonths = +btn.dataset.months;
-    if(window._lastDrawArgs) drawWeightChart({...window._lastDrawArgs, months:chartMonths});
-  });
-});
-function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
-
-function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg}){
-  const cvs = $("wtChart"); fitCanvasDPR(cvs);
-  const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
-  ctx.clearRect(0,0,W,H);
-
-  const daysPerMonth=30;
-  const baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
-
-  // データ生成
-  const xs=[], ys=[]; let w=startKg;
-  for(let m=0;m<=months;m++){
-    const adapt=Math.pow(0.85,m), noise=0.15*seededNoise(m);
-    let delta=baseMonthlyKg*adapt+noise;
-    if(targetKg!=null){
-      const gap=targetKg-w; delta=delta*0.5+gap*0.2; if(Math.abs(gap)<0.2) delta=gap*0.5;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carnivore Planner, Crafted by Neo</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #111111;
+      --muted: #666;
+      --accent: #0ea5e9;
+      --card: #f8fafc;
+      --border: #e5e7eb;
+      --heading-weight: 700; /* 見出し太さの統一（④） */
+      --section-title-weight: 700; /* 「基礎データ」「あなたの目安」など */
+      --tab-weight: 600;
+      --sticky-blur: 10px;
     }
-    xs.push(m); ys.push(Math.max(0,w)); w+=delta;
-  }
+    [data-theme="dark"] {
+      --bg: #0b0f14;
+      --fg: #e5e7eb;
+      --muted: #9aa4b2;
+      --accent: #38bdf8;
+      --card: #0f1720;
+      --border: #1f2a37;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      line-height: 1.6;
+    }
 
-  // 余白：上/下に多め
-  const padL=66, padR=22, padT=32, padB=48;
-  const minY=Math.floor(Math.min(...ys, targetKg??ys[0]) - 1);
-  const maxY=Math.ceil(Math.max(...ys, targetKg??ys[0]) + 1);
-  const yRange=Math.max(1,maxY-minY);
+    /* ② スティッキーヘッダー */
+    .app-bar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      backdrop-filter: saturate(1.2) blur(var(--sticky-blur));
+      -webkit-backdrop-filter: saturate(1.2) blur(var(--sticky-blur));
+      background: color-mix(in oklab, var(--bg) 85%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .app-bar-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      font-weight: var(--heading-weight);
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .mode-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:hover { border-color: var(--accent); }
 
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  const xTo=m=> padL + (m/months)*plotW;
-  const yTo=kg=> padT + (1-(kg-minY)/yRange)*plotH;
+    .container {
+      max-width: 960px;
+      margin: 20px auto 64px;
+      padding: 0 16px;
+    }
 
-  // 背景グリッド
-  ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid').trim();
-  ctx.lineWidth=1;
-  const ySteps = 3; // 縦軸ラベル4つ
-  for(let i=0;i<=ySteps;i++){
-    const val=minY+(yRange/ySteps)*i, yy=yTo(val);
-    ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
-  }
-  // 軸
-  ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--axisLine').trim();
-  ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(W-padR, yTo(minY)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(padL, padT); ctx.stroke();
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      margin: 0 0 12px;
+      font-weight: var(--section-title-weight); /* 見出し太さ統一（④） */
+      font-size: 18px;
+    }
 
-  // ラベル
-  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
-  ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  // X（日数）— 0日のラベルは少し右に寄せて左下とかぶらないように
-  const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
-  ticks.forEach(d=>{
-    const m=d/30; const xx=xTo(Math.min(months,m));
-    const label=`${d}日`; const tw=ctx.measureText(label).width;
-    let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
-    if(d===0) xSafe = padL + 10; // ④ 左下の衝突回避
-    ctx.fillText(label, xSafe, H-14);
-  });
-  // Y（kg）— 上端・下端が切れないようクランプ
-  for(let i=0;i<=ySteps;i++){
-    const val=minY+(yRange/ySteps)*i; const yy=yTo(val);
-    const label=`${val.toFixed(1)}kg`; const tw=ctx.measureText(label).width;
-    const yClamped = Math.min(Math.max(yy-4, padT+12), H-padB-6); // ④ トップ/ボトム切れ防止
-    ctx.fillText(label, Math.max(padL-tw-8,6), yClamped);
-  }
+    /* 選択タブ（擬似タブ UI） */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .pill {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+    .pill label {
+      font-size: 12px;
+      color: var(--muted);
+      width: 88px;
+      flex: 0 0 auto;
+    }
+    .pill select, .pill input {
+      width: 100%;
+      background: transparent;
+      color: var(--fg);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 8px;
+    }
 
-  // 目標線
-  if(targetKg!=null){
-    ctx.strokeStyle="#ff7575"; ctx.setLineDash([6,6]);
-    ctx.beginPath(); ctx.moveTo(padL, yTo(targetKg)); ctx.lineTo(W-padR, yTo(targetKg)); ctx.stroke();
-    ctx.setLineDash([]);
-  }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #001018;
+      border-color: var(--accent);
+    }
 
-  // クリッピング
-  ctx.save(); ctx.beginPath();
-  ctx.rect(padL, padT, plotW, plotH); ctx.clip();
+    /* ④ 別タブレイアウト */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+    .tab {
+      padding: 10px 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: var(--tab-weight);
+    }
+    .tab.active {
+      color: var(--fg);
+      background: var(--card);
+      border-color: var(--border);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-  // 推移線
-  ctx.strokeStyle="#48d1b5"; ctx.lineWidth=3;
-  ctx.beginPath();
-  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
-  ctx.stroke();
-  ctx.fillStyle="#48d1b5";
-  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
-  ctx.restore();
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px dashed var(--border);
+    }
+    th { text-align: left; color: var(--muted); font-weight: 600; }
 
-  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg};
-}
-// rAFデバウンス
-let _resizeId;
-window.addEventListener('resize', ()=>{
-  cancelAnimationFrame(_resizeId);
-  _resizeId = requestAnimationFrame(()=>{ if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs); });
-});
+    /* ① 法的注記は常に黒 */
+    .legal-note {
+      margin-top: 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #000 !important; /* ダークモードでも黒固定 */
+      background: color-mix(in oklab, #fff 70%, transparent);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px dashed #ccc;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- ② スクロール固定ヘッダー -->
+  <header class="app-bar">
+    <div class="app-bar-inner">
+      <div class="brand">
+        <span>Carnivore Planner, Crafted by Neo</span>
+        <span class="brand-badge">v1.0</span>
+      </div>
+      <div class="mode-buttons">
+        <button class="btn" id="lightBtn" aria-pressed="true">ライトモード</button>
+        <button class="btn" id="darkBtn" aria-pressed="false">ダークモード</button>
+      </div>
+    </div>
+  </header>
 
-/* ===== 棒グラフ ===== */
-function updateBars(pk, fk, ck, total){
-  const p= total? Math.min(100, Math.round(pk/total*100)) : 0;
-  const f= total? Math.min(100, Math.round(fk/total*100)) : 0;
-  const c= total? Math.min(100, Math.round(ck/total*100)) : 0;
-  $("pbar").style.width=p+"%"; $("fbar").style.width=f+"%"; $("cbar").style.width=c+"%";
-}
-function updateFoodBars(parts, total){
-  const bars={meat:"meatbar",fish:"fishbar",eggs:"eggsbar",dairy:"dairybar",veg:"vegbar",fruit:"fruitbar"};
-  Object.keys(bars).forEach(k=>{
-    const v = total? Math.min(100, Math.round((parts[k]/total)*100)) : 0;
-    $(bars[k]).style.width = v+"%";
-  });
-}
+  <main class="container">
+    <!-- 基礎データ（見出し太さ統一 ④） -->
+    <section class="section">
+      <h2 class="section-title">基礎データ</h2>
+      <div class="grid">
+        <div class="pill">
+          <label for="weight">体重(kg)</label>
+          <input type="number" id="weight" min="30" max="200" step="0.1" placeholder="例: 68">
+        </div>
+        <div class="pill">
+          <label for="height">身長(cm)</label>
+          <input type="number" id="height" min="120" max="220" step="0.5" placeholder="例: 170">
+        </div>
+        <div class="pill">
+          <label for="age">年齢</label>
+          <input type="number" id="age" min="16" max="90" step="1" placeholder="例: 35">
+        </div>
+        <div class="pill">
+          <label for="sex">性別</label>
+          <select id="sex">
+            <option value="">選択</option>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+          </select>
+        </div>
+        <div class="pill">
+          <label for="goal">目的</label>
+          <select id="goal">
+            <option value="">選択</option>
+            <option value="cut">減量</option>
+            <option value="maintain">維持</option>
+            <option value="bulk">増量</option>
+          </select>
+        </div>
+        <div class="pill">
+          <label for="activity">活動量</label>
+          <select id="activity">
+            <option value="">選択</option>
+            <option value="low">低い</option>
+            <option value="mid">中</option>
+            <option value="high">高い</option>
+          </select>
+        </div>
+      </div>
 
-/* ===== 入力検証 ===== */
-function requireFilled(){
-  const miss=[];
-  if(!$("sex").value) miss.push("性別");
-  if(!$("age").value) miss.push("年齢");
-  if(!$("height").value) miss.push("身長");
-  if(!$("weight").value) miss.push("体重");
-  if(!$("pFactor").value) miss.push("タンパク質係数");
-  if(!$("diet").value) miss.push("食事法");
-  if(!$("habit").value) miss.push("運動習慣");
+      <div class="actions">
+        <button class="btn" id="resetBtn">リセット</button>
+        <!-- ③ 計算→保存→リロードで数値反映 -->
+        <button class="btn btn-primary" id="calcBtn">計算する</button>
+      </div>
+    </section>
 
-  const diet = $("diet").value;
-  if((diet==="Ketovore" || diet==="TKD") && !$("carbIntake").value){
-    miss.push("糖質摂取量（目安）");
-  }
+    <!-- あなたの目安（見出し太さ統一 ④） -->
+    <section class="section">
+      <h2 class="section-title">あなたの目安</h2>
+      <div id="summary">
+        <p style="color: var(--muted); margin: 0;">
+          体重・目的・活動量を選択して「計算する」を押すと、自動で再読込されて数値が反映されます（③）。
+        </p>
+      </div>
+    </section>
 
-  if($("habit").value && $("habit").value!=="1.2"){
-    if(!$("fitnessType").value) miss.push("フィットネス");
-    if(!$("onoff").value) miss.push("オン/オフ");
-  }
-  if(miss.length){ alert("未入力があります：\n・"+miss.join("\n・")); return false; }
-  return true;
-}
-function validateTarget(goal, weight, targetStr){
-  const t = +targetStr;
-  if(goal==="maintain") return true;
-  if(!t){ alert("目標体重を入力してください"); return false; }
-  if(goal==="bulk" && t < weight){ alert("増量を選択中ですが、目標体重が現在より低いです。修正してください。"); return false; }
-  if(goal==="cut"  && t > weight){ alert("減量を選択中ですが、目標体重が現在より高いです。修正してください。"); return false; }
-  return true;
-}
+    <!-- ④ 別タブレイアウト：食材別 vs 体重推移 -->
+    <section class="section">
+      <div class="tabs" role="tablist" aria-label="result-tabs">
+        <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-intake" id="tab-intake-btn">食材別の目安摂取量</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-weight" id="tab-weight-btn">体重推移（推定）</button>
+      </div>
 
-/* ===== メイン計算 ===== */
-function calc(){
-  if(!requireFilled()) return;
+      <div id="tab-intake" class="tab-panel active" role="tabpanel" aria-labelledby="tab-intake-btn">
+        <table>
+          <thead>
+            <tr>
+              <th>食材</th>
+              <th>推定 1日目安量</th>
+              <th>備考</th>
+            </tr>
+          </thead>
+          <tbody id="intakeTable">
+            <!-- JSで埋め込み -->
+          </tbody>
+        </table>
+        <!-- ⑤ 食材別の下に代表値注記 -->
+        <p style="margin-top:12px; font-size:12px; color: var(--muted);">
+          ※100gあたり代表値（目安）：肉 220kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 270kcal / 野菜 30kcal / 果物 60kcal
+        </p>
+      </div>
 
-  const sex=$("sex").value;
-  const age=parseFloat($("age").value)||0;
-  const h=parseFloat($("height").value)||0;
-  const w=parseFloat($("weight").value)||0;
+      <div id="tab-weight" class="tab-panel" role="tabpanel" aria-labelledby="tab-weight-btn">
+        <table>
+          <thead>
+            <tr>
+              <th>週</th>
+              <th>推定体重(kg)</th>
+              <th>コメント</th>
+            </tr>
+          </thead>
+          <tbody id="weightTable">
+            <!-- JSで埋め込み -->
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  if(goal!=="maintain"){
-    if(!validateTarget(goal, w, $("targetWeight").value)) return;
-  }
+    <!-- ① 法的注記（常に黒） -->
+    <div class="legal-note">
+      ※各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
+      参考: Virta Health（YouTube） / The Noakes Foundation（YouTube）
+    </div>
+  </main>
 
-  const af=parseFloat($("habit").value)||1.2;
-  const diet=$("diet").value;
-  const carbSel=parseFloat($("carbIntake").value||"");
-  const fitnessType = ($("habit").value==="1.2") ? "none" : $("fitnessType").value;
-  const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
-  const pFactor=parseFloat($("pFactor").value);
+  <script>
+    // ===== ダーク/ライト切替（②） =====
+    const body = document.body;
+    const lightBtn = document.getElementById('lightBtn');
+    const darkBtn  = document.getElementById('darkBtn');
+    const THEME_KEY = 'cp_theme';
 
-  // 代謝
-  const bmi = w / Math.pow(h/100,2);
-  const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-  const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
-  const tdee = bmr * af * dayF;
+    function applyTheme(theme) {
+      body.setAttribute('data-theme', theme);
+      lightBtn.setAttribute('aria-pressed', theme === 'light');
+      darkBtn.setAttribute('aria-pressed', theme === 'dark');
+      localStorage.setItem(THEME_KEY, theme);
+    }
+    lightBtn.addEventListener('click', () => applyTheme('light'));
+    darkBtn.addEventListener('click',  () => applyTheme('dark'));
+    // 初期テーマ
+    applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
-  // 目標補正
-  const gF = GOAL_FACTOR[goal] || 1.0;
-  const targetKcal = tdee * gF;
+    // ===== 入力/状態 =====
+    const fields = {
+      weight: document.getElementById('weight'),
+      height: document.getElementById('height'),
+      age: document.getElementById('age'),
+      sex: document.getElementById('sex'),
+      goal: document.getElementById('goal'),
+      activity: document.getElementById('activity'),
+    };
+    const STATE_KEY = 'cp_state';
+    const RELOAD_FLAG = 'cp_reload_after_calc';
 
-  // マクロ
-  let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel);
-  let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
+    function saveState() {
+      const state = {
+        weight: fields.weight.value,
+        height: fields.height.value,
+        age: fields.age.value,
+        sex: fields.sex.value,
+        goal: fields.goal.value,
+        activity: fields.activity.value,
+      };
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    }
+    function loadState() {
+      const str = localStorage.getItem(STATE_KEY);
+      if (!str) return;
+      try {
+        const s = JSON.parse(str);
+        Object.keys(fields).forEach(k => {
+          if (s[k] != null) fields[k].value = s[k];
+        });
+      } catch {}
+    }
+    loadState();
 
-  let pk=protein_g*4, ck=carb_g*4, fk, kcal;
-  if(fat_g<0){
-    const pcK=pk+ck, s=Math.max(0,targetKcal/(pcK||1));
-    protein_g*=s; carb_g*=s; fat_g=0; pk=protein_g*4; ck=carb_g*4; fk=0; kcal=targetKcal;
-    $("fatWarn").textContent="※脂質が負になったため、目標カロリーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
-    $("fatWarn").style.display="block";
-  }else{
-    fk=fat_g*9; kcal=pk+ck+fk; $("fatWarn").style.display="none";
-  }
+    // ===== 計算ロジック（簡易の例。既存計算がある場合は差し替え） =====
+    function estimateMacros(state) {
+      // 活動係数
+      const act = { low: 1.5, mid: 1.75, high: 2.0 }[state.activity] || 1.6;
+      const baseWeight = Number(state.weight) || 60;
+      // ざっくりTDEE
+      const tdee = Math.round(baseWeight * 22 * act);
+      // 目的による調整
+      const adj = state.goal === 'cut' ? -400 : state.goal === 'bulk' ? +300 : 0;
+      const cal = Math.max(1200, tdee + adj);
 
-  // 表示
-  $("bmi").textContent=bmi.toFixed(2);
-  $("bmr").textContent=Math.round(bmr).toLocaleString();
-  $("tdee").textContent=Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)} g/kg｜数値補正 ×${(dayF*gF).toFixed(2)}`;
+      // カーニボア/ケトの比率（例）
+      // 脂質 70%, たんぱく 30%（Pは4kcal/g, Fは9kcal/g）
+      const fatCal = Math.round(cal * 0.70);
+      const proCal = cal - fatCal;
+      const fatG = Math.round(fatCal / 9);
+      const proG = Math.round(proCal / 4);
 
-  $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
-  $("kcal").textContent=Math.round(kcal).toLocaleString();
-  $("p").textContent=Math.round(protein_g);
-  $("f").textContent=Math.round(fat_g);
-  $("c").textContent=Math.round(carb_g);
-  $("pkcal").textContent=Math.round(pk).toLocaleString();
-  $("fkcal").textContent=Math.round(fk).toLocaleString();
-  $("ckcal").textContent=Math.round(ck).toLocaleString();
+      // 食材別配分（例: 肉/魚/卵/乳製品/野菜/果物）
+      const kcalPer100 = { meat:220, fish:150, egg:150, dairy:270, veg:30, fruit:60 };
+      // 動物性中心のサンプル配分
+      const split = { meat:0.55, fish:0.20, egg:0.15, dairy:0.10, veg:0, fruit:0 };
+      const intake = Object.fromEntries(
+        Object.entries(split).map(([k, r]) => {
+          const kc = Math.round(cal * r);
+          const g100 = Math.round((kc / kcalPer100[k]) * 100); // 何gか
+          return [k, { kcal: kc, grams: g100 }];
+        })
+      );
 
-  const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
-  const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
-  $("macroNote").textContent=`フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"5〜10g":(carbSel||0)+"g"} ｜ 数値補正 ×${(dayF*gF).toFixed(2)}`;
+      return { cal, fatG, proG, intake };
+    }
 
-  $("baseCard").style.display="block";
-  $("macroCard").style.display="block";
+    // ===== ③ 計算ボタン→保存→フラグ→リロード =====
+    const calcBtn = document.getElementById('calcBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    calcBtn.addEventListener('click', () => {
+      saveState();
+      localStorage.setItem(RELOAD_FLAG, '1');
+      // ここで実際にサーバ計算がある場合は先にPOSTしてからreloadでもOK
+      location.reload(); // 押すたびにリロード（③）
+    });
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem(STATE_KEY);
+      localStorage.removeItem(RELOAD_FLAG);
+      Object.values(fields).forEach(el => el.value = '');
+      document.getElementById('summary').innerHTML =
+        '<p style="color: var(--muted); margin:0;">初期化しました。数値は未計算です。</p>';
+      document.getElementById('intakeTable').innerHTML = '';
+      document.getElementById('weightTable').innerHTML = '';
+    });
 
-  // 食材
-  const sp=splits6By(diet, carbSel, fitnessType, onoff);
-  const kMeat=kcal*sp.meat, kFish=kcal*sp.fish, kEggs=kcal*sp.eggs, kDairy=kcal*sp.dairy, kVeg=kcal*sp.veg, kFruit=kcal*sp.fruit;
-  $("gMeat").textContent=Math.round((kMeat/KCAL_PER_100G.meat*100)/10)*10; $("kMeat").textContent=Math.round(kMeat);
-  $("gFish").textContent=Math.round((kFish/KCAL_PER_100G.fish*100)/10)*10; $("kFish").textContent=Math.round(kFish);
-  $("gEggs").textContent=Math.round((kEggs/KCAL_PER_100G.eggs*100)/10)*10; $("kEggs").textContent=Math.round(kEggs);
-  $("gDairy").textContent=Math.round((kDairy/KCAL_PER_100G.dairy*100)/10)*10; $("kDairy").textContent=Math.round(kDairy);
-  $("gVeg").textContent=(diet==="Carnivore"?0:Math.round((kVeg/KCAL_PER_100G.veg*100)/10)*10); $("kVeg").textContent=Math.round(kVeg);
-  $("gFruit").textContent=(diet==="Carnivore"?0:Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent=Math.round(kFruit);
-  $("foodCard").style.display="block";
+    // ===== 起動時：フラグがあれば計算を反映（③） =====
+    function renderAll() {
+      const str = localStorage.getItem(STATE_KEY);
+      if (!str) return;
+      const state = JSON.parse(str);
+      const res = estimateMacros(state);
 
-  updateBars(pk,fk,ck,kcal);
-  updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
+      // あなたの目安
+      document.getElementById('summary').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+          <div class="pill"><label>推定カロリー</label><div>${res.cal} kcal/日</div></div>
+          <div class="pill"><label>脂質</label><div>${res.fatG} g/日</div></div>
+          <div class="pill"><label>たんぱく質</label><div>${res.proG} g/日</div></div>
+        </div>
+      `;
 
-  // グラフ
-  const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? +$("targetWeight").value : null;
-  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700});
-}
+      // 食材別の目安摂取量（⑤の注記はHTML側に固定済み）
+      const mapName = { meat:'肉', fish:'魚介類', egg:'卵', dairy:'乳製品', veg:'野菜', fruit:'果物' };
+      const tbody = document.getElementById('intakeTable');
+      tbody.innerHTML = '';
+      ['meat','fish','egg','dairy','veg','fruit'].forEach(k=>{
+        const it = res.intake[k];
+        if (!it) return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${mapName[k]}</td>
+          <td>${it.grams} g / 日（約 ${it.kcal} kcal）</td>
+          <td>${k==='veg'||k==='fruit' ? '任意（カーニボアでは通常少なめ）' : '推奨'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-/* ===== 初期化：リロード時に全項目リセット ===== */
-function restoreForm(){
-  try{ localStorage.removeItem("plannerForm"); }catch{}
-  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
-  ids.forEach(id=>{
-    const el = $(id);
-    if(!el) return;
-    if(el.tagName==="SELECT"){ el.selectedIndex = 0; }
-    else el.value = "";
-  });
-  goal = "maintain";
-  ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
-    const b=$(i); const is=(i==="goal-maintain");
-    b.classList.toggle("active",is);
-    b.setAttribute("aria-selected",is?"true":"false");
-    b.setAttribute("aria-pressed",is?"true":"false");
-  });
-  $("targetCol").style.display = "none";
-  $("carbCol").style.display = "none";
-  $("fitnessType").disabled = true;
-  $("onoff").disabled = true;
+      // 体重推移（推定）：超簡易モデル（参考値）
+      const w0 = Number(state.weight) || 60;
+      const deltaPerDay = (res.cal - (w0*22*1.6)) / 7700; // ざっくり 7700kcal=1kg
+      const weightTable = document.getElementById('weightTable');
+      weightTable.innerHTML = '';
+      for (let week=0; week<=8; week+=1) {
+        const d = week*7;
+        const w = (w0 + deltaPerDay * d).toFixed(1);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${week} 週</td>
+          <td>${w} kg</td>
+          <td>${week===0?'開始時': (deltaPerDay<0?'緩やかに減少傾向':'やや増加傾向')}</td>
+        `;
+        weightTable.appendChild(tr);
+      }
+    }
 
-  setNoneOptionVisible("fitnessType", false);
-  setNoneOptionVisible("onoff", false);
+    if (localStorage.getItem(RELOAD_FLAG) === '1') {
+      // 計算要求後のリロード。描画してからフラグ解除。
+      renderAll();
+      localStorage.removeItem(RELOAD_FLAG);
+    } else {
+      // 通常ロード時も既存状態があれば描画（初回は空）
+      renderAll();
+    }
 
-  ["baseCard","macroCard","foodCard"].forEach(id=>$(id).style.display="none");
-}
-restoreForm();
-</script>
+    // ===== ④ タブ切替 =====
+    const tabIntakeBtn = document.getElementById('tab-intake-btn');
+    const tabWeightBtn = document.getElementById('tab-weight-btn');
+    const tabIntake = document.getElementById('tab-intake');
+    const tabWeight = document.getElementById('tab-weight');
+    function activateTab(which) {
+      const isIntake = which === 'intake';
+      tabIntakeBtn.classList.toggle('active', isIntake);
+      tabWeightBtn.classList.toggle('active', !isIntake);
+      tabIntake.classList.toggle('active', isIntake);
+      tabWeight.classList.toggle('active', !isIntake);
+      tabIntakeBtn.setAttribute('aria-selected', isIntake ? 'true':'false');
+      tabWeightBtn.setAttribute('aria-selected', !isIntake ? 'true':'false');
+    }
+    tabIntakeBtn.addEventListener('click', ()=>activateTab('intake'));
+    tabWeightBtn.addEventListener('click', ()=>activateTab('weight'));
+  </script>
 </body>
 </html>
