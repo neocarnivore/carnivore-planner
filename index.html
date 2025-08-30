@@ -27,7 +27,6 @@
   .big{font-size:28px;font-weight:900;color:var(--acc)}
   .small{font-size:12px;color:var(--muted)}
   .warn{color:var(--red);font-size:12px;margin-top:6px}
-  .fade{animation:fade .35s ease}
   .macroBox .label{font-size:12px;color:var(--muted)}
   .macroBox .val{font-size:22px;font-weight:800;margin-top:2px}
   .macroBox .kcal{display:flex;gap:6px;align-items:baseline;justify-content:center;margin-top:6px}
@@ -71,6 +70,20 @@
       </div>
     </div>
 
+    <!-- 目標 -->
+    <div class="row">
+      <div>
+        <label>目標</label>
+        <select id="goal">
+          <option value="cut">減量（-15%）</option>
+          <option value="recomp" selected>維持（±0%）</option>
+          <option value="bulk">増量（+15%）</option>
+        </select>
+      </div>
+      <div><!-- 空き（2カラム維持用） --></div>
+    </div>
+
+    <!-- 運動習慣 ＋ フィットネス（種目） -->
     <div class="row">
       <div>
         <label>運動習慣</label>
@@ -83,20 +96,26 @@
         </select>
       </div>
       <div>
-        <label>食事法</label>
-        <select id="diet">
-          <option value="Carnivore">CARNIVORE</option>
-          <option value="Ketovore">KETOVORE</option>
-          <option value="TKD">肉食寄りTKD</option>
+        <label>フィットネス（種目）</label>
+        <select id="fitType">
+          <option value="strength">筋トレ</option>
+          <option value="run">ランニング</option>
+          <option value="walk" selected>ウォーキング</option>
+          <option value="cycle">サイクリング</option>
+          <option value="swim">水泳</option>
+          <option value="fight">格闘技</option>
+          <option value="club">部活動</option>
+          <option value="aero">その他（有酸素運動）</option>
+          <option value="anaero">その他（無酸素運動）</option>
         </select>
       </div>
     </div>
 
-    <!-- フィットネス + 右：糖質摂取量（Ketovore/TKDのみ表示） -->
+    <!-- オン/オフ（当日）＋ 糖質摂取量（Ketovore/TKDのみ） -->
     <div class="row">
       <div>
-        <label>フィットネス</label>
-        <select id="fitness">
+        <label>オン/オフ</label>
+        <select id="dayMode">
           <option value="none">該当なし</option>
           <option value="workout">運動日</option>
           <option value="rest">休息日</option>
@@ -232,7 +251,8 @@ let hasCalculated = false;
 function saveForm(){
   const data = {
     sex:$("sex").value, age:$("age").value, height:$("height").value, weight:$("weight").value,
-    habit:$("habit").value, diet:$("diet").value, carb:$("carbIntake").value, fitness:$("fitness").value
+    goal:$("goal").value, habit:$("habit").value, fitType:$("fitType").value,
+    dayMode:$("dayMode").value, diet:$("diet").value, carb:$("carbIntake").value
   };
   localStorage.setItem("plannerForm", JSON.stringify(data));
 }
@@ -241,7 +261,8 @@ function restoreForm(){
   try{
     const d = JSON.parse(raw);
     $("sex").value=d.sex; $("age").value=d.age; $("height").value=d.height; $("weight").value=d.weight;
-    $("habit").value=d.habit; $("diet").value=d.diet; $("carbIntake").value=d.carb; $("fitness").value=d.fitness;
+    $("goal").value=d.goal; $("habit").value=d.habit; $("fitType").value=d.fitType;
+    $("dayMode").value=d.dayMode; $("diet").value=d.diet; $("carbIntake").value=d.carb;
     toggleCarb();
     return true;
   }catch(e){ return false; }
@@ -265,15 +286,38 @@ $("calcBtn").addEventListener("click", ()=>{
   }
 });
 
-// 数値補正（フィットネス×食事法）
-function dayFactorBy(diet, fitness){
-  if(fitness==="none") return 1.00;
-  if(diet==="Carnivore") return fitness==="workout" ? 1.05 : 0.97;
-  if(diet==="Ketovore") return fitness==="workout" ? 1.06 : 0.98;
-  return fitness==="workout" ? 1.07 : 0.97; // TKD
+/* ====== 補正係数 ====== */
+// 目標（摂取カロリー補正）
+function goalFactorOf(goal){
+  if(goal==="cut")  return 0.85;   // 減量 -15%
+  if(goal==="bulk") return 1.15;   // 増量 +15%
+  return 1.00;                     // 維持
 }
+// 当日オン/オフ（食事法×当日状態）
+function dayFactorBy(diet, day){
+  if(day==="none") return 1.00;
+  if(diet==="Carnivore") return (day==="workout") ? 1.05 : 0.97;
+  if(diet==="Ketovore") return (day==="workout") ? 1.06 : 0.98;
+  return (day==="workout") ? 1.07 : 0.97; // TKD
+}
+// フィットネス（種目）補正：控えめに上乗せ
+function fitTypeFactor(ft){
+  return {
+    strength:1.05,  // 筋トレ
+    run:1.06,       // ランニング
+    walk:1.02,      // ウォーキング
+    cycle:1.05,     // サイクリング
+    swim:1.07,      // 水泳
+    fight:1.08,     // 格闘技
+    club:1.05,      // 部活動
+    aero:1.04,      // その他（有酸素）
+    anaero:1.04     // その他（無酸素）
+  }[ft] || 1.00;
+}
+
 // 糖質（食事法×選択値）※Carnivoreは代表8g
 function carbsBy(diet, carbSel){ return (diet==="Carnivore") ? 8 : (carbSel || 30); }
+
 // BMI区分テキスト
 function classText(bmi){
   if(bmi < 18.5) return "低体重(<18.5)";
@@ -283,8 +327,9 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
+
 // 食材配分（比率）
-function splitsBy(diet, carbSel, fitness){
+function splitsBy(diet, carbSel, dayMode){
   let s = {meat:0.7, dairy:0.2, veg:0.1};
   const level = (carbSel<=30)?30:(carbSel<=50)?50:70;
   if(diet==="Carnivore"){
@@ -293,10 +338,10 @@ function splitsBy(diet, carbSel, fitness){
     if(level===30) s = {meat:0.70, dairy:0.20, veg:0.10};
     if(level===50) s = {meat:0.62, dairy:0.18, veg:0.20};
     if(level===70) s = {meat:0.58, dairy:0.17, veg:0.25};
-    if(fitness==="workout"){ s.meat+=0.04; s.veg=Math.max(0,s.veg-0.04); }
-    if(fitness==="rest"){ s.dairy+=0.03; s.meat=Math.max(0,s.meat-0.02); s.veg=Math.max(0,s.veg-0.01); }
+    if(dayMode==="workout"){ s.meat+=0.04; s.veg=Math.max(0,s.veg-0.04); }
+    if(dayMode==="rest"){ s.dairy+=0.03; s.meat=Math.max(0,s.meat-0.02); s.veg=Math.max(0,s.veg-0.01); }
   } else { // TKD
-    if(fitness==="workout"){
+    if(dayMode==="workout"){
       if(level===30) s = {meat:0.65, dairy:0.15, veg:0.20};
       if(level===50) s = {meat:0.58, dairy:0.15, veg:0.27};
       if(level===70) s = {meat:0.54, dairy:0.15, veg:0.31};
@@ -335,23 +380,28 @@ function calc(fromReload){
   const age = +$("age").value||0;
   const h   = +$("height").value||0;
   const w   = +$("weight").value||0;
+  const goal = $("goal").value;
   const af  = +$("habit").value||1.2;
+  const fitType = $("fitType").value;
+  const dayMode = $("dayMode").value;
   const diet= $("diet").value;
   const carbSel = +($("carbIntake").value||30);
-  const fitness = $("fitness").value;
 
   if(!h || !w || !age){ alert("年齢・身長・体重を入力してください"); return; }
 
-  // 代謝
+  // 代謝（TDEEは目標補正を含めない「消費」）
   const bmi = w / Math.pow(h/100,2);
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-  const dayF = dayFactorBy(diet, fitness);
-  const tdee = bmr * af * dayF;
+  const dayF = dayFactorBy(diet, dayMode);
+  const fitF = fitTypeFactor(fitType);
+  const tdee = bmr * af * dayF * fitF;      // 総消費
+  const goalF = goalFactorOf(goal);         // 摂取カロリー補正（±15%）
 
   // マクロ計算：P=1.8 g/kg、Cルール、F調整
   const protein_g = w * 1.8;
   const carb_g = carbsBy(diet, carbSel);
-  let fat_g = (tdee - 4*protein_g - 4*carb_g) / 9;
+  const targetKcal = tdee * goalF;          // ここに目標補正を適用
+  let fat_g = (targetKcal - 4*protein_g - 4*carb_g) / 9;
   const fatNeg = fat_g < 0;
   if(fatNeg) fat_g = 0;
 
@@ -361,7 +411,8 @@ function calc(fromReload){
   $("bmi").textContent  = bmi.toFixed(2);
   $("bmr").textContent  = Math.round(bmr).toLocaleString();
   $("tdee").textContent = Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent = `BMI区分：${classText(bmi)}｜タンパク質 1.8 g/kg｜数値補正 ×${dayF.toFixed(2)}`;
+  $("bmiClassTxt").textContent =
+    `BMI区分：${classText(bmi)}｜タンパク質 1.8 g/kg｜活動係数 ×${af.toFixed(2)}｜数値補正 ×${(dayF*fitF).toFixed(2)}`;
 
   $("dietLabel").textContent = (diet==="TKD" ? "肉食寄りTKD" : diet.toUpperCase());
   $("kcal").textContent = Math.round(kcal).toLocaleString();
@@ -375,17 +426,20 @@ function calc(fromReload){
   $("fkcal").textContent = Math.round(fk).toLocaleString();
   $("ckcal").textContent = Math.round(ck).toLocaleString();
 
+  const goalStr = goal==="cut" ? "減量（-15%）" : goal==="bulk" ? "増量（+15%）" : "維持（±0%）";
   $("macroNote").textContent =
-    `フィットネス：${fitness==="workout"?"運動日":fitness==="rest"?"休息日":"該当なし"} ｜ 糖質摂取量（目安）：${diet==="Carnivore" ? "5〜10g" : carbSel+"g"}`;
+    `目標：${goalStr}｜オン/オフ：${dayMode==="workout"?"運動日":dayMode==="rest"?"休息日":"該当なし"}｜フィットネス：${
+      {strength:"筋トレ",run:"ランニング",walk:"ウォーキング",cycle:"サイクリング",swim:"水泳",fight:"格闘技",club:"部活動",aero:"その他（有酸素）",anaero:"その他（無酸素）"}[fitType]
+    }｜糖質摂取量（目安）：${diet==="Carnivore" ? "5〜10g" : carbSel+"g"}｜数値補正 ×${(dayF*fitF).toFixed(2)}`;
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("fatWarn").style.display = fatNeg ? "block" : "none";
 
-  // 食材別の目安摂取量
-  const sp = splitsBy(diet, carbSel, fitness);
+  // 食材別の目安摂取量（摂取側=targetKcalベース）
+  const sp = splitsBy(diet, carbSel, dayMode);
   const CAT = { meat:{kcal:220}, dairy:{kcal:240}, veg:{kcal:150} };
-  const kMeat = kcal * sp.meat, kDairy = kcal * sp.dairy, kVeg = (diet==="Carnivore" ? 0 : kcal * sp.veg);
+  const kMeat = targetKcal * sp.meat, kDairy = targetKcal * sp.dairy, kVeg = (diet==="Carnivore" ? 0 : targetKcal * sp.veg);
   const gMeat = Math.round((kMeat / CAT.meat.kcal) * 100 / 10) * 10;
   const gDairy= Math.round((kDairy/ CAT.dairy.kcal)* 100 / 10) * 10;
   const gVeg  = Math.round((kVeg  / CAT.veg.kcal)  * 100 / 10) * 10;
@@ -398,7 +452,7 @@ function calc(fromReload){
 
   // 棒グラフ更新（マクロ＆食材別）
   updateBars(pk, fk, ck, kcal);
-  updateFoodBars(kMeat, kDairy, kVeg, kcal);
+  updateFoodBars(kMeat, kDairy, kVeg, targetKcal);
 
   if(fromReload) window.scrollTo({top:0,behavior:'smooth'});
 }
