@@ -369,8 +369,7 @@ function enforceHabitRules(){
   }
 }
 
-/* 計算ボタン：保存→リロード→自動計算
-   ※入力時ズーム戻し */
+/* 計算ボタン：保存→リロード→自動計算（入力時ズーム戻し） */
 $("calcBtn").addEventListener("click", ()=>{
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
@@ -422,9 +421,11 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
-const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 }; // ← 代表値更新
 
-/* NaN安全化 */
+/* 代表値（肉280/乳160に更新済み） */
+const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 };
+
+/* NaN安全化＋分配 */
 function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
@@ -446,7 +447,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
 }
 
-/* グラフ */
+/* グラフ描画 */
 function fitCanvasDPR(canvas){
   const dpr = Math.max(1, window.devicePixelRatio||1);
   const rect = canvas.getBoundingClientRect();
@@ -668,11 +669,8 @@ function calc(){
   }
   if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示
-  $("bmi").textContent=bmi.toFixed(2);
-  $("bmr").textContent=Math.round(bmr).toLocaleString();
-  $("tdee").textContent=Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)} g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標補正 ×${gF.toFixed(2)}`;
+  // 表示（g/kg の前のスペース除去済み）
+  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)}g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標補正 ×${gF.toFixed(2)}`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -685,7 +683,7 @@ function calc(){
 
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
-  // CARNIVORE時は固定で8gを表示
+  // CARNIVOREは8gを表示固定（実計算も8g）
   $("macroNote").textContent=`フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"} ｜ 活動係数AF×日別補正＝TDEE｜日別補正±12%内`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
