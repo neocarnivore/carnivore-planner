@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Carnivore Planner, Crafted by Neo</title>
 <meta name="theme-color" content="#0b0b0f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root{
-    --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#9fb0c3;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
+    --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#5c6e83;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
     --p:#2aa1ff;--f:#ffb454;--c:#48d1b5;
     --axis:rgba(255,255,255,.9);--grid:rgba(255,255,255,.12);--axisLine:rgba(255,255,255,.35)
   }
@@ -282,6 +282,9 @@
 <script>
 const $ = id => document.getElementById(id);
 
+/* ユーティリティ */
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
 /* テーマ */
 function applyThemeFromStorage(){
   const t = localStorage.getItem('theme');
@@ -366,9 +369,19 @@ function enforceHabitRules(){
   }
 }
 
-/* 計算ボタン：保存→リロード→自動計算 */
+/* 計算ボタン：保存→リロード→自動計算
+   ※(9) 入力で拡大した画面を通常表示に戻す：blur + viewport一時調整 + スクロールトップ */
 $("calcBtn").addEventListener("click", ()=>{
   if(requireFilled()){
+    // 画面リセット（iOSのズーム戻し）
+    if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
+    const vp = document.querySelector('meta[name="viewport"]');
+    if(vp){
+      const orig = vp.getAttribute('content');
+      vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
+      setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
+    }
+    window.scrollTo({top:0, left:0, behavior:'instant'});
     saveFormToSession();
     sessionStorage.setItem("autocalc","1");
     location.reload();
@@ -380,16 +393,29 @@ $("calcBtn").addEventListener("click", ()=>{
 
 /* 補助 */
 const SPORT_FACTORS = {
-  strength:{ on:1.06, off:0.99 }, run:{ on:1.08, off:0.99 }, cycle:{ on:1.09, off:0.99 },
-  club:{ on:1.10, off:0.99 }, martial:{ on:1.12, off:0.99 }, aerobic:{ on:1.07, off:0.99 }, anaerobic:{ on:1.05, off:0.99 },
+  /* (6) 日別補正は±12%内にクランプされる */
+  strength:{ on:1.10, off:0.94 }, run:{ on:1.12, off:0.92 }, cycle:{ on:1.11, off:0.93 },
+  club:{ on:1.12, off:0.92 }, martial:{ on:1.12, off:0.92 }, aerobic:{ on:1.10, off:0.94 }, anaerobic:{ on:1.08, off:0.96 },
   none:{ on:1.00, off:1.00 }
 };
 function dailyAdjustment(habit, fitnessType, onoff){
   if(habit==="1.2") return 1.00;
   const map = SPORT_FACTORS[fitnessType||"none"] || SPORT_FACTORS.none;
-  return map[onoff||"off"] ?? 1.00;
+  const raw = map[onoff||"off"] ?? 1.00;
+  return clamp(raw, 0.88, 1.12); // (6)
 }
-function carbsBy(diet, carbSel){ return (diet==="Carnivore") ? 8 : (carbSel || 30); }
+
+/* (5) TKDはオン/オフで糖質量を可変に。オフは選択値の40%または20g上限 */
+function carbsBy(diet, carbSel, onoff){
+  if(diet==="Carnivore") return 8; // 5〜10gの中庸値
+  const base = Number.isFinite(+carbSel) ? +carbSel : 30;
+  if(diet==="TKD"){
+    if(onoff==="off") return Math.min(20, Math.round(base*0.4));
+    return base;
+  }
+  return base; // Ketovore
+}
+
 function classText(bmi){
   if(bmi < 18.5) return "低体重(<18.5)";
   if(bmi < 25)   return "普通(18.5–24.9)";
@@ -399,15 +425,18 @@ function classText(bmi){
   return "肥満III(≥40)";
 }
 const KCAL_PER_100G = { meat:220, fish:150, eggs:150, dairy:270, veg:30, fruit:60 };
+
+/* (7) NaN安全化 + 既存ロジック維持 */
 function splits6By(diet, carbSel, fitnessType, onoff){
-  const level = (carbSel<=30)?30:(carbSel<=50)?50:70;
+  const sel = Number.isFinite(+carbSel) ? +carbSel : 30; // NaNフォールバック
+  const level = (sel<=30)?30:(sel<=50)?50:70;
   let s = { meat:0.62, fish:0.10, eggs:0.12, dairy:0.10, veg:0.04, fruit:0.02 };
   if(diet==="Carnivore"){ s = { meat:0.66, fish:0.12, eggs:0.14, dairy:0.08, veg:0.00, fruit:0.00 }; }
   else if(diet==="Ketovore"){
     if(level===30) s = { meat:0.60, fish:0.11, eggs:0.11, dairy:0.10, veg:0.06, fruit:0.02 };
     if(level===50) s = { meat:0.56, fish:0.11, eggs:0.11, dairy:0.10, veg:0.10, fruit:0.02 };
     if(level===70) s = { meat:0.52, fish:0.11, eggs:0.10, dairy:0.10, veg:0.13, fruit:0.04 };
-  } else {
+  } else { // TKD
     if(level===30) s = { meat:0.58, fish:0.11, eggs:0.11, dairy:0.10, veg:0.08, fruit:0.02 };
     if(level===50) s = { meat:0.54, fish:0.11, eggs:0.10, dairy:0.10, veg:0.12, fruit:0.03 };
     if(level===70) s = { meat:0.50, fish:0.11, eggs:0.10, dairy:0.10, veg:0.15, fruit:0.04 };
@@ -438,13 +467,15 @@ document.addEventListener('click',(e)=>{
 });
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg}){
+/* (8) 減量時はNEAT低下を強めるトグル（isCut） */
+function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
   ctx.clearRect(0,0,W,H);
 
   const daysPerMonth=30;
-  const baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
+  let baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
+  if(isCut && dailyDeltaKcal<0){ baseMonthlyKg *= 0.90; } // NEAT低下
 
   const xs=[], ys=[]; let w=startKg;
   for(let m=0;m<=months;m++){
@@ -510,7 +541,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg})
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg};
+  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -565,6 +596,35 @@ function validateTarget(goal, weight, targetStr){
   return true;
 }
 
+/* (4) 脂質下限ガード：不足分は糖質→タンパの順で削って脂質を下限まで */
+function enforceFatFloor(protein_g, carb_g, fat_g, body_w){
+  const FAT_MIN_G_PER_KG = 0.6;
+  const fatMin = FAT_MIN_G_PER_KG * body_w;
+  if(fat_g >= fatMin) return {protein_g, carb_g, fat_g, adjusted:false, reason:""};
+  let needFatG = fatMin - fat_g; // 追加したい脂質(g)
+  let needKcal = needFatG * 9;
+
+  // まず糖質から差し引く
+  const carbKcal = Math.max(0, carb_g*4);
+  const cutFromCarb = Math.min(carbKcal, needKcal);
+  carb_g = Math.max(0, carb_g - cutFromCarb/4);
+  needKcal -= cutFromCarb;
+
+  // 次にタンパから差し引く（極端回避用に下限0は避けつつ、必要分を確保）
+  if(needKcal > 0){
+    const protKcal = Math.max(0, protein_g*4);
+    const cutFromProt = Math.min(protKcal, needKcal);
+    protein_g = Math.max(0, protein_g - cutFromProt/4);
+    needKcal -= cutFromProt;
+  }
+
+  // 残ったら（稀）脂質を満額にできないが、ここでは目標kcalを厳守し、届く範囲で上げる
+  const addedFatG = (needFatG - (needKcal/9)); // 実際に増やせた脂質g
+  fat_g += Math.max(0, addedFatG);
+
+  return {protein_g, carb_g, fat_g, adjusted:true, reason:"※脂質下限（0.6 g/kg）確保のため、糖質→タンパク質の順で自動調整しました。"};
+}
+
 /* メイン計算 */
 function calc(){
   if(!requireFilled()) return;
@@ -595,25 +655,32 @@ function calc(){
   const gF = GOAL_FACTOR[goal] || 1.0;
   const targetKcal = tdee * gF;
 
-  // マクロ
-  let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel);
+  // マクロ（5対応：TKDオフ日は糖質を自動減）
+  let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel, onoff);
   let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
 
   let pk=protein_g*4, ck=carb_g*4, fk, kcal;
+  let warnMsg = "";
+
+  // 脂質が負ならPCをスケール（既存）
   if(fat_g<0){
     const pcK=pk+ck, s=Math.max(0,targetKcal/(pcK||1));
     protein_g*=s; carb_g*=s; fat_g=0; pk=protein_g*4; ck=carb_g*4; fk=0; kcal=targetKcal;
-    $("fatWarn").textContent="※脂質が負になったため、目標カロリーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
-    $("fatWarn").style.display="block";
+    warnMsg = "※脂質が負になったため、目標カロリーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
   }else{
-    fk=fat_g*9; kcal=pk+ck+fk; $("fatWarn").style.display="none";
+    // (4) 脂質下限ガード
+    const adj = enforceFatFloor(protein_g, carb_g, fat_g, w);
+    protein_g = adj.protein_g; carb_g = adj.carb_g; fat_g = adj.fat_g;
+    pk = protein_g*4; ck = carb_g*4; fk = fat_g*9; kcal = pk+ck+fk;
+    if(adj.adjusted) warnMsg = adj.reason;
   }
+  if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示
+  // 表示（説明改善 (6)）
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)} g/kg｜数値補正 ×${(dayF*gF).toFixed(2)}`;
+  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)} g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標補正 ×${gF.toFixed(2)}`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -626,48 +693,52 @@ function calc(){
 
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
-  $("macroNote").textContent=`フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"5〜10g":(Math.round(carb_g))+"g"} ｜ 数値補正 ×${(dayF*gF).toFixed(2)}`;
+  $("macroNote").textContent=`フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"5〜10g":(Math.round(carb_g))+"g"} ｜ （活動係数AF×日別補正＝TDEE、日別補正は±12%の微調整）`;
+  if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
-  /* ========= 食材配分（肉優先 & 植物は3:7で抑制） ========= */
+  /* ========= 食材配分 =========
+     (2)(3) 植物側kcalは固定キャップ。残り糖質kcalは乳製品（乳糖）に積み増し → その後、残カロリーを動物性で配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
 
-  // 植物側kcalの上限（Carnivoreは0）
-  const level = (carbSel<=30)?30:(carbSel<=50)?50:70;
-  const VEG_FRUIT_KCAL_CAP = { 30: 45, 50: 75, 70: 105 }; // 厳しめ上限
+  // 植物側kcalキャップ（Carnivoreは0）
+  const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
+  const level = (sel<=30)?30:(sel<=50)?50:70;
+  const VEG_FRUIT_KCAL_CAP = { 30: 45, 50: 75, 70: 105 }; // 既存の厳しめ上限
   const carbKcalTotal = (diet==="Carnivore") ? 0 : ck; // ck=carb_g*4
   const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
   const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
 
-  // ★ 指定：野菜:果物 = 3:7 固定（Ketovore/TKDのみ）
+  // 野菜:果物 = 3:7（Ketovore/TKDのみ）、Carnivoreは0
   let vegRatio = 0, fruitRatio = 0;
-  if(diet==="Ketovore" || diet==="TKD"){
-    vegRatio = 0.3; fruitRatio = 0.7;
-  }else{
-    vegRatio = 1; fruitRatio = 0; // Carnivore
-  }
+  if(diet==="Ketovore" || diet==="TKD"){ vegRatio = 0.3; fruitRatio = 0.7; }
+  else { vegRatio = 1; fruitRatio = 0; }
 
-  let kVeg   = vegFruitKcal * vegRatio;
-  let kFruit = vegFruitKcal * fruitRatio;
+  let kVeg   = (diet==="Carnivore")?0: (vegFruitKcal * vegRatio);
+  let kFruit = (diet==="Carnivore")?0: (vegFruitKcal * fruitRatio);
 
-  // 残りは動物性に優先配分（肉をバイアス）
-  const remainKcal = Math.max(0, kcal - (kVeg + kFruit));
-  let meatShare=(sp.meat||0), fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
+  // ★残り糖質kcalは乳糖として乳製品に先積み（パッチB）
+  const dairyLactoseKcal = Math.max(0, ck - vegFruitKcal);
 
-  const MEAT_BIAS = 0.08; // 肉に+8%ポイント
-  meatShare += MEAT_BIAS;
+  // 残りは動物性へ（肉バイアス）
+  const MEAT_BIAS = 0.08; // 肉に+8%pt
+  let meatShare=(sp.meat||0)+MEAT_BIAS, fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
   const sumAnimal = Math.max(meatShare+fishShare+eggsShare+dairyShare, 0.0001);
   meatShare/=sumAnimal; fishShare/=sumAnimal; eggsShare/=sumAnimal; dairyShare/=sumAnimal;
+
+  // まず野菜/果物と乳糖分を確保
+  const fixedKcal = (kVeg + kFruit + dairyLactoseKcal);
+  const remainKcal = Math.max(0, kcal - fixedKcal);
 
   const kMeat  = remainKcal * meatShare;
   const kFish  = remainKcal * fishShare;
   const kEggs  = remainKcal * eggsShare;
-  const kDairy = remainKcal * dairyShare;
+  const kDairy = dairyLactoseKcal + (remainKcal * dairyShare);
 
-  // g換算
+  // g換算（10g刻み丸め）
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
   $("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
   $("gEggs").textContent  = Math.round((kEggs /KCAL_PER_100G.eggs *100)/10)*10;  $("kEggs").textContent  = Math.round(kEggs);
@@ -676,11 +747,13 @@ function calc(){
   $("gFruit").textContent = (diet==="Carnivore"?0:Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruit);
 
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
-  /* ========= ここまで ========= */
+
+  // (1) マクロ棒グラフが動いていない → ここで更新
+  updateBars(pk, fk, ck, kcal);
 
   // 体重推移
   const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? +$("targetWeight").value : null;
-  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700});
+  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
 
 /* 一時保存→リロード後に自動計算 */
