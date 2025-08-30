@@ -136,7 +136,6 @@
       <b class="big" id="kcal">–</b><span class="small">kcal/日</span>
     </div>
 
-    <!-- 3カラム：各マクロに g・kcal・棒グラフ -->
     <div class="grid">
       <div class="kpi macroBox">
         <div class="label">タンパク質</div>
@@ -166,9 +165,24 @@
   <div class="card" id="foodCard" style="display:none">
     <h3>食材別の目安摂取量</h3>
     <div class="grid">
-      <div class="kpi"><span class="small">肉・魚・魚介類</span><b id="gMeat">–</b><span class="small">g</span><div class="small">≈ <b id="kMeat">–</b> kcal</div></div>
-      <div class="kpi"><span class="small">卵・乳製品</span><b id="gDairy">–</b><span class="small">g</span><div class="small">≈ <b id="kDairy">–</b> kcal</div></div>
-      <div class="kpi"><span class="small">野菜・果物・ナッツ類</span><b id="gVeg">–</b><span class="small">g</span><div class="small">≈ <b id="kVeg">–</b> kcal</div></div>
+      <div class="kpi">
+        <span class="small">肉・魚・魚介類</span>
+        <b id="gMeat">–</b><span class="small">g</span>
+        <div class="small">≈ <b id="kMeat">–</b> kcal</div>
+        <div class="bar p"><span id="meatbar"></span></div>
+      </div>
+      <div class="kpi">
+        <span class="small">卵・乳製品</span>
+        <b id="gDairy">–</b><span class="small">g</span>
+        <div class="small">≈ <b id="kDairy">–</b> kcal</div>
+        <div class="bar f"><span id="dairybar"></span></div>
+      </div>
+      <div class="kpi">
+        <span class="small">野菜・果物・ナッツ類</span>
+        <b id="gVeg">–</b><span class="small">g</span>
+        <div class="small">≈ <b id="kVeg">–</b> kcal</div>
+        <div class="bar c"><span id="vegbar"></span></div>
+      </div>
     </div>
     <div class="small" style="margin-top:8px;opacity:.8">
       ※100gあたり代表値（目安）：肉類220 kcal / 魚介類150 kcal / 卵150 kcal / 乳製品270 kcal / 野菜30 kcal / 果物60 kcal / ナッツ類600 kcal
@@ -184,7 +198,7 @@
 <script>
 const $ = id => document.getElementById(id);
 
-/* ===== テーマ保持（ライト/ダーク） ===== */
+/* ===== テーマ保持 ===== */
 function applyThemeFromStorage(){
   const t = localStorage.getItem('theme');
   if(t === 'light'){ document.body.classList.add('light'); }
@@ -203,7 +217,7 @@ function updateThemeBtn(){
 }
 $('themeToggle').addEventListener('click', toggleTheme);
 applyThemeFromStorage();
-/* ===== ここまでテーマ保持 ===== */
+/* ===== ここまで ===== */
 
 // 糖質タブ表示：Ketovore / TKD のときだけ
 function toggleCarb(){
@@ -296,7 +310,7 @@ function splitsBy(diet, carbSel, fitness){
   return {meat: s.meat/sum, dairy: s.dairy/sum, veg: s.veg/sum};
 }
 
-// 棒グラフ更新
+// 棒グラフ更新（マクロ比率）
 function updateBars(pk, fk, ck, total){
   const p = total? Math.min(100, Math.round(pk/total*100)) : 0;
   const f = total? Math.min(100, Math.round(fk/total*100)) : 0;
@@ -304,6 +318,15 @@ function updateBars(pk, fk, ck, total){
   $("pbar").style.width = p+"%";
   $("fbar").style.width = f+"%";
   $("cbar").style.width = c+"%";
+}
+// 食材別バー更新
+function updateFoodBars(kMeat, kDairy, kVeg, total){
+  const m = total? Math.min(100, Math.round(kMeat/total*100)) : 0;
+  const d = total? Math.min(100, Math.round(kDairy/total*100)) : 0;
+  const v = total? Math.min(100, Math.round(kVeg/total*100)) : 0;
+  $("meatbar").style.width  = m+"%";
+  $("dairybar").style.width = d+"%";
+  $("vegbar").style.width   = v+"%";
 }
 
 function calc(fromReload){
@@ -325,7 +348,7 @@ function calc(fromReload){
   const dayF = dayFactorBy(diet, fitness);
   const tdee = bmr * af * dayF;
 
-  // マクロ：P=1.8 g/kg、Cはルール、Fで合わせ
+  // マクロ計算：P=1.8 g/kg、Cルール、F調整
   const protein_g = w * 1.8;
   const carb_g = carbsBy(diet, carbSel);
   let fat_g = (tdee - 4*protein_g - 4*carb_g) / 9;
@@ -334,7 +357,7 @@ function calc(fromReload){
 
   const kcal = 4*protein_g + 4*carb_g + 9*fat_g;
 
-  // 出力
+  // 出力（基礎）
   $("bmi").textContent  = bmi.toFixed(2);
   $("bmr").textContent  = Math.round(bmr).toLocaleString();
   $("tdee").textContent = Math.round(tdee).toLocaleString();
@@ -352,7 +375,6 @@ function calc(fromReload){
   $("fkcal").textContent = Math.round(fk).toLocaleString();
   $("ckcal").textContent = Math.round(ck).toLocaleString();
 
-  // 区切り「｜」に変更
   $("macroNote").textContent =
     `フィットネス：${fitness==="workout"?"運動日":fitness==="rest"?"休息日":"該当なし"} ｜ 糖質摂取量（目安）：${diet==="Carnivore" ? "5〜10g" : carbSel+"g"}`;
 
@@ -374,8 +396,9 @@ function calc(fromReload){
 
   $("foodCard").style.display="block";
 
-  // 棒グラフ更新（kcal比率）
+  // 棒グラフ更新（マクロ＆食材別）
   updateBars(pk, fk, ck, kcal);
+  updateFoodBars(kMeat, kDairy, kVeg, kcal);
 
   if(fromReload) window.scrollTo({top:0,behavior:'smooth'});
 }
