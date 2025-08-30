@@ -27,7 +27,7 @@
   input,select,button{width:100%;padding:12px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
   button{cursor:pointer;background:var(--acc);border:none;color:#fff;font-weight:700}
 
-  /* ===== 常に横並び（スマホでも崩さない固定3列/6枠） ===== */
+  /* 横固定 */
   .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   .row6{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 
@@ -44,6 +44,10 @@
   .big{font-size:clamp(22px,4vw,28px);font-weight:900;color:var(--acc)}
   .small{font-size:12px;color:var(--muted)}
   .warn{color:var(--red);font-size:12px;margin-top:6px}
+
+  /* あなたの目安：g/日を太字＆大きく */
+  .macroBox .val{font-size:clamp(22px,4vw,28px);font-weight:900;line-height:1.1}
+  .macroBox .kcal b{font-size:16px}
 
   /* 棒グラフ */
   .bar{height:8px;background:#0f141e;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
@@ -67,9 +71,9 @@
   .chartBtns button.active{background:var(--acc);color:#fff;border-color:transparent}
   canvas{width:min(820px,100%);height:auto;display:block;border-radius:10px;margin:0 auto}
 
-  /* フッターの視認性改善（ダークで薄くならない） */
-  .footerNote{color:#e8eef6}
-  .light .footerNote{color:#3a5368}
+  /* フッター（ダークでもはっきり） */
+  .footerNote{color:#ffffff;opacity:.98}
+  .light .footerNote{color:#2b3e52;opacity:1}
   .footerNote a{color:var(--p);text-decoration:underline}
 </style>
 </head>
@@ -203,7 +207,7 @@
   <!-- 出力：基礎データ -->
   <div class="card" id="baseCard" style="display:none" aria-live="polite">
     <h3>基礎データ</h3>
-    <div class="row3"><!-- 横一列固定 -->
+    <div class="row3">
       <div class="kpi"><div class="small">BMI</div><b id="bmi">–</b></div>
       <div class="kpi"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
       <div class="kpi"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
@@ -211,7 +215,7 @@
     <div class="small" id="bmiClassTxt" style="margin-top:8px;opacity:.9"></div>
   </div>
 
-  <!-- 出力：目安 -->
+  <!-- 出力：あなたの目安 -->
   <div class="card" id="macroCard" style="display:none" aria-live="polite">
     <h3>あなたの目安（<span id="dietLabel">—</span>）</h3>
     <div class="kpi" style="margin-bottom:10px">
@@ -219,7 +223,7 @@
       <b class="big" id="kcal">–</b><span class="small">kcal/日</span>
     </div>
 
-    <div class="row3"><!-- 横一列固定 -->
+    <div class="row3">
       <div class="kpi macroBox">
         <div class="label">タンパク質</div>
         <div class="val" id="p">–</div><div class="small">g/日</div>
@@ -242,11 +246,6 @@
 
     <div class="small" id="macroNote" style="margin-top:6px;opacity:.95"></div>
     <div class="warn" id="fatWarn" style="display:none"></div>
-
-    <!-- ② 100g代表値をここにも表示 -->
-    <div class="small" style="margin-top:8px;opacity:.95">
-      ※100gあたり代表値（目安）：肉 220kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 270kcal / 野菜 30kcal / 果物 60kcal
-    </div>
   </div>
 
   <!-- 食材 + 体重推移グラフ -->
@@ -303,6 +302,7 @@
         <canvas id="wtChart" height="260" aria-label="体重推移グラフ" role="img"></canvas>
       </div>
     </div>
+    <!-- ①＆③：100g代表値はここだけに表示 -->
     <div class="small" style="margin-top:8px;opacity:.95">
       ※100gあたり代表値（目安）：肉 220kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 270kcal / 野菜 30kcal / 果物 60kcal
     </div>
@@ -342,7 +342,6 @@ function toggleCarb(){
   const diet = $("diet").value;
   const show = (diet==="Ketovore" || diet==="TKD");
   $("carbCol").style.display = show ? "block" : "none";
-  // Ketovore/TKD時は「選択してください」を強制
   $("carbIntake").value = show ? "" : "";
 }
 $("diet").addEventListener("change", toggleCarb);
@@ -359,7 +358,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
   });
 });
 
-/* ===== 運動習慣に応じた選択可否と「該当なし」の表示制御 ===== */
+/* ===== 運動習慣に応じた制御 ===== */
 ["habit","pFactor","diet","fitnessType","onoff"].forEach(id=>{
   $(id).addEventListener("change", ()=>{
     if(id==="diet") toggleCarb();
@@ -441,7 +440,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
 }
 
-/* ===== グラフユーティリティ ===== */
+/* ===== グラフ ===== */
 function fitCanvasDPR(canvas){
   const dpr = Math.max(1, window.devicePixelRatio||1);
   const rect = canvas.getBoundingClientRect();
@@ -460,7 +459,6 @@ document.querySelectorAll('.chartBtns button').forEach(btn=>{
 });
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ===== グラフ描画 ===== */
 function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg}){
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
@@ -480,7 +478,8 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg})
     xs.push(m); ys.push(Math.max(0,w)); w+=delta;
   }
 
-  const padL=60, padR=20, padT=20, padB=40;
+  // 余白：上/下に多め
+  const padL=66, padR=22, padT=32, padB=48;
   const minY=Math.floor(Math.min(...ys, targetKg??ys[0]) - 1);
   const maxY=Math.ceil(Math.max(...ys, targetKg??ys[0]) + 1);
   const yRange=Math.max(1,maxY-minY);
@@ -492,7 +491,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg})
   // 背景グリッド
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid').trim();
   ctx.lineWidth=1;
-  const ySteps = 3; // ④ 縦軸ラベル4つ
+  const ySteps = 3; // 縦軸ラベル4つ
   for(let i=0;i<=ySteps;i++){
     const val=minY+(yRange/ySteps)*i, yy=yTo(val);
     ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
@@ -506,17 +505,21 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg})
   // ラベル
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
+  // X（日数）— 0日のラベルは少し右に寄せて左下とかぶらないように
   const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
   ticks.forEach(d=>{
     const m=d/30; const xx=xTo(Math.min(months,m));
     const label=`${d}日`; const tw=ctx.measureText(label).width;
-    const xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
-    ctx.fillText(label, xSafe, H-12);
+    let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
+    if(d===0) xSafe = padL + 10; // ④ 左下の衝突回避
+    ctx.fillText(label, xSafe, H-14);
   });
+  // Y（kg）— 上端・下端が切れないようクランプ
   for(let i=0;i<=ySteps;i++){
     const val=minY+(yRange/ySteps)*i; const yy=yTo(val);
     const label=`${val.toFixed(1)}kg`; const tw=ctx.measureText(label).width;
-    ctx.fillText(label, Math.max(padL-tw-6,6), yy-4);
+    const yClamped = Math.min(Math.max(yy-4, padT+12), H-padB-6); // ④ トップ/ボトム切れ防止
+    ctx.fillText(label, Math.max(padL-tw-8,6), yClamped);
   }
 
   // 目標線
@@ -702,11 +705,9 @@ function restoreForm(){
   $("fitnessType").disabled = true;
   $("onoff").disabled = true;
 
-  // 「該当なし」はデフォルト不可視（運動しない時のみ表示）
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
 
-  // 出力カード非表示
   ["baseCard","macroCard","foodCard"].forEach(id=>$(id).style.display="none");
 }
 restoreForm();
