@@ -8,8 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-  :root{--bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#9fb0c3;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a}
-  .light{--bg:#f6f8fb;--card:#ffffff;--text:#1a2732;--muted:#597086;--acc:#0aa37f;--red:#d13b3b;--input:#ffffff;--border:#dfe8f2}
+  :root{--bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#9fb0c3;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
+        --p:#2aa1ff;--f:#ffb454;--c:#48d1b5}
+  .light{--bg:#f6f8fb;--card:#ffffff;--text:#1a2732;--muted:#597086;--acc:#0aa37f;--red:#d13b3b;--input:#ffffff;--border:#dfe8f2;
+         --p:#0a84ff;--f:#ff9900;--c:#0aa37f}
   *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
   body{margin:0;background:linear-gradient(180deg,var(--bg),#10131b00);color:var(--text)}
   header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:16px 14px 6px;font-weight:800;font-size:18px}
@@ -26,6 +28,15 @@
   .small{font-size:12px;color:var(--muted)}
   .warn{color:var(--red);font-size:12px;margin-top:6px}
   .fade{animation:fade .35s ease}
+  .macroBox .label{font-size:12px;color:var(--muted)}
+  .macroBox .val{font-size:22px;font-weight:800;margin-top:2px}
+  .macroBox .kcal{display:flex;gap:6px;align-items:baseline;justify-content:center;margin-top:6px}
+  .macroBox .kcal b{font-size:18px}
+  .bar{height:8px;background:#0f141e;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
+  .bar span{display:block;height:100%;width:0%}
+  .bar.p span{background:var(--p)}
+  .bar.f span{background:var(--f)}
+  .bar.c span{background:var(--c)}
   @keyframes fade{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
 </style>
 </head>
@@ -81,7 +92,7 @@
       </div>
     </div>
 
-    <!-- フィットネス + （右）糖質摂取量（目安：Ketovore/TKDのみ表示） -->
+    <!-- フィットネス + 右：糖質摂取量（Ketovore/TKDのみ表示） -->
     <div class="row">
       <div>
         <label>フィットネス</label>
@@ -124,16 +135,29 @@
       <span class="small">摂取カロリー</span>
       <b class="big" id="kcal">–</b><span class="small">kcal/日</span>
     </div>
+
+    <!-- 3カラム：各マクロに g・kcal・棒グラフ -->
     <div class="grid">
-      <div class="kpi"><span class="small">タンパク質</span><b id="p">–</b><span class="small">g/日</span></div>
-      <div class="kpi"><span class="small">脂質</span><b id="f">–</b><span class="small">g/日</span></div>
-      <div class="kpi"><span class="small">糖質</span><b id="c">–</b><span class="small">g/日</span></div>
+      <div class="kpi macroBox">
+        <div class="label">タンパク質</div>
+        <div class="val" id="p">–</div><div class="small">g/日</div>
+        <div class="kcal"><b id="pkcal">–</b><span class="small">kcal</span></div>
+        <div class="bar p"><span id="pbar"></span></div>
+      </div>
+      <div class="kpi macroBox">
+        <div class="label">脂質</div>
+        <div class="val" id="f">–</div><div class="small">g/日</div>
+        <div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div>
+        <div class="bar f"><span id="fbar"></span></div>
+      </div>
+      <div class="kpi macroBox">
+        <div class="label">糖質</div>
+        <div class="val" id="c">–</div><div class="small">g/日</div>
+        <div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div>
+        <div class="bar c"><span id="cbar"></span></div>
+      </div>
     </div>
-    <div class="grid" style="margin-top:10px">
-      <div class="kpi"><span class="small">タンパク質からの摂取カロリー</span><b id="pkcal">–</b></div>
-      <div class="kpi"><span class="small">脂質からの摂取カロリー</span><b id="fkcal">–</b></div>
-      <div class="kpi"><span class="small">糖質からの摂取カロリー</span><b id="ckcal">–</b></div>
-    </div>
+
     <div class="small" id="macroNote" style="margin-top:6px;opacity:.8"></div>
     <div class="warn" id="fatWarn" style="display:none">※脂質が負になりました。カロリー目標を上げるか糖質/タンパク質を下げてください。</div>
   </div>
@@ -162,7 +186,7 @@ const $ = id => document.getElementById(id);
 
 /* ===== テーマ保持（ライト/ダーク） ===== */
 function applyThemeFromStorage(){
-  const t = localStorage.getItem('theme'); // 'light' or 'dark'
+  const t = localStorage.getItem('theme');
   if(t === 'light'){ document.body.classList.add('light'); }
   else{ document.body.classList.remove('light'); }
   updateThemeBtn();
@@ -210,18 +234,16 @@ function restoreForm(){
 }
 window.addEventListener('load', ()=>{
   if(localStorage.getItem("recalcFlag")==="1"){
-    applyThemeFromStorage(); // ← リロード後もテーマ維持
+    applyThemeFromStorage();
     restoreForm();
     calc(true);
     localStorage.removeItem("recalcFlag");
   }
 });
-
 $("calcBtn").addEventListener("click", ()=>{
   if(hasCalculated){
     saveForm();
     localStorage.setItem("recalcFlag","1");
-    // テーマも保存済みなのでこのまま
     location.reload();
   }else{
     calc(false);
@@ -236,13 +258,8 @@ function dayFactorBy(diet, fitness){
   if(diet==="Ketovore") return fitness==="workout" ? 1.06 : 0.98;
   return fitness==="workout" ? 1.07 : 0.97; // TKD
 }
-
-// 糖質（食事法×選択値）※Ketovore/TKDは選択値、Carnivoreは5〜10g想定（内部代表8g）
-function carbsBy(diet, carbSel){
-  if(diet==="Carnivore") return 8;
-  return carbSel || 30;
-}
-
+// 糖質（食事法×選択値）※Carnivoreは代表8g
+function carbsBy(diet, carbSel){ return (diet==="Carnivore") ? 8 : (carbSel || 30); }
 // BMI区分テキスト
 function classText(bmi){
   if(bmi < 18.5) return "低体重(<18.5)";
@@ -252,12 +269,10 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
-
 // 食材配分（比率）
 function splitsBy(diet, carbSel, fitness){
   let s = {meat:0.7, dairy:0.2, veg:0.1};
-  const level = (carbSel<=30)?30:(carbSel<=50)?50:70; // 30/50/70
-
+  const level = (carbSel<=30)?30:(carbSel<=50)?50:70;
   if(diet==="Carnivore"){
     s = {meat:0.78, dairy:0.22, veg:0.0};
   } else if(diet==="Ketovore"){
@@ -279,6 +294,16 @@ function splitsBy(diet, carbSel, fitness){
   }
   const sum = s.meat + s.dairy + s.veg || 1;
   return {meat: s.meat/sum, dairy: s.dairy/sum, veg: s.veg/sum};
+}
+
+// 棒グラフ更新
+function updateBars(pk, fk, ck, total){
+  const p = total? Math.min(100, Math.round(pk/total*100)) : 0;
+  const f = total? Math.min(100, Math.round(fk/total*100)) : 0;
+  const c = total? Math.min(100, Math.round(ck/total*100)) : 0;
+  $("pbar").style.width = p+"%";
+  $("fbar").style.width = f+"%";
+  $("cbar").style.width = c+"%";
 }
 
 function calc(fromReload){
@@ -322,19 +347,20 @@ function calc(fromReload){
   $("f").textContent = Math.round(fat_g);
   $("c").textContent = Math.round(carb_g);
 
-  $("pkcal").textContent = Math.round(protein_g*4);
-  $("fkcal").textContent = Math.round(fat_g*9);
-  $("ckcal").textContent = Math.round(carb_g*4);
+  const pk = protein_g*4, fk = fat_g*9, ck = carb_g*4;
+  $("pkcal").textContent = Math.round(pk).toLocaleString();
+  $("fkcal").textContent = Math.round(fk).toLocaleString();
+  $("ckcal").textContent = Math.round(ck).toLocaleString();
 
+  // 区切り「｜」に変更
   $("macroNote").textContent =
-    `フィットネス：${fitness==="workout"?"運動日":fitness==="rest"?"休息日":"該当なし"} ／ 糖質摂取量（目安）：${diet==="Carnivore" ? "5〜10g" : carbSel+"g"}`;
+    `フィットネス：${fitness==="workout"?"運動日":fitness==="rest"?"休息日":"該当なし"} ｜ 糖質摂取量（目安）：${diet==="Carnivore" ? "5〜10g" : carbSel+"g"}`;
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
-
   $("fatWarn").style.display = fatNeg ? "block" : "none";
 
-  // 食材別の目安摂取量（kcal→g換算・3カテゴリ代表）
+  // 食材別の目安摂取量
   const sp = splitsBy(diet, carbSel, fitness);
   const CAT = { meat:{kcal:220}, dairy:{kcal:240}, veg:{kcal:150} };
   const kMeat = kcal * sp.meat, kDairy = kcal * sp.dairy, kVeg = (diet==="Carnivore" ? 0 : kcal * sp.veg);
@@ -347,6 +373,9 @@ function calc(fromReload){
   $("gVeg").textContent  = (diet==="Carnivore"?0:gVeg); $("kVeg").textContent = Math.round(kVeg);
 
   $("foodCard").style.display="block";
+
+  // 棒グラフ更新（kcal比率）
+  updateBars(pk, fk, ck, kcal);
 
   if(fromReload) window.scrollTo({top:0,behavior:'smooth'});
 }
