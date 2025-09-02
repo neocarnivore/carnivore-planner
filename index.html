@@ -136,9 +136,7 @@
           <label>タンパク質係数（g/kg）</label>
           <select id="pFactor">
             <option value="" selected disabled>選択してください</option>
-            <option value="1.2">1.2（低め）</option>
-            <option value="1.6">1.6（標準）</option>
-            <option value="2.0">2.0（高め）</option>
+            <!-- オプションは目標選択で動的に差し替え -->
           </select>
         </div>
         <div>
@@ -230,13 +228,12 @@
       <div class="kpi macroBox"><div class="label">脂質</div><div class="val" id="f">–</div><div class="small">g/日</div><div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div><div class="bar f"><span id="fbar"></span></div></div>
       <div class="kpi macroBox"><div class="label">糖質</div><div class="val" id="c">–</div><div class="small">g/日</div><div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div><div class="bar c"><span id="cbar"></span></div></div>
     </div>
-    <!-- ▼ 電解質（追加：レイアウトのみ、既存デザイン維持） -->
+    <!-- ▼ 電解質 -->
     <div class="row3" style="margin-top:10px">
       <div class="kpi macroBox"><div class="label">カリウム</div><div class="val" id="k">–</div><div class="small">mg/日</div></div>
       <div class="kpi macroBox"><div class="label">ナトリウム</div><div class="val" id="na">–</div><div class="small">mg/日</div></div>
       <div class="kpi macroBox"><div class="label">マグネシウム</div><div class="val" id="mg">–</div><div class="small">mg/日</div></div>
     </div>
-    <!-- ▲ 電解質ここまで -->
     <div class="small" id="macroNote" style="margin-top:6px;opacity:.95"></div>
     <div class="warn" id="fatWarn" style="display:none"></div>
   </div>
@@ -288,8 +285,6 @@
 
 <script>
 const $ = id => document.getElementById(id);
-
-/* ユーティリティ */
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 
 /* テーマ */
@@ -312,7 +307,7 @@ function updateThemeBtn(){
 $('themeToggle').addEventListener('click', toggleTheme);
 applyThemeFromStorage();
 
-/* 糖質欄の表示（選択保持。非表示時のみクリア） */
+/* 糖質欄の表示 */
 function toggleCarb(){
   const diet = $("diet").value;
   const show = (diet==="Ketovore" || diet==="TKD");
@@ -333,17 +328,41 @@ $("diet").addEventListener("change", toggleCarb);
   });
 });
 
-/* 目標 */
+/* 目標（ゴール） */
 let goal = "maintain";
-const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
+const GOAL_ENERGY = { cut:25, maintain:30, bulk:35 }; // kcal/kg
+const PF_RATIO = { cut:{p:7,f:3}, maintain:{p:7.5,f:2.5}, bulk:{p:7.5,f:2.5} }; // 表示用（kcal比）
+
 ["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
   $(id).addEventListener("click", (e)=>{
     ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{ $(i).classList.remove("active"); $(i).setAttribute("aria-selected","false"); $(i).setAttribute("aria-pressed","false"); });
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
+    setPFactorOptionsForGoal(goal); // ★ ④〜⑥
   });
 });
+
+/* ④〜⑥ pFactorの選択肢を目標ごとに差し替え */
+const PFACTOR_SETS = {
+  cut:      [{v:1.25,l:"1.25（低め）"},{v:1.56,l:"1.56（標準）"},{v:1.88,l:"1.88（高め）"}],
+  maintain: [{v:1.50,l:"1.50（低め）"},{v:1.88,l:"1.88（標準）"},{v:2.25,l:"2.25（高め）"}],
+  bulk:     [{v:1.75,l:"1.75（低め）"},{v:2.19,l:"2.19（標準）"},{v:2.63,l:"2.63（高め）"}]
+};
+function setPFactorOptionsForGoal(g){
+  const sel = $("pFactor");
+  const prev = sel.value;
+  sel.innerHTML = '<option value="" disabled selected>選択してください</option>';
+  (PFACTOR_SETS[g]||PFACTOR_SETS.maintain).forEach(o=>{
+    const op = document.createElement("option");
+    op.value = String(o.v);
+    op.textContent = o.l;
+    sel.appendChild(op);
+  });
+  // 以前の選択が現セットに存在すれば保持
+  const exists = (PFACTOR_SETS[g]||[]).some(o=>String(o.v)===prev);
+  if(exists){ sel.value = prev; }
+}
 
 /* 運動習慣の制御 */
 ["habit","pFactor","diet","fitnessType","onoff"].forEach(id=>{
@@ -376,8 +395,7 @@ function enforceHabitRules(){
   }
 }
 
-/* 計算ボタン：保存→リロード→自動計算
-   ※入力時ズーム戻し */
+/* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
@@ -397,7 +415,7 @@ $("calcBtn").addEventListener("click", ()=>{
   }
 });
 
-/* 補助 */
+/* 補助（±12% 日別補正は従来どおりTDEEに適用） */
 const SPORT_FACTORS = {
   strength:{ on:1.10, off:0.94 }, run:{ on:1.12, off:0.92 }, cycle:{ on:1.11, off:0.93 },
   club:{ on:1.12, off:0.92 }, martial:{ on:1.12, off:0.92 }, aerobic:{ on:1.10, off:0.94 }, anaerobic:{ on:1.08, off:0.96 },
@@ -429,9 +447,9 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
-const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 }; // ← 代表値更新
+const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 };
 
-/* NaN安全化 */
+/* 食材配分（NaN安全化） */
 function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
@@ -453,7 +471,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
 }
 
-/* ▼ 電解質計算（追加） */
+/* ▼ 電解質計算 */
 function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
   const af = parseFloat(habit)||1.2;
   const scaleAF = clamp((af - 1.2) / (1.9 - 1.2), 0, 1);
@@ -482,9 +500,8 @@ function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
 
   return { k: Math.max(0, Math.round(k)), na: Math.max(0, Math.round(na)), mg: Math.max(0, Math.round(mg)) };
 }
-/* ▲ 電解質計算ここまで */
+/* ▲ 電解質 */
 
-/* グラフ */
 function fitCanvasDPR(canvas){
   const dpr = Math.max(1, window.devicePixelRatio||1);
   const rect = canvas.getBoundingClientRect();
@@ -576,7 +593,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg:w,targetKg,months,dailyDeltaKcal,kcalPerKg,isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -631,7 +648,7 @@ function validateTarget(goal, weight, targetStr){
   return true;
 }
 
-/* 脂質下限ガード */
+/* 脂質下限ガード（0.6 g/kg） */
 function enforceFatFloor(protein_g, carb_g, fat_g, body_w){
   const FAT_MIN_G_PER_KG = 0.6;
   const fatMin = FAT_MIN_G_PER_KG * body_w;
@@ -657,7 +674,7 @@ function enforceFatFloor(protein_g, carb_g, fat_g, body_w){
   return {protein_g, carb_g, fat_g, adjusted:true, reason:"※脂質下限（0.6 g/kg）確保のため、糖質→タンパク質の順で自動調整しました。"};
 }
 
-/* メイン計算 */
+/* メイン計算（★E×体重、PはpFactorで決定、脂質は残差。P:F比は表示に明記） */
 function calc(){
   if(!requireFilled()) return;
 
@@ -677,18 +694,19 @@ function calc(){
   const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
   const pFactor=parseFloat($("pFactor").value);
 
-  // 代謝
+  // 代謝（TDEE は表示・グラフ用に従来どおり）
   const bmi = w / Math.pow(h/100,2);
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正
-  const gF = GOAL_FACTOR[goal] || 1.0;
-  const targetKcal = tdee * gF;
+  // ★ 目標E（kcal/kg）→ 総摂取カロリー
+  const E = GOAL_ENERGY[goal] || 30;
+  const targetKcal = w * E;
 
-  // マクロ（TKDオフ日は糖質自動減）
-  let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel, onoff);
+  // マクロ
+  let protein_g=w*pFactor;
+  let carb_g=carbsBy(diet, carbSel, onoff);
   let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
 
   let pk=protein_g*4, ck=carb_g*4, fk, kcal;
@@ -697,7 +715,7 @@ function calc(){
   if(fat_g<0){
     const pcK=pk+ck, s=Math.max(0,targetKcal/(pcK||1));
     protein_g*=s; carb_g*=s; fat_g=0; pk=protein_g*4; ck=carb_g*4; fk=0; kcal=targetKcal;
-    warnMsg = "※脂質が負になったため、目標カロリーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
+    warnMsg = "※脂質が負になったため、目標カロリー（E×体重）を優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
   }else{
     const adj = enforceFatFloor(protein_g, carb_g, fat_g, w);
     protein_g = adj.protein_g; carb_g = adj.carb_g; fat_g = adj.fat_g;
@@ -710,7 +728,10 @@ function calc(){
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(1)}g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標補正 ×${gF.toFixed(2)}`;
+
+  // ⑧ 目標補正の表記を「目標E = 〇〇kcal」
+  $("bmiClassTxt").textContent=
+    `BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(2)}g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標E = ${E}kcal`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -721,18 +742,19 @@ function calc(){
   $("fkcal").textContent=Math.round(fk).toLocaleString();
   $("ckcal").textContent=Math.round(ck).toLocaleString();
 
-  // ▼ 電解質（計算＆表示：追加）
+  // 電解質
   const elec = estimateElectrolytes($("habit").value, fitnessType, carb_g, w, age);
   $("k").textContent  = elec.k.toLocaleString();
   $("na").textContent = elec.na.toLocaleString();
   $("mg").textContent = elec.mg.toLocaleString();
-  // ▲ 電解質ここまで
 
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
-  // 下部説明文をご指定どおりに変更（末尾に電解質の式を追加）
+
+  // PF比（表示用）
+  const ratio = PF_RATIO[goal] || PF_RATIO.maintain;
   $("macroNote").textContent=
-    `フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"} ｜ 活動係数AF×日別補正＝TDEE｜日別補正±12%内｜Na：4000mg+糖質≤130g→+600mg+AF補正→+300mg｜K：3500mg+AF補正→+k｜Mg：400mg+AF≥1.55→+50mg`;
+    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜目標E=${E}kcal/kg｜P:F（kcal）=${ratio.p}:${ratio.f}｜AF×日別補正＝TDEE（±12%内）｜Na：4000mg+糖質≤130g→+600mg+AF補正→+300mg｜K：3500mg+AF補正→+k｜Mg：400mg+AF≥1.55→+50mg`;
 
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
@@ -740,7 +762,7 @@ function calc(){
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
-  /* 食材配分（植物CAP・乳糖先積み・肉バイアス） */
+  /* 食材配分（kcalベース：pFactor変更では不変） */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
 
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
@@ -799,6 +821,8 @@ function saveFormToSession(){
 function restoreFromSessionAndAutoCalc(){
   const raw = sessionStorage.getItem("plannerAutoForm");
   const auto = sessionStorage.getItem("autocalc")==="1";
+  // デフォルトのpFactor候補を現目標で先にセット
+  setPFactorOptionsForGoal(goal);
   if(!raw || !auto) return false;
   try{
     const d = JSON.parse(raw);
@@ -806,19 +830,22 @@ function restoreFromSessionAndAutoCalc(){
     if(d.age) $("age").value=d.age;
     if(d.height) $("height").value=d.height;
     if(d.weight) $("weight").value=d.weight;
-    if(d.pFactor) $("pFactor").value=d.pFactor;
     if(d.diet) $("diet").value=d.diet;
     if(d.habit) $("habit").value=d.habit;
     if(d.fitnessType) $("fitnessType").value=d.fitnessType;
     if(d.onoff) $("onoff").value=d.onoff;
     if(d.carb!=null){ $("carbIntake").value=d.carb; }
     goal = d.goal || "maintain";
-    $("targetWeight").value = d.targetWeight || "";
+    // ゴールの反映＆pFactor候補差し替え
     ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
       const b=$(i); const is=(b.dataset.goal===goal);
       b.classList.toggle("active",is); b.setAttribute("aria-selected",is?"true":"false"); b.setAttribute("aria-pressed",is?"true":"false");
     });
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
+    setPFactorOptionsForGoal(goal);
+    if(d.pFactor) $("pFactor").value=d.pFactor;
+
+    $("targetWeight").value = d.targetWeight || "";
     toggleCarb(); enforceHabitRules();
     if(d.chartMonths){ chartMonths = +d.chartMonths; }
     calc();
@@ -851,6 +878,8 @@ function restoreFormFresh(){
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
+  // デフォルトのpFactor候補（維持）
+  setPFactorOptionsForGoal("maintain");
 }
 if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 </script>
