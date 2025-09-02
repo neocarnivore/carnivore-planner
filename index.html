@@ -132,11 +132,9 @@
       <div class="pair">
         <div>
           <label>タンパク質係数（g/kg）</label>
-          <!-- ▼ 初期はプレースホルダーのみ。目標に応じて動的に注入 -->
           <select id="pFactor">
             <option value="" selected disabled>選択してください</option>
           </select>
-          <!-- ▲ -->
         </div>
         <div>
           <label>食事法</label>
@@ -328,14 +326,15 @@ $("diet").addEventListener("change", toggleCarb);
 
 /* 目標 */
 let goal = "maintain";
-const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
-
-/* ▼ pFactor 選択肢を目標ごとに動的切替 */
+/* ▼ pFactor 選択肢（要望どおり） */
 const PF_MAP = {
   cut:      [["1.25","1.25（低め）"],["1.56","1.56（標準）"],["1.88","1.88（高め）"]],
   maintain: [["1.50","1.50（低め）"],["1.88","1.88（標準）"],["2.25","2.25（高め）"]],
   bulk:     [["1.75","1.75（低め）"],["2.19","2.19（標準）"],["2.63","2.63（高め）"]]
 };
+/* ▼ 目標別 E（kcal/kg） */
+const GOAL_E = { cut:25, maintain:30, bulk:35 };
+
 function populatePFactorOptions(goalKey, restoreValue=null){
   const sel = $("pFactor");
   sel.innerHTML = '<option value="" selected disabled>選択してください</option>';
@@ -350,7 +349,6 @@ function populatePFactorOptions(goalKey, restoreValue=null){
     sel.value = "";
   }
 }
-/* ▲ pFactor 動的切替ここまで */
 
 ["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
   $(id).addEventListener("click", (e)=>{
@@ -358,7 +356,7 @@ function populatePFactorOptions(goalKey, restoreValue=null){
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
-    populatePFactorOptions(goal); // ← 目標変更に合わせて pFactor を更新
+    populatePFactorOptions(goal);
   });
 });
 
@@ -588,7 +586,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg:w,targetKg,months,dailyDeltaKcal,kcalPerKg,isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -688,21 +686,19 @@ function calc(){
   const fitnessType = ($("habit").value==="1.2") ? "none" : $("fitnessType").value;
   const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
 
-  /* ▼ ここが pFactor（g/kg）。目標に応じた動的選択肢から値を取得 */
   const pFactor=parseFloat($("pFactor").value);
-  /* ▲ */
 
-  // 代謝
+  // 代謝（表示用のTDEEは従来どおり）
   const bmi = w / Math.pow(h/100,2);
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正
-  const gF = GOAL_FACTOR[goal] || 1.0;
-  const targetKcal = tdee * gF;
+  // 目標エネルギー：E（kcal/kg）× 体重 × 日別補正
+  const goalE = GOAL_E[goal] || 30;
+  const targetKcal = w * goalE * dayF;
 
-  // マクロ
+  // マクロ計算
   let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel, onoff);
   let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
 
@@ -712,7 +708,7 @@ function calc(){
   if(fat_g<0){
     const pcK=pk+ck, s=Math.max(0,targetKcal/(pcK||1));
     protein_g*=s; carb_g*=s; fat_g=0; pk=protein_g*4; ck=carb_g*4; fk=0; kcal=targetKcal;
-    warnMsg = "※脂質が負になったため、目標カロリーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
+    warnMsg = "※脂質が負になったため、目標エネルギーを優先し、タンパク質/糖質を自動調整しました（脂質=0）。";
   }else{
     const adj = enforceFatFloor(protein_g, carb_g, fat_g, w);
     protein_g = adj.protein_g; carb_g = adj.carb_g; fat_g = adj.fat_g;
@@ -725,7 +721,7 @@ function calc(){
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(2)}g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標補正 ×${gF.toFixed(2)}`;
+  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜タンパク質 ${pFactor.toFixed(2)}g/kg｜日別補正 ×${dayF.toFixed(2)}（±12%内）｜目標E = ${goalE} kcal/kg`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -811,14 +807,12 @@ function restoreFromSessionAndAutoCalc(){
   const raw = sessionStorage.getItem("plannerAutoForm");
   const auto = sessionStorage.getItem("autocalc")==="1";
   if(!raw || !auto){
-    // 初期ロード（デフォは維持）で pFactor 選択肢を注入
     populatePFactorOptions(goal);
     return false;
   }
   try{
     const d = JSON.parse(raw);
 
-    // 先に goal のUI復元→pFactorの選択肢を注入→値を復元
     goal = d.goal || "maintain";
     ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
       const b=$(i); const is=(b.dataset.goal===goal);
@@ -869,7 +863,6 @@ function restoreFormFresh(){
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
 
-  // デフォ目標（維持）に応じて pFactor の選択肢を注入
   populatePFactorOptions(goal);
 
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
