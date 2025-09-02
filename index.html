@@ -586,7 +586,8 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:w,targetKg,months,dailyDeltaKcal,kcalPerKg,isCut};
+  /* ▼ 修正：保存する startKg は「元の入力値」を保持（w ではない） */
+  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
