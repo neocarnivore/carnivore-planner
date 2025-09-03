@@ -348,6 +348,8 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     /* 減量/増量に切替時は初回表示を常に1ヶ月へ */
     if(goal==="cut" || goal==="bulk"){ setChartRange(1); }
     updatePFMenu();
+    /* ★追加：計算済みの場合のみ即再計算してグラフ更新（未入力時の警告は出さない） */
+    if(window._lastDrawArgs){ calc(); }
   });
 });
 
@@ -649,7 +651,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg:w, w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -831,10 +833,7 @@ function calc(){
   updateBars(pk, fk, ck, kcal);
 
   const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
-
-  /* ▼▼ ここだけ修正：維持はグラフ差分0固定で微揺れのみ ▼▼ */
-  const dd = (goal==="maintain") ? 0 : (kcal - tdee);
-  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:dd,kcalPerKg:7700,isCut:(goal==="cut")});
+  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
 
 /* セッション保存 */
