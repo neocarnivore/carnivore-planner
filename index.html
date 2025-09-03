@@ -558,7 +558,7 @@ document.addEventListener('click',(e)=>{
 });
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* 改良版：非現実収束の抑制と月間変化クランプ */
+/* ★ 改良版：非現実収束の抑制と月間変化クランプ */
 function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
@@ -693,7 +693,7 @@ function validateTarget(goal, weight, targetStr){
   return true;
 }
 
-/* f:pテキスト "7.5:2.5" -> シェア {fat,prot}（表示用のまま維持） */
+/* f:pテキスト "7.5:2.5" -> シェア {fat,prot}（表示用） */
 function parseFPRatio(txt){
   if(!txt) return {fat:0.75, prot:0.25};
   const [f,p] = txt.split(':').map(Number);
@@ -701,7 +701,7 @@ function parseFPRatio(txt){
   return {fat: Math.max(0, f/s), prot: Math.max(0, p/s)};
 }
 
-/* メイン計算（p係数＝タンパク質量を厳守／脂質下限なし） */
+/* メイン計算（★p係数固定・実効p不使用・脂質下限なし） */
 function calc(){
   updatePFMenu();
   if(!requireFilled()) return;
@@ -732,24 +732,47 @@ function calc(){
   const targetKcal = tdee * gF;
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
-  // 選択pFactor（＝そのままP量に採用）と表示用 f:p 比率
+  // p係数（固定使用）と f:p（表示用）
   const pFactor = parseFloat($("pFactor").value);
   const pfSel = $("pFactor");
   const curOpt = pfSel.options[pfSel.selectedIndex];
   const fpr = (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr
              : (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
-  const share = parseFPRatio(fpr); // 表示のみ
 
-  // マクロ：Pはp係数×体重で固定、Cは食事法に従い固定、Fは残差（脂質下限の調整なし）
+  // マクロ：p固定 → 糖質 → 残差を脂質へ（残差がマイナスなら糖質を優先的に圧縮、最後の手段で超過警告）
   let carb_g = carbsBy(diet, carbSel, onoff);
   let protein_g = pFactor * w;
 
   let pk = protein_g * 4;
   let ck = carb_g * 4;
 
-  let fk = Math.max(0, targetKcal - pk - ck);
-  let fat_g = fk / 9;
+  let warnMsg = "";
 
+  // まず残差から脂質を計算
+  let fk = targetKcal - pk - ck;
+
+  if(fk < 0){
+    // 1) 糖質を自動減量（目標に近づけるため）※pは固定
+    const over = pk + ck - targetKcal;
+    const cutC = Math.min(ck, over);
+    ck -= cutC;
+    carb_g = Math.max(0, ck/4);
+    fk = targetKcal - pk - ck;
+
+    if(fk < 0){
+      // 2) それでも超過：脂質=0/糖質=0でもpだけで超過 → p係数の見直しを提案
+      ck = 0; carb_g = 0;
+      fk = 0;
+      warnMsg = "※選択したp係数と目標kcalの組み合わせでは、脂質0g・糖質0gでもkcal超過になります。目標に合わせるにはp係数を下げてください。";
+    } else {
+      // 糖質自動カットで調整完了
+      warnMsg = "※目標kcalに合わせるため、糖質（g）を自動調整しました。";
+    }
+  }
+
+  // fkが正ならそのまま脂質へ
+  let fat_g = Math.max(0, fk/9);
+  fk = fat_g * 9; // 丸め反映
   const kcal = pk + ck + fk;
 
   // 表示
@@ -757,6 +780,7 @@ function calc(){
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
+  // 実効p係数は表示しない（要求どおり）
   $("bmiClassTxt").textContent=
     `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
@@ -779,13 +803,13 @@ function calc(){
   $("macroNote").textContent=
     `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
-  $("fatWarn").style.display="none"; // 下限調整は廃止
+  if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
-  /* 食材配分（既存ロジックを維持） */
+  /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
