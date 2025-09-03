@@ -125,7 +125,7 @@
         <div>
           <label>タンパク質係数（g/kg）</label>
           <select id="pFactor">
-            <option value="" selected disabled>（上の項目を入力すると自動で出ます）</option>
+            <option value="" selected disabled>選択してください</option>
           </select>
         </div>
         <div>
@@ -325,7 +325,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
-    updatePFMenu(); // 目標変更でpFactor再計算
+    updatePFMenu(); // 目標変更でpFactor再計算/再描画
   });
 });
 
@@ -367,9 +367,9 @@ function enforceHabitRules(){
 
 /* pFactor動的メニュー */
 const PF_TIERS = [
-  {key:'low',  label:'低め',  ratio:0.20, tag:'8:2'},
-  {key:'std',  label:'標準',  ratio:0.25, tag:'7.5:2.5'},
-  {key:'high', label:'高め',  ratio:0.30, tag:'7:3'}
+  {key:'low',  label:'低め',  pRatio:0.20, fpr:'8:2'},
+  {key:'std',  label:'標準',  pRatio:0.25, fpr:'7.5:2.5'},
+  {key:'high', label:'高め',  pRatio:0.30, fpr:'7:3'}
 ];
 let pTier = 'std'; // 選択状態を保持
 function fmtPF(x){ return (Math.round(x*100)/100).toFixed(2).replace(/\.?0+$/,''); }
@@ -378,6 +378,11 @@ function canComputeE(){
   if(!$("sex").value || !$("age").value || !$("height").value || !$("weight").value || !$("habit").value) return false;
   if($("habit").value!=="1.2" && (!$("fitnessType").value || !$("onoff").value)) return false;
   return true;
+}
+function hasTwoDigitWeight(){
+  const raw = ($("weight").value||"").toString().trim();
+  const intPart = raw.split('.')[0];
+  return /^\d{2,}$/.test(intPart) && (+intPart)>=10;
 }
 function currentDayFactor(){
   const SPORT_FACTORS = {
@@ -393,20 +398,38 @@ function currentDayFactor(){
   const raw = map[oo] ?? 1.00;
   return clamp(raw, 0.88, 1.12);
 }
+
 function updatePFMenu(){
   const sel = $("pFactor");
   const prevTier = pTier;
   // 現状をクリア
   while(sel.options.length>0) sel.remove(0);
 
-  if(!canComputeE()){
-    // 入力不足のときはガイド表示
+  // 体重が二桁に満たない間はプレースホルダーのみ
+  if(!hasTwoDigitWeight()){
     const opt = document.createElement('option');
-    opt.value=""; opt.textContent="（上の項目を入力すると自動で出ます）"; opt.disabled=true; opt.selected=true;
+    opt.value=""; opt.textContent="選択してください"; opt.disabled=true; opt.selected=true;
     sel.appendChild(opt);
     return;
   }
 
+  // 二桁体重になったら3択を「表示」。十分な入力が揃っていない間はダミー（—）かつ選択不可
+  if(!canComputeE()){
+    const ph = document.createElement('option');
+    ph.value=""; ph.textContent="選択してください"; ph.disabled=true; ph.selected=true;
+    sel.appendChild(ph);
+
+    PF_TIERS.forEach(t=>{
+      const o = document.createElement('option');
+      o.value=""; o.dataset.tier=t.key; o.dataset.fpr=t.fpr;
+      o.textContent = `—（${t.label}）`;
+      o.disabled = true;
+      sel.appendChild(o);
+    });
+    return;
+  }
+
+  // 計算できるときは数値入りで有効化
   const sex=$("sex").value, age=+$("age").value, h=+$("height").value, w=+$("weight").value;
   const af=+($("habit").value||1.2);
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
@@ -417,12 +440,12 @@ function updatePFMenu(){
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
   PF_TIERS.forEach(t=>{
-    const pf = (t.ratio * Ekg) / 4;
+    const pf = (t.pRatio * Ekg) / 4;
     const opt = document.createElement('option');
     opt.value = String(pf);
     opt.dataset.tier = t.key;
-    opt.dataset.tag  = t.tag;
-    opt.textContent = `${fmtPF(pf)}（${t.label}｜${t.tag}）`;
+    opt.dataset.fpr  = t.fpr;
+    opt.textContent = `${fmtPF(pf)}（${t.label}）`; // ← 8:2などは表示しない
     sel.appendChild(opt);
   });
 
@@ -440,7 +463,7 @@ function updatePFMenu(){
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
-  updatePFMenu(); // 先にpFactorを確定
+  updatePFMenu(); // 先にpFactorを確定/更新
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
     const vp = document.querySelector('meta[name="viewport"]');
@@ -616,7 +639,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -744,15 +767,19 @@ function calc(){
   }
   if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示
+  // 表示（単位のスペース削除、f:p表記を追加）
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
-  const tag = ($("pFactor").options[$("pFactor").selectedIndex]?.dataset?.tag)||"";
+  const pfSel = $("pFactor");
+  const curOpt = pfSel.options[pfSel.selectedIndex];
+  const fpr = (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr
+             : (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
   const effPPerKg = (w>0)? (protein_g/w) : pFactor;
-  const effNote = (Math.abs(effPPerKg - pFactor) > 0.05) ? `｜実効p≈${effPPerKg.toFixed(2)} g/kg` : "";
-  $("bmiClassTxt").textContent=`BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)} g/kg（${tag}）${effNote}｜目標E≈${Ekg.toFixed(1)} kcal/kg｜日別補正 ×${dayF.toFixed(2)}｜目標補正 ×${gF.toFixed(2)}`;
+  const effNote = (Math.abs(effPPerKg - pFactor) > 0.05) ? `｜実効p≈${effPPerKg.toFixed(2)}g/kg` : "";
+  $("bmiClassTxt").textContent=
+    `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）${effNote}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -771,7 +798,7 @@ function calc(){
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
   $("macroNote").textContent=
-    `フィットネス：${fitnessLabelMap[fitnessType]}｜ オン/オフ：${onoffTxt} ｜ 糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"} ｜ 活動係数AF×日別補正＝TDEE（±12%内）`;
+    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
