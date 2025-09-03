@@ -556,92 +556,54 @@ function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
   return { k: Math.max(0, Math.round(k)), na: Math.max(0, Math.round(na)), mg: Math.max(0, Math.round(mg)) };
 }
 
-/* キャンバスDPR合わせ */
+/* グラフ */
 function fitCanvasDPR(canvas){
-  if(!canvas) return;
   const dpr = Math.max(1, window.devicePixelRatio||1);
   const rect = canvas.getBoundingClientRect();
-  const w = Math.max(360, Math.round((rect.width||360)*dpr));
-  const h = Math.max(240, Math.round((rect.height||240)*dpr));
+  const w = Math.max(360, Math.round(rect.width*dpr));
+  const h = Math.max(240, Math.round(rect.height*dpr));
   if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
 }
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ★ 安定版：日次ステップで滑らかに。NaN/極端値/収束暴走を抑制 */
-function drawWeightChart(args){
-  const {
-    startKg,
-    targetKg = null,
-    months = chartMonths || 1,
-    dailyDeltaKcal = 0,
-    kcalPerKg = 7700,
-    isCut = false
-  } = args || {};
-
-  const cvs = $("wtChart");
-  if(!cvs) return;
-  fitCanvasDPR(cvs);
-  const ctx = cvs.getContext("2d");
-  if(!ctx) return;
-  const W=cvs.width, H=cvs.height;
-
+/* ★ 改良版：非現実収束の抑制と月間変化クランプ */
+function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
+  const cvs = $("wtChart"); fitCanvasDPR(cvs);
+  const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
   ctx.clearRect(0,0,W,H);
 
-  const m = Math.max(1, Math.floor(+months||1));
-  const days = m * 30;
+  const daysPerMonth=30;
+  let baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
+  if(isCut && dailyDeltaKcal<0){ baseMonthlyKg *= 0.90; }
 
-  // 期待日次変化（kg/日）
-  const baseDaily = (Number.isFinite(dailyDeltaKcal) ? dailyDeltaKcal : 0) / (kcalPerKg||7700);
-
-  // 目標別クランプ（kg/日）
   const isMaintain = Math.abs(dailyDeltaKcal) < 50;
   const isBulk = dailyDeltaKcal > 50;
-  const MAX_DAILY = isMaintain ? 0.007 : (isBulk ? (2.0/30) : (3.0/30)); // 維持±0.007 / 増量≤0.0667 / 減量≤0.1
+  const MAX_MONTHLY = isMaintain ? 0.2 : (isBulk ? 2.0 : 3.0); // 維持±0.2 / 増量≤2.0 / 減量≤3.0 kg/月
 
-  const xs=[], ys=[];
-  let w = Math.max(0, Number.isFinite(startKg)? +startKg : 0);
-  for(let d=0; d<=days; d++){
-    // 収束性：距離に応じた弱い吸着（近いほどやや強め）
-    let attract = 0;
-    if(targetKg!=null && Number.isFinite(+targetKg)){
-      const gap = (+targetKg) - w;
-      const absGap = Math.abs(gap);
-      const kNear = absGap < 5 ? 0.010 : absGap < 10 ? 0.005 : 0.002; // /日
-      attract = gap * kNear;
+  const xs=[], ys=[]; let w=startKg;
+  for(let m=0;m<=months;m++){
+    const adapt=Math.pow(0.85,m), noise=0.15*seededNoise(m);
+    let delta=baseMonthlyKg*adapt+noise;
+
+    if(targetKg!=null){
+      const gap=targetKg-w;
+      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02; // 近い時だけ弱く吸着
+      delta += gap*near;
     }
-
-    // 適応減衰＆ランダム性（微小）
-    const adapt = Math.pow(0.999, d); // 日が経つほどやや鈍化
-    const noise = 0.02 * (seededNoise(d*0.23));
-
-    let delta = (baseDaily * adapt) + attract + noise;
-    // 非現実的スパイク防止
-    delta = clamp(delta, -MAX_DAILY, MAX_DAILY);
-
-    // 次日の予測
-    const next = clamp(w + delta, 0, 300);
-    // x座標は「月」スケール（30日=1ヶ月）
-    xs.push(d/30);
-    ys.push(next);
-
-    w = next;
+    delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
+    xs.push(m); ys.push(Math.max(0,w));
+    w = clamp(w+delta, 0, 300);
   }
 
-  // 軸レンジ計算（安全化）
-  const safeYs = ys.filter(v=>Number.isFinite(v));
-  const yMin = Math.floor((Math.min(...safeYs, Number.isFinite(targetKg)?+targetKg:ys[0]) - 1));
-  const yMax = Math.ceil((Math.max(...safeYs, Number.isFinite(targetKg)?+targetKg:ys[0]) + 1));
-  const minY = Math.max(0, yMin);
-  const maxY = Math.max(minY+1, yMax);
-  const yRange = maxY - minY;
-
-  // 余白と座標変換
   const padL=70, padR=22, padT=36, padB=52;
+  const minY=Math.floor(Math.min(...ys, targetKg??ys[0]) - 1);
+  const maxY=Math.ceil(Math.max(...ys, targetKg??ys[0]) + 1);
+  const yRange=Math.max(1,maxY-minY);
+
   const plotW=W-padL-padR, plotH=H-padT-padB;
-  const xTo=t=> padL + (clamp(t,0,m)/m)*plotW;
+  const xTo=m=> padL + (m/months)*plotW;
   const yTo=kg=> padT + (1-(kg-minY)/yRange)*plotH;
 
-  // グリッド
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid').trim();
   ctx.lineWidth=1;
   const ySteps = 3;
@@ -649,18 +611,16 @@ function drawWeightChart(args){
     const val=minY+(yRange/ySteps)*i, yy=yTo(val);
     ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
   }
-  // 軸
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--axisLine').trim();
   ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(W-padR, yTo(minY)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, yTo(minY)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(padL, padT); ctx.stroke();
 
-  // 目盛ラベル
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  const ticks = m<=1? [0,7,14,21,30] : m<=3? [0,30,60,90] : m<=6? [0,60,120,180] : [0,90,180,270,360];
+  const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
   ticks.forEach(d=>{
-    const tm=d/30; const xx=xTo(Math.min(m,tm));
+    const m=d/30; const xx=xTo(Math.min(months,m));
     const label=`${d}日`; const tw=ctx.measureText(label).width;
     let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
     if(d===0) xSafe = padL + 12;
@@ -673,32 +633,23 @@ function drawWeightChart(args){
     ctx.fillText(label, Math.max(padL-tw-10,6), yClamped);
   }
 
-  // 目標線
-  if(targetKg!=null && Number.isFinite(+targetKg)){
+  if(targetKg!=null){
     ctx.strokeStyle="#ff7575"; ctx.setLineDash([6,6]);
-    ctx.beginPath(); ctx.moveTo(padL, yTo(+targetKg)); ctx.lineTo(W-padR, yTo(+targetKg)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, yTo(targetKg)); ctx.lineTo(W-padR, yTo(targetKg)); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  // 線描画
   ctx.save(); ctx.beginPath();
   ctx.rect(padL, padT, plotW, plotH); ctx.clip();
   ctx.strokeStyle="#48d1b5"; ctx.lineWidth=3;
   ctx.beginPath();
-  xs.forEach((t,i)=>{ const xx=xTo(t), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
   ctx.stroke();
-
-  // マーカー（間引いて描画）
   ctx.fillStyle="#48d1b5";
-  const stride = Math.max(1, Math.floor(xs.length/60)); // 最大60個程度
-  for(let i=0;i<xs.length;i+=stride){
-    const xx=xTo(xs[i]), yy=yTo(ys[i]);
-    ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill();
-  }
+  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  // 次回再描画用に“安全な”引数だけ保存
-  window._lastDrawArgs = { startKg, targetKg, months: m, dailyDeltaKcal, kcalPerKg, isCut };
+  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -879,8 +830,11 @@ function calc(){
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
   updateBars(pk, fk, ck, kcal);
 
-  const tgt = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
-  drawWeightChart({startKg:w,targetKg:tgt,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
+  const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
+
+  /* ▼▼ ここだけ修正：維持はグラフ差分0固定で微揺れのみ ▼▼ */
+  const dd = (goal==="maintain") ? 0 : (kcal - tdee);
+  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:dd,kcalPerKg:7700,isCut:(goal==="cut")});
 }
 
 /* セッション保存 */
