@@ -325,7 +325,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
-    updatePFMenu(); // 目標変更でpFactor再計算/再描画
+    updatePFMenu(); // 目標変更でもp係数は不変ロジック（BMR基準）で再計算
   });
 });
 
@@ -334,7 +334,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
   $(id).addEventListener("change", ()=>{
     if(id==="diet") toggleCarb();
     if(id==="habit") enforceHabitRules();
-    updatePFMenu(); // 条件変わるたびにpFactor候補を更新
+    updatePFMenu(); // 呼ばれてもBMR基準なので数値は変わらない（仕様通り）
   });
 });
 ["sex","age","height","weight"].forEach(id=>{
@@ -365,47 +365,33 @@ function enforceHabitRules(){
   }
 }
 
-/* pFactor動的メニュー */
+/* pFactor動的メニュー（BMRのみ依存版） */
 const PF_TIERS = [
   {key:'low',  label:'低め',  pRatio:0.20, fpr:'8:2'},
   {key:'std',  label:'標準',  pRatio:0.25, fpr:'7.5:2.5'},
   {key:'high', label:'高め',  pRatio:0.30, fpr:'7:3'}
 ];
-let pTier = 'std'; // 選択状態を保持
+let pTier = 'std';
 function fmtPF(x){ return (Math.round(x*100)/100).toFixed(2).replace(/\.?0+$/,''); }
 
+/* ▼▼ ここを仕様変更：4項目のみで有効化 ▼▼ */
 function canComputeE(){
-  if(!$("sex").value || !$("age").value || !$("height").value || !$("weight").value || !$("habit").value) return false;
-  if($("habit").value!=="1.2" && (!$("fitnessType").value || !$("onoff").value)) return false;
-  return true;
+  return !!($("sex").value && $("age").value && $("height").value && $("weight").value);
 }
+/* ▲▲ ここまで ▲▲ */
+
 function hasTwoDigitWeight(){
   const raw = ($("weight").value||"").toString().trim();
   const intPart = raw.split('.')[0];
   return /^\d{2,}$/.test(intPart) && (+intPart)>=10;
 }
-function currentDayFactor(){
-  const SPORT_FACTORS = {
-    strength:{ on:1.10, off:0.94 }, run:{ on:1.12, off:0.92 }, cycle:{ on:1.11, off:0.93 },
-    club:{ on:1.12, off:0.92 }, martial:{ on:1.12, off:0.92 }, aerobic:{ on:1.10, off:0.94 }, anaerobic:{ on:1.08, off:0.96 },
-    none:{ on:1.00, off:1.00 }
-  };
-  const habit = $("habit").value||"1.2";
-  if(habit==="1.2") return 1.00;
-  const ft = $("fitnessType").value||"none";
-  const oo = $("onoff").value||"off";
-  const map = SPORT_FACTORS[ft] || SPORT_FACTORS.none;
-  const raw = map[oo] ?? 1.00;
-  return clamp(raw, 0.88, 1.12);
-}
 
+/* diet/habit/goal に依存しないBMR基準で p 候補を作る */
 function updatePFMenu(){
   const sel = $("pFactor");
   const prevTier = pTier;
-  // 現状をクリア
   while(sel.options.length>0) sel.remove(0);
 
-  // 体重が二桁に満たない間はプレースホルダーのみ
   if(!hasTwoDigitWeight()){
     const opt = document.createElement('option');
     opt.value=""; opt.textContent="選択してください"; opt.disabled=true; opt.selected=true;
@@ -413,7 +399,6 @@ function updatePFMenu(){
     return;
   }
 
-  // 二桁体重になったら3択を「表示」。十分な入力が揃っていない間はダミー（—）かつ選択不可
   if(!canComputeE()){
     const ph = document.createElement('option');
     ph.value=""; ph.textContent="選択してください"; ph.disabled=true; ph.selected=true;
@@ -429,15 +414,10 @@ function updatePFMenu(){
     return;
   }
 
-  // 計算できるときは数値入りで有効化
+  // ▼ BMRのみ（性別・年齢・身長・体重）でEkgを算出
   const sex=$("sex").value, age=+$("age").value, h=+$("height").value, w=+$("weight").value;
-  const af=+($("habit").value||1.2);
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-  const dayF = currentDayFactor();
-  const tdee = bmr * af * dayF;
-  const gF = GOAL_FACTOR[goal]||1.0;
-  const targetKcal = tdee * gF;
-  const Ekg = (w>0)? (targetKcal / w) : 0;
+  const Ekg = (w>0)? (bmr / w) : 0;  // ← ここが変更点（TDEEや目標補正・日別補正は使わない）
 
   PF_TIERS.forEach(t=>{
     const pf = (t.pRatio * Ekg) / 4;
@@ -445,11 +425,10 @@ function updatePFMenu(){
     opt.value = String(pf);
     opt.dataset.tier = t.key;
     opt.dataset.fpr  = t.fpr;
-    opt.textContent = `${fmtPF(pf)}（${t.label}）`; // ← 8:2などは表示しない
+    opt.textContent = `${fmtPF(pf)}（${t.label}）`;
     sel.appendChild(opt);
   });
 
-  // 選択復元（なければ標準）
   const toTier = prevTier || 'std';
   const idx = PF_TIERS.findIndex(t=>t.key===toTier);
   sel.selectedIndex = (idx>=0? idx : 1);
@@ -458,12 +437,12 @@ function updatePFMenu(){
   sel.addEventListener('change', ()=>{
     const o = sel.options[sel.selectedIndex];
     pTier = o?.dataset?.tier || 'std';
-  }, {once:true}); // 重複リスナー防止
+  }, {once:true});
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
-  updatePFMenu(); // 先にpFactorを確定/更新
+  updatePFMenu();
   if(requireFilled()){
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
     const vp = document.querySelector('meta[name="viewport"]');
@@ -639,7 +618,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg:w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -714,9 +693,9 @@ function enforceFatFloor(protein_g, carb_g, fat_g, body_w){
   return {protein_g, carb_g, fat_g, adjusted:true, reason:"※脂質下限（0.6 g/kg）確保のため、糖質→タンパク質の順で自動調整しました。"};
 }
 
-/* メイン計算 */
+/* メイン計算（既存） */
 function calc(){
-  updatePFMenu(); // 念のため
+  updatePFMenu();
   if(!requireFilled()) return;
 
   const sex=$("sex").value;
@@ -745,10 +724,10 @@ function calc(){
   const targetKcal = tdee * gF;
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
-  // 選択pFactor（動的に生成された値）
+  // 選択pFactor（BMR由来で生成された値）
   const pFactor = parseFloat($("pFactor").value);
 
-  // マクロ（TKDオフ日は糖質自動減）
+  // マクロ
   let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel, onoff);
   let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
 
@@ -767,7 +746,6 @@ function calc(){
   }
   if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示（単位のスペース削除、f:p表記を追加）
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
@@ -879,8 +857,7 @@ function restoreFromSessionAndAutoCalc(){
     });
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
     toggleCarb(); enforceHabitRules();
-    updatePFMenu(); // ←復元時に現在条件からpFactor候補を再生成
-    // tierに合わせて選択
+    updatePFMenu();
     const pfSel = $("pFactor");
     const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
     if(idx>=0) pfSel.selectedIndex = idx;
