@@ -325,7 +325,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
-    updatePFMenu(); // 変更してもp係数は四条件のみで計算されるので数値は不変
+    updatePFMenu(); // 目標変更でもp係数は不変（BMRベース）だが選択復元のために呼ぶ
   });
 });
 
@@ -334,7 +334,7 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
   $(id).addEventListener("change", ()=>{
     if(id==="diet") toggleCarb();
     if(id==="habit") enforceHabitRules();
-    updatePFMenu(); // 再描画（値は四条件のみで決定）
+    updatePFMenu(); // 他入力変更でもp係数は不変（BMRベース）だがUI同期のため呼ぶ
   });
 });
 ["sex","age","height","weight"].forEach(id=>{
@@ -365,7 +365,7 @@ function enforceHabitRules(){
   }
 }
 
-/* pFactor動的メニュー —— ここが今回の変更点 */
+/* pFactor動的メニュー（BMRのみ依存：性別/年齢/身長/体重） */
 const PF_TIERS = [
   {key:'low',  label:'低め',  pRatio:0.20, fpr:'8:2'},
   {key:'std',  label:'標準',  pRatio:0.25, fpr:'7.5:2.5'},
@@ -374,8 +374,8 @@ const PF_TIERS = [
 let pTier = 'std';
 function fmtPF(x){ return (Math.round(x*100)/100).toFixed(2).replace(/\.?0+$/,''); }
 
-/* → p係数は性別・年齢・身長・体重の4入力のみで算出可否を判定 */
-function canComputePOnly4(){
+/* p係数用の計算に必要なのは S/A/H/W のみ */
+function canComputeE(){
   return Boolean($("sex").value && $("age").value && $("height").value && $("weight").value);
 }
 function hasTwoDigitWeight(){
@@ -383,8 +383,6 @@ function hasTwoDigitWeight(){
   const intPart = raw.split('.')[0];
   return /^\d{2,}$/.test(intPart) && (+intPart)>=10;
 }
-
-/* E/kgはBMRベースのみ（AF/日別補正/目標は不使用） */
 function updatePFMenu(){
   const sel = $("pFactor");
   const prevTier = pTier;
@@ -396,8 +394,7 @@ function updatePFMenu(){
     sel.appendChild(opt);
     return;
   }
-
-  if(!canComputePOnly4()){
+  if(!canComputeE()){
     const ph = document.createElement('option');
     ph.value=""; ph.textContent="選択してください"; ph.disabled=true; ph.selected=true;
     sel.appendChild(ph);
@@ -411,15 +408,13 @@ function updatePFMenu(){
     return;
   }
 
-  // 入力（4条件のみ）
+  // BMRベースのEkg_pf（目標/活動/日別補正/食事法は一切使わない）
   const sex=$("sex").value, age=+$("age").value, h=+$("height").value, w=+$("weight").value;
-
-  // BMRのみでE/kgを作る（TDEE・目標補正・運動は参照しない）
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-  const Ekg = (w>0)? (bmr / w) : 0;
+  const Ekg_pf = (w>0)? (bmr / w) : 0;
 
   PF_TIERS.forEach(t=>{
-    const pf = (t.pRatio * Ekg) / 4;
+    const pf = (t.pRatio * Ekg_pf) / 4;
     const opt = document.createElement('option');
     opt.value = String(pf);
     opt.dataset.tier = t.key;
@@ -428,8 +423,7 @@ function updatePFMenu(){
     sel.appendChild(opt);
   });
 
-  const toTier = prevTier || 'std';
-  const idx = PF_TIERS.findIndex(t=>t.key===toTier);
+  const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
 
@@ -617,7 +611,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -718,15 +712,15 @@ function calc(){
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正
+  // 目標補正（UI表示・グラフ用は従来どおり）
   const gF = GOAL_FACTOR[goal] || 1.0;
   const targetKcal = tdee * gF;
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
-  // 選択pFactor（今回の仕様で四条件のみから生成された値）
+  // 選択pFactor（※p候補はBMRベースで生成済み）
   const pFactor = parseFloat($("pFactor").value);
 
-  // マクロ（TKDオフ日は糖質自動減）
+  // マクロ
   let protein_g=w*pFactor, carb_g=carbsBy(diet, carbSel, onoff);
   let fat_g=(targetKcal - 4*protein_g - 4*carb_g)/9;
 
@@ -745,7 +739,6 @@ function calc(){
   }
   if(!kcal){ fk=fat_g*9; kcal=pk+ck+fk; }
 
-  // 表示
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
@@ -786,8 +779,8 @@ function calc(){
 
   /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
-  const selCarb = Number.isFinite(+carbSel) ? +carbSel : 30;
-  const level = (selCarb<=30)?30:(selCarb<=50)?50:70;
+  const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
+  const level = (sel<=30)?30:(sel<=50)?50:70;
   const VEG_FRUIT_KCAL_CAP = { 30: 45, 50: 75, 70: 105 };
   const carbKcalTotal = (diet==="Carnivore") ? 0 : ck;
   const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
@@ -857,7 +850,7 @@ function restoreFromSessionAndAutoCalc(){
     });
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
     toggleCarb(); enforceHabitRules();
-    updatePFMenu(); // ←四条件から再生成
+    updatePFMenu(); // ← S/A/H/Wのみで再生成
     const pfSel = $("pFactor");
     const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
     if(idx>=0) pfSel.selectedIndex = idx;
