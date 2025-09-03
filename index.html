@@ -539,84 +539,74 @@ document.addEventListener('click',(e)=>{
 });
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ★修正：維持は水平ベース＋±0.1kgの微揺れ。その他は従来ロジック */
-function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
-  // 入力のクランプ
-  const baseW = clamp(startKg||0, 30, 250);
-  const tgt   = (targetKg==null)? null : clamp(targetKg, 30, 250);
+/* ★ 修正：維持モードはフラット＋±0.1〜0.2kgの揺らぎのみ */
+function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut, isMaintain}){
+  // 入力の乱れを描画時クランプ（整合性優先）
+  let w = clamp(startKg||0, 30, 250);
+  const tgt = (targetKg==null)? null : clamp(targetKg, 30, 250);
+
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
   ctx.clearRect(0,0,W,H);
 
-  // 軸用パディング
-  const padL=70, padR=22, padT=36, padB=52;
-  const daysPerMonth = 30;
+  const daysPerMonth=30;
+  let baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
 
-  let xs=[], ys=[];
+  // 維持はベース変化量ゼロに固定
+  if(isMaintain){ baseMonthlyKg = 0; }
+  if(isCut && dailyDeltaKcal<0){ baseMonthlyKg *= 0.90; }
 
-  if(tgt==null){
-    // —— 維持：日次点列で±0.1kgの揺れ（累積偏りなし、日差最大±0.05kg）
-    const daysTotal = Math.max(1, Math.round((months||1) * daysPerMonth));
-    let prev = baseW;
-    for(let d=0; d<=daysTotal; d++){
-      const x = d / daysPerMonth;            // x軸は「月」を単位にした連続値
-      const n = Math.max(-1, Math.min(1, seededNoise(d*0.85 + (months||1)*3.1))); // 再描画しても再現
-      const desired = baseW + (0.1 * n);     // ±0.1kgの範囲
-      const step = clamp(desired - prev, -0.05, 0.05); // 日次の上下も滑らかに
-      const val = prev + step;
-      xs.push(x); ys.push(val);
-      prev = val;
+  const physCap = isMaintain ? 0 : (isCut ? 1.2 : 1.5); // 現実上限（kg/月）
+  const modelCap = Math.abs(baseMonthlyKg); // エネルギー差から導く理論上限
+  const cap = isMaintain ? 0 : Math.min(Math.abs(modelCap), physCap);
+
+  const xs=[], ys=[];
+  for(let m=0;m<=months;m++){
+    xs.push(m); ys.push(Math.max(0, w));
+    if(m===months) break;
+
+    if(isMaintain){
+      // ±0.1〜0.2kgの再現性あるランダム揺らぎ（ゼロ平均）
+      const n = seededNoise(m+1); // [-1,1]程度
+      const delta = (0.10 + 0.10*Math.abs(n)) * (n>=0 ? 1 : -1); // ±0.10〜0.20kg
+      w = clamp(w + delta, 30, 250);
+      continue;
     }
-  } else {
-    // —— 減量/増量：従来（月次ステップ＋現実キャップ）
-    const mTot = Math.max(1, months||1);
-    const days = daysPerMonth;
-    let w = baseW;
-    let baseMonthlyKg = (dailyDeltaKcal*days)/(kcalPerKg||7700);
-    if(isCut && dailyDeltaKcal<0){ baseMonthlyKg *= 0.90; }
-    const physCap = isCut ? 1.2 : 1.5; // kg/月の上限
-    const modelCap = Math.abs(baseMonthlyKg);
-    const cap = Math.min(Math.abs(modelCap), physCap);
 
-    for(let m=0;m<=mTot;m++){
-      xs.push(m);
-      ys.push(Math.max(0, w));
-      if(m===mTot) break;
+    // 減量/増量時の従来ロジック（ゆるい適応＆微小ノイズ）
+    const adapt = Math.pow(0.85, m);
+    const noise = 0.15*Math.abs(seededNoise(m));
+    const stepMag = Math.min(Math.abs(baseMonthlyKg)*adapt + noise, cap);
 
-      const adapt = Math.pow(0.85, m);
-      const noise = 0.15*Math.abs(seededNoise(m));
-      const stepMag = Math.min(Math.abs(baseMonthlyKg)*adapt + noise, cap);
+    let dir = 0;
+    if(tgt!=null && Math.abs(tgt - w) >= 0.05){
+      dir = Math.sign(tgt - w);
+    }else{
+      dir = Math.sign(dailyDeltaKcal);
+    }
 
-      let dir = 0;
-      if(Math.abs(tgt - w) >= 0.05){
-        dir = Math.sign(tgt - w);
-      }else{
-        dir = Math.sign(dailyDeltaKcal);
-      }
+    let delta = dir * stepMag;
 
-      let delta = dir * stepMag;
+    if(tgt!=null){
       if((dir>0 && w + delta > tgt) || (dir<0 && w + delta < tgt)){
         w = tgt;
       } else {
         w += delta;
       }
+    }else{
+      w += delta;
     }
   }
 
-  // 軸スケール
-  const minY = (tgt==null)
-    ? Math.floor(Math.min(...ys, baseW) - 0.3) // 微揺れを見やすく少し余白
-    : Math.floor(Math.min(...ys, tgt) - 1);
-  const maxY = (tgt==null)
-    ? Math.ceil (Math.max(...ys, baseW) + 0.3)
-    : Math.ceil (Math.max(...ys, tgt) + 1);
-  const yRange=Math.max(1, maxY-minY);
+  const padL=70, padR=22, padT=36, padB=52;
+  const minY=Math.floor(Math.min(...ys, tgt??ys[0]) - 1);
+  const maxY=Math.ceil(Math.max(...ys, tgt??ys[0]) + 1);
+  const yRange=Math.max(1,maxY-minY);
 
-  const plotW=W-padL-padR, plotH=H-padT-padB;
-  const xTo=t=> padL + (t/(months||1))*plotW; // tは「月」ベース
-  const yTo=kg=> padT + (1-(kg-minY)/yRange)*plotH;
+  const Wp=W-padL-padR, Hp=H-padT-padB;
+  const xTo=m=> padL + (m/months)*Wp;
+  const yTo=kg=> padT + (1-(kg-minY)/yRange)*Hp;
 
-  // グリッド
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid').trim();
   ctx.lineWidth=1;
   const ySteps = 3;
@@ -629,12 +619,11 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(W-padR, yTo(minY)); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(padL, padT); ctx.stroke();
 
-  // 目盛り
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  const ticks = (months||1)<=1? [0,7,14,21,30] : (months||1)<=3? [0,30,60,90] : (months||1)<=6? [0,60,120,180] : [0,90,180,270,360];
+  const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
   ticks.forEach(d=>{
-    const t=d/30; const xx=xTo(Math.min((months||1),t));
+    const m=d/30; const xx=xTo(Math.min(months,m));
     const label=`${d}日`; const tw=ctx.measureText(label).width;
     let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
     if(d===0) xSafe = padL + 12;
@@ -647,25 +636,23 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
     ctx.fillText(label, Math.max(padL-tw-10,6), yClamped);
   }
 
-  // 維持にはターゲット線なし（cut/bulkのみ）
   if(tgt!=null){
     ctx.strokeStyle="#ff7575"; ctx.setLineDash([6,6]);
     ctx.beginPath(); ctx.moveTo(padL, yTo(tgt)); ctx.lineTo(W-padR, yTo(tgt)); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  // 折れ線
   ctx.save(); ctx.beginPath();
-  ctx.rect(padL, padT, plotW, plotH); ctx.clip();
+  ctx.rect(padL, padT, Wp, Hp); ctx.clip();
   ctx.strokeStyle="#48d1b5"; ctx.lineWidth=3;
   ctx.beginPath();
-  xs.forEach((t,i)=>{ const xx=xTo(t), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
   ctx.stroke();
   ctx.fillStyle="#48d1b5";
-  xs.forEach((t,i)=>{ const xx=xTo(t), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.2,0,Math.PI*2); ctx.fill(); });
+  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:baseW, targetKg:tgt, months:(months||1), dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg:clamp(startKg||0,30,250), targetKg:tgt, months, dailyDeltaKcal, kcalPerKg, isCut, isMaintain};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -857,7 +844,15 @@ function calc(){
   updateBars(pk, fk, ck, kcal);
 
   const targetKgSan = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value, 30, 250) : null;
-  drawWeightChart({startKg:w,targetKg:targetKgSan,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
+  drawWeightChart({
+    startKg:w,
+    targetKg:targetKgSan,
+    months:chartMonths,
+    dailyDeltaKcal:(kcal-tdee),
+    kcalPerKg:7700,
+    isCut:(goal==="cut"),
+    isMaintain:(goal==="maintain")
+  });
 }
 
 /* セッション保存 */
