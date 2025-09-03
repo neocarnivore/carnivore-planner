@@ -348,8 +348,6 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     /* 減量/増量に切替時は初回表示を常に1ヶ月へ */
     if(goal==="cut" || goal==="bulk"){ setChartRange(1); }
     updatePFMenu();
-    /* ★追加：計算済みの場合のみ即再計算してグラフ更新（未入力時の警告は出さない） */
-    if(window._lastDrawArgs){ calc(); }
   });
 });
 
@@ -568,7 +566,7 @@ function fitCanvasDPR(canvas){
 }
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ★ 改良版：非現実収束の抑制と月間変化クランプ */
+/* ★ 改良版：非現実収束の抑制と月間変化クランプ（+ 方向固定&オーバーシュート防止の最小パッチ） */
 function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
@@ -592,7 +590,30 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
       const near = Math.abs(gap) <= 10 ? 0.10 : 0.02; // 近い時だけ弱く吸着
       delta += gap*near;
     }
+
+    // 月次変化のクランプ
     delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
+
+    /* ▼▼▼ ここが今回の最小パッチ ▼▼▼
+       目標（cut/bulk 時にのみ存在）に対して、毎ステップ必ず正しい方向へ進み、
+       目標を跨がないようにする。維持モードには一切影響しない。 */
+    if(targetKg != null){
+      const needSign = Math.sign(targetKg - w);
+      if(needSign !== 0){
+        // 方向固定（逆向きなら符号反転して同じ大きさで進める）
+        if(Math.sign(delta) !== needSign){ delta = Math.abs(delta) * needSign; }
+        // ごく小さい数で停滞しないよう微小ナッジ
+        if(Math.abs(delta) < 0.02){ delta = 0.02 * needSign; }
+        // オーバーシュート防止（ちょうど目標で止める）
+        if((needSign>0 && w + delta > targetKg) || (needSign<0 && w + delta < targetKg)){
+          delta = targetKg - w;
+        }
+        // 最終クランプ（安全）
+        delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
+      }
+    }
+    /* ▲▲▲ 最小パッチここまで ▲▲▲ */
+
     xs.push(m); ys.push(Math.max(0,w));
     w = clamp(w+delta, 0, 300);
   }
@@ -651,7 +672,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:w, w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
