@@ -54,10 +54,9 @@
   .bar.p span{background:var(--p)} .bar.f span{background:var(--f)} .bar.c span{background:var(--c)}
   .light .bar{background:#fff;border:1.5px solid #d7e2ef}
   .tab{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-  .tab button{background:transparent;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px}
   .tab button.active{background:var(--acc);color:#fff;border-color:transparent}
+  .tab button{background:transparent;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px}
   .tab.goals{grid-template-columns:repeat(3,1fr);width:100%}
-  .tab.goals button{width:100%}
   .tab.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
   .chartCard{display:flex;flex-direction:column;align-items:center}
   .chartHeader{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px}
@@ -428,13 +427,13 @@ function updatePFMenu(){
     return;
   }
 
-  // BMRベースのEkg_pf
+  // BMRベースのEkg_pfから、pRatio(=Pエネルギー比)を反映して g/kg を動的生成
   const sex=$("sex").value, age=+$("age").value, h=+$("height").value, w=+$("weight").value;
   const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
   const Ekg_pf = (w>0)? (bmr / w) : 0;
 
   PF_TIERS.forEach(t=>{
-    const pf = (t.pRatio * Ekg_pf) / 4;
+    const pf = (t.pRatio * Ekg_pf) / 4; // g/kg
     const opt = document.createElement('option');
     opt.value = String(pf);
     opt.dataset.tier = t.key;
@@ -579,7 +578,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
 
     if(targetKg!=null){
       const gap=targetKg-w;
-      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02; // 近い時だけ弱く吸着
+      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02;
       delta += gap*near;
     }
     delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
@@ -693,7 +692,7 @@ function validateTarget(goal, weight, targetStr){
   return true;
 }
 
-/* f:pテキスト "7.5:2.5" -> シェア {fat,prot}（表示用） */
+/* f:pテキスト "7.5:2.5" -> シェア {fat,prot} */
 function parseFPRatio(txt){
   if(!txt) return {fat:0.75, prot:0.25};
   const [f,p] = txt.split(':').map(Number);
@@ -701,7 +700,7 @@ function parseFPRatio(txt){
   return {fat: Math.max(0, f/s), prot: Math.max(0, p/s)};
 }
 
-/* メイン計算（★p係数固定・実効p不使用・脂質下限なし） */
+/* メイン計算（★P固定、Cは食事法、Fは選択f:pで算出｜実効pや脂質下限は不使用） */
 function calc(){
   updatePFMenu();
   if(!requireFilled()) return;
@@ -727,60 +726,36 @@ function calc(){
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正
+  // 目標補正（表示用）
   const gF = GOAL_FACTOR[goal] || 1.0;
   const targetKcal = tdee * gF;
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
-  // p係数（固定使用）と f:p（表示用）
-  const pFactor = parseFloat($("pFactor").value);
+  // p係数（選択値をそのまま使用）
+  const pFactor = parseFloat($("pFactor").value);     // g/kg（固定）
   const pfSel = $("pFactor");
   const curOpt = pfSel.options[pfSel.selectedIndex];
-  const fpr = (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr
-             : (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
+  const fpr = (curOpt?.dataset?.fpr) || (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
+  const share = parseFPRatio(fpr);
 
-  // マクロ：p固定 → 糖質 → 残差を脂質へ（残差がマイナスなら糖質を優先的に圧縮、最後の手段で超過警告）
+  // マクロ計算
+  const protein_g = pFactor * w;              // ★固定
+  const pk = protein_g * 4;
+
   let carb_g = carbsBy(diet, carbSel, onoff);
-  let protein_g = pFactor * w;
-
-  let pk = protein_g * 4;
   let ck = carb_g * 4;
 
-  let warnMsg = "";
+  // f:p（エネルギー比）を厳密適用して脂質を決定
+  const fk = pk * (share.fat / share.prot);
+  const fat_g = fk / 9;
 
-  // まず残差から脂質を計算
-  let fk = targetKcal - pk - ck;
-
-  if(fk < 0){
-    // 1) 糖質を自動減量（目標に近づけるため）※pは固定
-    const over = pk + ck - targetKcal;
-    const cutC = Math.min(ck, over);
-    ck -= cutC;
-    carb_g = Math.max(0, ck/4);
-    fk = targetKcal - pk - ck;
-
-    if(fk < 0){
-      // 2) それでも超過：脂質=0/糖質=0でもpだけで超過 → p係数の見直しを提案
-      ck = 0; carb_g = 0;
-      fk = 0;
-      warnMsg = "※選択したp係数と目標kcalの組み合わせでは、脂質0g・糖質0gでもkcal超過になります。目標に合わせるにはp係数を下げてください。";
-    } else {
-      // 糖質自動カットで調整完了
-      warnMsg = "※目標kcalに合わせるため、糖質（g）を自動調整しました。";
-    }
-  }
-
-  // fkが正ならそのまま脂質へ
-  let fat_g = Math.max(0, fk/9);
-  fk = fat_g * 9; // 丸め反映
-  const kcal = pk + ck + fk;
+  const kcal = pk + fk + ck; // 目標kcalとは一致しない場合あり（P固定・比率優先）
 
   // 表示
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
-  // 実効p係数は表示しない（要求どおり）
   $("bmiClassTxt").textContent=
     `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
@@ -803,13 +778,13 @@ function calc(){
   $("macroNote").textContent=
     `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
-  if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
+  $("fatWarn").style.display="none"; // 脂質下限・実効pは不使用
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
-  /* 食材配分 */
+  /* 食材配分（従来ロジックを維持。総kcalは pk+fk+ck を使用） */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
@@ -882,7 +857,7 @@ function restoreFromSessionAndAutoCalc(){
     });
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
     toggleCarb(); enforceHabitRules();
-    updatePFMenu(); // ← S/A/H/Wのみで再生成
+    updatePFMenu();
     const pfSel = $("pFactor");
     const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
     if(idx>=0) pfSel.selectedIndex = idx;
