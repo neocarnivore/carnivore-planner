@@ -641,7 +641,7 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:w,targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -693,7 +693,31 @@ function validateTarget(goal, weight, targetStr){
   return true;
 }
 
-/* f:pテキスト "7.5:2.5" -> シェア {fat,prot}（カロリー比） */
+/* 脂質下限ガード */
+function enforceFatFloor(protein_g, carb_g, fat_g, body_w){
+  const FAT_MIN_G_PER_KG = 0.6;
+  const fatMin = FAT_MIN_G_PER_KG * body_w;
+  if(fat_g >= fatMin) return {protein_g, carb_g, fat_g, adjusted:false, reason:""};
+  let needFatG = fatMin - fat_g;
+  let needKcal = needFatG * 9;
+
+  const carbKcal = Math.max(0, carb_g*4);
+  const cutFromCarb = Math.min(carbKcal, needKcal);
+  carb_g = Math.max(0, carb_g - cutFromCarb/4);
+  needKcal -= cutFromCarb;
+
+  if(needKcal > 0){
+    const protKcal = Math.max(0, protein_g*4);
+    const cutFromProt = Math.min(protKcal, needKcal);
+    protein_g = Math.max(0, protein_g - cutFromProt/4);
+    needKcal -= cutFromProt;
+  }
+  const addedFatG = (needFatG - (needKcal/9));
+  fat_g += Math.max(0, addedFatG);
+  return {protein_g, carb_g, fat_g, adjusted:true, reason:"※脂質下限（0.6 g/kg）確保のため、糖質→タンパク質の順で自動調整しました。"};
+}
+
+/* f:pテキスト "7.5:2.5" -> シェア {fat,prot} */
 function parseFPRatio(txt){
   if(!txt) return {fat:0.75, prot:0.25};
   const [f,p] = txt.split(':').map(Number);
@@ -701,7 +725,7 @@ function parseFPRatio(txt){
   return {fat: Math.max(0, f/s), prot: Math.max(0, p/s)};
 }
 
-/* メイン計算（★p係数=固定、f:pで脂質を決定；脂質下限ロジックは撤廃） */
+/* メイン計算（★f:p厳密分配に修正） */
 function calc(){
   updatePFMenu();
   if(!requireFilled()) return;
@@ -727,12 +751,12 @@ function calc(){
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正（表示・比較用）
+  // 目標補正
   const gF = GOAL_FACTOR[goal] || 1.0;
   const targetKcal = tdee * gF;
   const Ekg = (w>0)? (targetKcal / w) : 0;
 
-  // 選択pFactor（固定）と f:p 比
+  // 選択pFactor（表示用）と f:p 比率
   const pFactor = parseFloat($("pFactor").value);
   const pfSel = $("pFactor");
   const curOpt = pfSel.options[pfSel.selectedIndex];
@@ -740,26 +764,34 @@ function calc(){
              : (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
   const share = parseFPRatio(fpr);
 
-  // マクロ：まず p係数でタンパク質固定 → f:p 比から脂質kcalを決定 → 総kcalはその結果（TDEEとの差はグラフで反映）
-  const protein_g = pFactor * w;
-  const pk = protein_g * 4;
-
+  // マクロ：糖質→残りを f:p で厳密分配
   let carb_g=carbsBy(diet, carbSel, onoff);
   let ck=carb_g*4;
+  let remain = Math.max(0, targetKcal - ck);
 
-  // f:p（カロリー比）を厳密に満たす脂質kcal
-  const fk = (share.prot > 0) ? pk * (share.fat / share.prot) : 0;
-  const fat_g = fk / 9;
+  let pk = remain * share.prot;
+  let fk = remain * share.fat;
 
-  const kcal = pk + ck + fk;
+  let protein_g = pk/4;
+  let fat_g     = fk/9;
+
+  // 脂質下限
+  let warnMsg = "";
+  const adj = enforceFatFloor(protein_g, carb_g, fat_g, w);
+  protein_g = adj.protein_g; carb_g = adj.carb_g; fat_g = adj.fat_g;
+  pk = protein_g*4; ck = carb_g*4; fk = fat_g*9;
+  const kcal = pk+ck+fk;
+  if(adj.adjusted) warnMsg = adj.reason;
 
   // 表示
   $("bmi").textContent=bmi.toFixed(2);
   $("bmr").textContent=Math.round(bmr).toLocaleString();
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
+  const effPPerKg = (w>0)? (protein_g/w) : pFactor;
+  const effNote = (Math.abs(effPPerKg - pFactor) > 0.05) ? `｜実効p≈${effPPerKg.toFixed(2)}g/kg` : "";
   $("bmiClassTxt").textContent=
-    `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
+    `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）${effNote}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -780,8 +812,7 @@ function calc(){
   $("macroNote").textContent=
     `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
-  // 脂質下限に関する警告は撤廃
-  $("fatWarn").style.display="none";
+  if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
