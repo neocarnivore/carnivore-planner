@@ -248,7 +248,7 @@
       </div>
     </section>
 
-    <section id="chartSection" class="section" class="section" style="display:none">
+    <section id="chartSection" class="section" style="display:none">
       <h3>体重推移（推定）</h3>
       <div class="kpi chartCard" style="border:none;background:transparent;box-shadow:none">
         <div class="chartHeader">
@@ -345,8 +345,25 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
     e.currentTarget.classList.add("active"); e.currentTarget.setAttribute("aria-selected","true"); e.currentTarget.setAttribute("aria-pressed","true");
     goal = e.currentTarget.dataset.goal;
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
+    /* 減量/増量に切替時は初回表示を常に1ヶ月へ */
+    if(goal==="cut" || goal==="bulk"){ setChartRange(1); }
     updatePFMenu();
   });
+});
+
+/* グラフ期間ボタン制御 */
+let chartMonths = 1;
+function setChartRange(m){
+  chartMonths = +m;
+  document.querySelectorAll('.chartBtns button').forEach(b=>{
+    b.classList.toggle('active', +b.dataset.months === chartMonths);
+  });
+}
+document.addEventListener('click',(e)=>{
+  const btn = e.target.closest('.chartBtns button');
+  if(!btn) return;
+  setChartRange(btn.dataset.months);
+  if(window._lastDrawArgs) drawWeightChart({...window._lastDrawArgs, months:chartMonths});
 });
 
 /* 運動習慣の制御 */
@@ -505,7 +522,7 @@ function classText(bmi){
 }
 const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 };
 
-/* NaN安全配分 */
+/* NaN安全配分（既存） */
 function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
@@ -527,7 +544,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
 }
 
-/* 電解質 */
+/* 電解質（既存） */
 function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
   const af = parseFloat(habit)||1.2;
   const scaleAF = clamp((af - 1.2) / (1.9 - 1.2), 0, 1);
@@ -539,63 +556,92 @@ function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
   return { k: Math.max(0, Math.round(k)), na: Math.max(0, Math.round(na)), mg: Math.max(0, Math.round(mg)) };
 }
 
-/* グラフ */
+/* キャンバスDPR合わせ */
 function fitCanvasDPR(canvas){
+  if(!canvas) return;
   const dpr = Math.max(1, window.devicePixelRatio||1);
   const rect = canvas.getBoundingClientRect();
-  const w = Math.max(360, Math.round(rect.width*dpr));
-  const h = Math.max(240, Math.round(rect.height*dpr));
+  const w = Math.max(360, Math.round((rect.width||360)*dpr));
+  const h = Math.max(240, Math.round((rect.height||240)*dpr));
   if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
 }
-let chartMonths = 1;
-document.addEventListener('click',(e)=>{
-  const btn = e.target.closest('.chartBtns button');
-  if(!btn) return;
-  document.querySelectorAll('.chartBtns button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  chartMonths = +btn.dataset.months;
-  if(window._lastDrawArgs) drawWeightChart({...window._lastDrawArgs, months:chartMonths});
-});
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ★ 改良版：非現実収束の抑制と月間変化クランプ */
-function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
-  const cvs = $("wtChart"); fitCanvasDPR(cvs);
-  const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
+/* ★ 安定版：日次ステップで滑らかに。NaN/極端値/収束暴走を抑制 */
+function drawWeightChart(args){
+  const {
+    startKg,
+    targetKg = null,
+    months = chartMonths || 1,
+    dailyDeltaKcal = 0,
+    kcalPerKg = 7700,
+    isCut = false
+  } = args || {};
+
+  const cvs = $("wtChart");
+  if(!cvs) return;
+  fitCanvasDPR(cvs);
+  const ctx = cvs.getContext("2d");
+  if(!ctx) return;
+  const W=cvs.width, H=cvs.height;
+
   ctx.clearRect(0,0,W,H);
 
-  const daysPerMonth=30;
-  let baseMonthlyKg=(dailyDeltaKcal*daysPerMonth)/(kcalPerKg||7700);
-  if(isCut && dailyDeltaKcal<0){ baseMonthlyKg *= 0.90; }
+  const m = Math.max(1, Math.floor(+months||1));
+  const days = m * 30;
 
+  // 期待日次変化（kg/日）
+  const baseDaily = (Number.isFinite(dailyDeltaKcal) ? dailyDeltaKcal : 0) / (kcalPerKg||7700);
+
+  // 目標別クランプ（kg/日）
   const isMaintain = Math.abs(dailyDeltaKcal) < 50;
   const isBulk = dailyDeltaKcal > 50;
-  const MAX_MONTHLY = isMaintain ? 0.2 : (isBulk ? 2.0 : 3.0); // 維持±0.2 / 増量≤2.0 / 減量≤3.0 kg/月
+  const MAX_DAILY = isMaintain ? 0.007 : (isBulk ? (2.0/30) : (3.0/30)); // 維持±0.007 / 増量≤0.0667 / 減量≤0.1
 
-  const xs=[], ys=[]; let w=startKg;
-  for(let m=0;m<=months;m++){
-    const adapt=Math.pow(0.85,m), noise=0.15*seededNoise(m);
-    let delta=baseMonthlyKg*adapt+noise;
-
-    if(targetKg!=null){
-      const gap=targetKg-w;
-      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02; // 近い時だけ弱く吸着
-      delta += gap*near;
+  const xs=[], ys=[];
+  let w = Math.max(0, Number.isFinite(startKg)? +startKg : 0);
+  for(let d=0; d<=days; d++){
+    // 収束性：距離に応じた弱い吸着（近いほどやや強め）
+    let attract = 0;
+    if(targetKg!=null && Number.isFinite(+targetKg)){
+      const gap = (+targetKg) - w;
+      const absGap = Math.abs(gap);
+      const kNear = absGap < 5 ? 0.010 : absGap < 10 ? 0.005 : 0.002; // /日
+      attract = gap * kNear;
     }
-    delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
-    xs.push(m); ys.push(Math.max(0,w));
-    w = clamp(w+delta, 0, 300);
+
+    // 適応減衰＆ランダム性（微小）
+    const adapt = Math.pow(0.999, d); // 日が経つほどやや鈍化
+    const noise = 0.02 * (seededNoise(d*0.23));
+
+    let delta = (baseDaily * adapt) + attract + noise;
+    // 非現実的スパイク防止
+    delta = clamp(delta, -MAX_DAILY, MAX_DAILY);
+
+    // 次日の予測
+    const next = clamp(w + delta, 0, 300);
+    // x座標は「月」スケール（30日=1ヶ月）
+    xs.push(d/30);
+    ys.push(next);
+
+    w = next;
   }
 
-  const padL=70, padR=22, padT=36, padB=52;
-  const minY=Math.floor(Math.min(...ys, targetKg??ys[0]) - 1);
-  const maxY=Math.ceil(Math.max(...ys, targetKg??ys[0]) + 1);
-  const yRange=Math.max(1,maxY-minY);
+  // 軸レンジ計算（安全化）
+  const safeYs = ys.filter(v=>Number.isFinite(v));
+  const yMin = Math.floor((Math.min(...safeYs, Number.isFinite(targetKg)?+targetKg:ys[0]) - 1));
+  const yMax = Math.ceil((Math.max(...safeYs, Number.isFinite(targetKg)?+targetKg:ys[0]) + 1));
+  const minY = Math.max(0, yMin);
+  const maxY = Math.max(minY+1, yMax);
+  const yRange = maxY - minY;
 
+  // 余白と座標変換
+  const padL=70, padR=22, padT=36, padB=52;
   const plotW=W-padL-padR, plotH=H-padT-padB;
-  const xTo=m=> padL + (m/months)*plotW;
+  const xTo=t=> padL + (clamp(t,0,m)/m)*plotW;
   const yTo=kg=> padT + (1-(kg-minY)/yRange)*plotH;
 
+  // グリッド
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--grid').trim();
   ctx.lineWidth=1;
   const ySteps = 3;
@@ -603,16 +649,18 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
     const val=minY+(yRange/ySteps)*i, yy=yTo(val);
     ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
   }
+  // 軸
   ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--axisLine').trim();
   ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(W-padR, yTo(minY)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(padL, yTo(minY)); ctx.lineTo(padL, padT); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, yTo(minY)); ctx.stroke();
 
+  // 目盛ラベル
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
+  const ticks = m<=1? [0,7,14,21,30] : m<=3? [0,30,60,90] : m<=6? [0,60,120,180] : [0,90,180,270,360];
   ticks.forEach(d=>{
-    const m=d/30; const xx=xTo(Math.min(months,m));
+    const tm=d/30; const xx=xTo(Math.min(m,tm));
     const label=`${d}日`; const tw=ctx.measureText(label).width;
     let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
     if(d===0) xSafe = padL + 12;
@@ -625,23 +673,32 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
     ctx.fillText(label, Math.max(padL-tw-10,6), yClamped);
   }
 
-  if(targetKg!=null){
+  // 目標線
+  if(targetKg!=null && Number.isFinite(+targetKg)){
     ctx.strokeStyle="#ff7575"; ctx.setLineDash([6,6]);
-    ctx.beginPath(); ctx.moveTo(padL, yTo(targetKg)); ctx.lineTo(W-padR, yTo(targetKg)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, yTo(+targetKg)); ctx.lineTo(W-padR, yTo(+targetKg)); ctx.stroke();
     ctx.setLineDash([]);
   }
 
+  // 線描画
   ctx.save(); ctx.beginPath();
   ctx.rect(padL, padT, plotW, plotH); ctx.clip();
   ctx.strokeStyle="#48d1b5"; ctx.lineWidth=3;
   ctx.beginPath();
-  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
+  xs.forEach((t,i)=>{ const xx=xTo(t), yy=yTo(ys[i]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); });
   ctx.stroke();
+
+  // マーカー（間引いて描画）
   ctx.fillStyle="#48d1b5";
-  xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
+  const stride = Math.max(1, Math.floor(xs.length/60)); // 最大60個程度
+  for(let i=0;i<xs.length;i+=stride){
+    const xx=xTo(xs[i]), yy=yTo(ys[i]);
+    ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill();
+  }
   ctx.restore();
 
-  window._lastDrawArgs = {startKg:w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  // 次回再描画用に“安全な”引数だけ保存
+  window._lastDrawArgs = { startKg, targetKg, months: m, dailyDeltaKcal, kcalPerKg, isCut };
 }
 let _resizeId;
 window.addEventListener('resize', ()=>{
@@ -701,7 +758,7 @@ function parseFPRatio(txt){
   return {fat: Math.max(0, f/s), prot: Math.max(0, p/s)};
 }
 
-/* メイン計算（★pFactor×体重でP固定→残りを脂質） */
+/* メイン計算（★p係数を基準にPを固定し、f:p比に合わせてFを算出／脂質下限は不使用） */
 function calc(){
   updatePFMenu();
   if(!requireFilled()) return;
@@ -727,12 +784,11 @@ function calc(){
   const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
   const tdee = bmr * af * dayF;
 
-  // 目標補正
+  // 目標補正（TDEE表示用・グラフ用差分計算に使う）
   const gF = GOAL_FACTOR[goal] || 1.0;
-  const targetKcal = tdee * gF;
-  const Ekg = (w>0)? (targetKcal / w) : 0;
+  const targetKcal_ref = tdee * gF; // 参照用
 
-  // 選択pFactor（固定使用）と表示用 f:p 比率
+  // p係数 & f:p
   const pFactor = parseFloat($("pFactor").value);
   const pfSel = $("pFactor");
   const curOpt = pfSel.options[pfSel.selectedIndex];
@@ -740,34 +796,20 @@ function calc(){
              : (pTier==='low'?'8:2':pTier==='high'?'7:3':'7.5:2.5');
   const share = parseFPRatio(fpr);
 
-  // マクロ：P = pFactor*kg を厳守、糖質は食事法、脂質は残り
-  let protein_g = Math.max(0, (pFactor||0) * w);
+  // マクロ：p係数でP固定 → f:p比からFを決定 → 糖質は食事法に従う
+  const protein_g = Math.max(0, pFactor * w);
   let pk = protein_g * 4;
 
-  let carb_g = carbsBy(diet, carbSel, onoff);
-  let ck = carb_g * 4;
+  let carb_g=carbsBy(diet, carbSel, onoff);
+  let ck=carb_g*4;
 
-  let remain = targetKcal - (pk + ck);
-  let fat_g = 0, fk = 0;
-  let warnMsg = "";
+  // f:pはPとFの「kcal比」。P固定のため、Fは Pkcal×(fatShare/protShare)
+  const ratioFP = (share.prot>0) ? (share.fat / share.prot) : 3.0; // ガード
+  let fk = pk * ratioFP;
+  let fat_g = fk / 9;
 
-  if(remain >= 0){
-    fat_g = remain / 9;
-    fk = fat_g * 9;
-  }else{
-    // 例外処理：脂質を0に固定し、P/Cを目標kcalに収めるようスケール
-    const totalPC = pk + ck;
-    if(totalPC > 0){
-      const scale = clamp(targetKcal / totalPC, 0, 1);
-      pk = Math.max(0, pk * scale);
-      ck = Math.max(0, ck * scale);
-      protein_g = pk / 4;
-      carb_g = ck / 4;
-    }
-    fat_g = 0; fk = 0;
-    warnMsg = "※脂質が0gになったため、タンパク質/糖質を目標kcalに合わせて自動スケールしました。";
-  }
-  const kcal = pk + ck + fk;
+  // 総kcalはマクロから決定（= pk+fk+ck）
+  const kcal = pk + fk + ck;
 
   // 表示
   $("bmi").textContent=bmi.toFixed(2);
@@ -775,7 +817,7 @@ function calc(){
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
   $("bmiClassTxt").textContent=
-    `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
+    `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）｜目標E≈${(targetKcal_ref/w).toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
   $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -796,13 +838,13 @@ function calc(){
   $("macroNote").textContent=
     `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
-  if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
+  $("fatWarn").style.display="none"; // 下限ロジック廃止のため未使用
 
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
-  /* 食材配分 */
+  /* 食材配分（既存ロジック） */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=30)?30:(sel<=50)?50:70;
@@ -837,8 +879,8 @@ function calc(){
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
   updateBars(pk, fk, ck, kcal);
 
-  const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
-  drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
+  const tgt = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
+  drawWeightChart({startKg:w,targetKg:tgt,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
 
 /* セッション保存 */
@@ -879,7 +921,9 @@ function restoreFromSessionAndAutoCalc(){
     const pfSel = $("pFactor");
     const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
     if(idx>=0) pfSel.selectedIndex = idx;
-    if(d.chartMonths){ chartMonths = +d.chartMonths; }
+    // 減量/増量なら初回は常に1ヶ月表示を優先
+    if(goal!=="maintain"){ setChartRange(1); }
+    else if(d.chartMonths){ setChartRange(+d.chartMonths); }
     calc();
   }catch{}
   sessionStorage.removeItem("plannerAutoForm");
@@ -910,6 +954,7 @@ function restoreFormFresh(){
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
+  setChartRange(1);
 }
 if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 
