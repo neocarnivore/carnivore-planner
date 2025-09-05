@@ -558,7 +558,7 @@ document.addEventListener('click',(e)=>{
 });
 function seededNoise(n){ return Math.sin(n*1.7)*0.6 + Math.sin(n*0.37)*0.4; }
 
-/* ★ 改良版：非現実収束の抑制と月間変化クランプ */
+/* ★ 改良版：非現実収束の抑制と月間変化クランプ + 縦軸ラベルのみぼかし */
 function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut}){
   const cvs = $("wtChart"); fitCanvasDPR(cvs);
   const ctx = cvs.getContext("2d"); const W=cvs.width, H=cvs.height;
@@ -570,16 +570,15 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
 
   const isMaintain = Math.abs(dailyDeltaKcal) < 50;
   const isBulk = dailyDeltaKcal > 50;
-  const MAX_MONTHLY = isMaintain ? 0.2 : (isBulk ? 2.0 : 3.0); // 維持±0.2 / 増量≤2.0 / 減量≤3.0 kg/月
+  const MAX_MONTHLY = isMaintain ? 0.2 : (isBulk ? 2.0 : 3.0);
 
   const xs=[], ys=[]; let w=startKg;
   for(let m=0;m<=months;m++){
     const adapt=Math.pow(0.85,m), noise=0.15*seededNoise(m);
     let delta=baseMonthlyKg*adapt+noise;
-
     if(targetKg!=null){
       const gap=targetKg-w;
-      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02; // 近い時だけ弱く吸着
+      const near = Math.abs(gap) <= 10 ? 0.10 : 0.02;
       delta += gap*near;
     }
     delta = clamp(delta, -MAX_MONTHLY, MAX_MONTHLY);
@@ -616,13 +615,18 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
     const label=`${d}日`; const tw=ctx.measureText(label).width;
     let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
     if(d===0) xSafe = padL + 12;
-    ctx.fillText(label, xSafe, H-16);
+    ctx.fillText(label, xSafe, H-16); // 横軸ラベルは通常表示
   });
+
+  // ★ 縦軸ラベルのみぼかし（横軸はそのまま）
   for(let i=0;i<=ySteps;i++){
     const val=minY+(yRange/ySteps)*i; const yy=yTo(val);
     const label=`${val.toFixed(1)}kg`; const tw=ctx.measureText(label).width;
     const yClamped = Math.min(Math.max(yy-4, padT+14), H-padB-8);
+    ctx.save();
+    ctx.filter = 'blur(6px)';
     ctx.fillText(label, Math.max(padL-tw-10,6), yClamped);
+    ctx.restore();
   }
 
   if(targetKg!=null){
@@ -724,6 +728,28 @@ function parseFPRatio(txt){
   const s = (f+p)||1;
   return {fat: Math.max(0, f/s), prot: Math.max(0, p/s)};
 }
+
+/* === ここから「表示を???に置換」用ユーティリティ === */
+/* ①〜⑤：総摂取kcal/三大栄養素g&kcal/電解質mg を「???」表示に */
+function redactCoreNumbers(){
+  ["kcal","p","f","c","pkcal","fkcal","ckcal","k","na","mg"].forEach(id=>{
+    const el = $(id); if(el) el.textContent = "???";
+  });
+}
+/* ⑥⑦：食材別（Carnivore=肉/魚介/卵/乳製品のみ、Ketovore/TKD=6項目）を「???」表示に */
+function redactFoodNumbers(){
+  const diet = $("diet").value;
+  const all = ["gMeat","kMeat","gFish","kFish","gEggs","kEggs","gDairy","kDairy","gVeg","kVeg","gFruit","kFruit"];
+  const carn = ["gMeat","kMeat","gFish","kFish","gEggs","kEggs","gDairy","kDairy"];
+  const target = (diet==="Carnivore") ? carn : all;
+  target.forEach(id=>{ const el=$(id); if(el) el.textContent="???"; });
+}
+/* まとめ呼び出し */
+function redactOutputs(){
+  redactCoreNumbers();
+  redactFoodNumbers();
+}
+/* === ユーティリティここまで === */
 
 /* メイン計算（★f:p厳密分配に修正） */
 function calc(){
@@ -855,6 +881,9 @@ function calc(){
 
   const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
   drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
+
+  /* ★ 最後に指定箇所を「???」表示へ差し替え（①〜⑦） */
+  redactOutputs();
 }
 
 /* セッション保存 */
@@ -891,7 +920,7 @@ function restoreFromSessionAndAutoCalc(){
     });
     $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
     toggleCarb(); enforceHabitRules();
-    updatePFMenu(); // ← S/A/H/Wのみで再生成
+    updatePFMenu();
     const pfSel = $("pFactor");
     const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
     if(idx>=0) pfSel.selectedIndex = idx;
