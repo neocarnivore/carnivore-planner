@@ -132,9 +132,9 @@
           <label>食事法</label>
           <select id="diet">
             <option value="" selected disabled>選択してください</option>
-            <option value="Carnivore">CARNIVORE</option>
-            <option value="Ketovore">KETOVORE</option>
-            <option value="TKD">肉食寄りTKD</option>
+            <option value="Carnivore">カーニボア</option>
+            <option value="Ketovore">ケトボア</option>
+            <option value="TKD">肉食寄りのTKD</option>
           </select>
         </div>
       </div>
@@ -793,7 +793,10 @@ function calc(){
   $("bmiClassTxt").textContent=
     `BMI区分：${classText(bmi)}｜p係数=${pFactor.toFixed(2)}g/kg（f:p=${fpr}）${effNote}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
 
-  $("dietLabel").textContent=(diet==="TKD"?"肉食寄りTKD":diet.toUpperCase());
+  $("dietLabel").textContent =
+diet==="Carnivore" ? "カーニボア" :
+diet==="Ketovore" ? "ケトボア" :
+diet==="TKD" ? "肉食寄りのTKD" : "—";
   $("kcal").textContent=Math.round(kcal).toLocaleString();
   $("p").textContent=Math.round(protein_g);
   $("f").textContent=Math.round(fat_g);
