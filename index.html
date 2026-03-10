@@ -123,7 +123,7 @@
 
       <div class="pair">
         <div>
-          <label>タンパク質係数（g/kg）</label>
+          <label>タンパク質（g/kg）</label>
           <select id="pFactor">
             <option value="" selected disabled>選択してください</option>
           </select>
@@ -671,7 +671,7 @@ function requireFilled(){
   if(!$("age").value) miss.push("年齢");
   if(!$("height").value) miss.push("身長");
   if(!$("weight").value) miss.push("体重");
-  if(!$("pFactor").value) miss.push("タンパク質係数");
+  if(!$("pFactor").value) miss.push("タンパク質");
   if(!$("diet").value) miss.push("食事法");
   if(!$("habit").value) miss.push("運動習慣");
   const diet = $("diet").value;
