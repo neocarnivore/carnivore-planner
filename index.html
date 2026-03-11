@@ -1077,8 +1077,8 @@ function validateTarget(goal, weight, targetStr){
   if(goal==="maintain") return true;
   if(!t){ alert("目標体重を入力してください"); return false; }
   if(t < 30 || t > 250){ alert("目標体重は30〜250kgの範囲で入力してください。"); return false; }
-  if(goal==="bulk" && t < weight){ alert("増量を選択していますが、目標体重が現在より低くなっています"); return false; }
-  if(goal==="cut"  && t > weight){ alert("減量を選択していますが、目標体重が現在より高くなっています"); return false; }
+  if(goal==="bulk" && t < weight){ alert("増量が選択されていますが、目標体重が現在より低くなっています"); return false; }
+  if(goal==="cut"  && t > weight){ alert("減量が選択されていますが、目標体重が現在より高くなっています"); return false; }
   return true;
 }
 
