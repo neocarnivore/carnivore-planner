@@ -107,6 +107,68 @@ body:not(.light){
   color:#fff;
   border:none;
 }
+.presetMenu{
+  position:absolute;
+  top:60px;
+  right:14px;
+  min-width:132px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px;
+  z-index:2000;
+  box-shadow:0 14px 32px rgba(0,0,0,.18);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(-8px) scale(.98);
+  transition:
+    opacity .18s ease,
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    visibility .18s ease;
+  pointer-events:none;
+  backdrop-filter:saturate(1.15) blur(10px);
+}
+
+.presetMenu.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+.presetMenu button{
+  width:100%;
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--text);
+  text-align:left;
+  padding:10px 12px;
+  border-radius:10px;
+  transition:
+    background .16s ease,
+    border-color .16s ease,
+    transform .12s ease;
+}
+
+.presetMenu button:hover{
+  background:rgba(72,209,181,.10);
+  border-color:var(--border);
+}
+
+.presetMenu button:active{
+  transform:scale(.985);
+}
+
+.light .presetMenu{
+  box-shadow:0 14px 30px rgba(21,39,56,.10);
+}
+
+#presetManageBtn:hover{
+  background:rgba(72,209,181,.08);
+}
+#presetManageBtn:active{
+  transform:scale(.97);
+}
 </style>
 </head>
 <body>
@@ -119,34 +181,15 @@ body:not(.light){
     <select id="presetSelect" style="width:auto;max-width:140px;padding:8px 10px">
       <option value="">条件呼び出し</option>
     </select>
-    <button id="presetManageBtn" type="button" style="width:auto;padding:8px 10px;background:transparent;border:1px solid var(--border);color:var(--text)">･･･</button>
+    <button id="presetManageBtn" type="button" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;transition:transform .12s ease,background .16s ease,border-color .16s ease">⋯</button>
     <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
   </div>
 </header>
 
-<div id="presetMenu" style="
-position:absolute;
-top:60px;
-right:14px;
-background:var(--card);
-border:1px solid var(--border);
-border-radius:10px;
-padding:6px;
-display:none;
-z-index:2000;
-box-shadow:0 8px 20px rgba(0,0,0,.25);
-">
+<div id="presetMenu" class="presetMenu">
 
-<button id="presetEditBtn"
-style="width:100%;margin-bottom:6px;background:transparent;border:1px solid var(--border);color:var(--text)">
-編集
-</button>
-
-<button id="presetDeleteBtn"
-style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text)">
-削除
-</button>
-
+<button id="presetEditBtn" type="button">編集</button>
+<button id="presetDeleteBtn" type="button">削除</button>
 </div>
 
 <div class="wrap">
@@ -354,7 +397,7 @@ const LAST_PRESET_KEY = "planner_last_preset_v1";
 
 function closePresetMenu(){
   const menu = $("presetMenu");
-  if(menu) menu.style.display = "none";
+  if(menu) menu.classList.remove("show");
 }
 function getCurrentFormData(){
   return {
@@ -584,10 +627,10 @@ function resetFormAll(){
 
 /* テーマ */
 function applyThemeFromStorage(){
-  const t = localStorage.getItem('theme');
-  if(t === 'light'){ document.body.classList.add('light'); }
-  else{ document.body.classList.remove('light'); }
-  updateThemeBtn(); if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
+  document.body.classList.add('light');
+  localStorage.setItem('theme', 'light');
+  updateThemeBtn();
+  if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
 function toggleTheme(){
   document.body.classList.toggle('light');
@@ -608,7 +651,7 @@ $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
   if(!menu) return;
-  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+  menu.classList.toggle("show");
 });
 $("presetEditBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
