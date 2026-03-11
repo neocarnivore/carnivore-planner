@@ -450,7 +450,7 @@ function updatePFMenu(){
   sel.addEventListener('change', ()=>{
     const o = sel.options[sel.selectedIndex];
     pTier = o?.dataset?.tier || 'std';
-  }, {once:true});
+  });
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
@@ -464,7 +464,7 @@ $("calcBtn").addEventListener("click", ()=>{
       vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
       setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
     }
-    window.scrollTo({top:0, left:0, behavior:'instant'});
+    window.scrollTo({top:0, left:0, behavior:'auto'});
     saveFormToSession();
     sessionStorage.setItem("autocalc","1");
     location.reload();
