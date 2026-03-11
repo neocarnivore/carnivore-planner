@@ -88,12 +88,38 @@ body:not(.light){
   .footerNote{color:#000 !important}
   .light .footerNote{color:#000 !important}
   .footerNote a{color:var(--p);text-decoration:underline}
+  .actionRow{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+#saveBtn,#calcBtn,#resetBtn{
+  width:100%;
+}
+#saveBtn,#resetBtn{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text);
+}
+#calcBtn{
+  background:var(--acc);
+  color:#fff;
+  border:none;
+}
 </style>
 </head>
 <body>
 <header>
-  <div>肉食プランナー🥩</div>
-  <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
+  <div style="display:flex;align-items:center;gap:8px;min-width:0">
+    <div>肉食プランナー🥩</div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px">
+    <select id="presetSelect" style="width:auto;max-width:140px;padding:8px 10px">
+      <option value="">条件呼び出し</option>
+    </select>
+    <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
+  </div>
 </header>
 
 <div class="wrap">
@@ -209,9 +235,11 @@ body:not(.light){
       </div>
     </div>
 
-    <div style="margin-top:12px">
-      <button id="calcBtn" aria-pressed="false">計算</button>
-    </div>
+    <div class="actionRow" style="margin-top:12px">
+  <button id="saveBtn" type="button">条件保存</button>
+  <button id="calcBtn" type="button" aria-pressed="false">計算</button>
+  <button id="resetBtn" type="button">リセット</button>
+</div>
   </div>
 
   <!-- 基礎データ -->
@@ -294,6 +322,160 @@ body:not(.light){
 <script>
 const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const PRESET_KEY = "planner_presets_v1";
+const LAST_PRESET_KEY = "planner_last_preset_v1";
+
+function getCurrentFormData(){
+  return {
+    sex:$("sex").value,
+    age:$("age").value,
+    height:$("height").value,
+    weight:$("weight").value,
+    habit:$("habit").value,
+    diet:$("diet").value,
+    carb:$("carbIntake") ? $("carbIntake").value : "",
+    pFactor:$("pFactor").value,
+    pTier,
+    fitnessType:$("fitnessType").value,
+    onoff:$("onoff").value,
+    goal,
+    targetWeight:$("targetWeight").value,
+    chartMonths
+  };
+}
+
+function applyFormData(d){
+  if(!d) return;
+  if(d.sex != null) $("sex").value = d.sex;
+  if(d.age != null) $("age").value = d.age;
+  if(d.height != null) $("height").value = d.height;
+  if(d.weight != null) $("weight").value = d.weight;
+  if(d.diet != null) $("diet").value = d.diet;
+  if(d.habit != null) $("habit").value = d.habit;
+  if(d.fitnessType != null) $("fitnessType").value = d.fitnessType;
+  if(d.onoff != null) $("onoff").value = d.onoff;
+  if(d.carb != null && $("carbIntake")) $("carbIntake").value = d.carb;
+  if(d.targetWeight != null) $("targetWeight").value = d.targetWeight;
+  if(d.chartMonths != null) chartMonths = +d.chartMonths || 1;
+
+  pTier = d.pTier || "std";
+  goal = d.goal || "maintain";
+
+  ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
+    const b=$(i);
+    const is=(b.dataset.goal===goal);
+    b.classList.toggle("active",is);
+    b.setAttribute("aria-selected",is?"true":"false");
+    b.setAttribute("aria-pressed",is?"true":"false");
+  });
+
+  $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
+
+  toggleCarb();
+  enforceHabitRules();
+  updatePFMenu();
+
+  const pfSel = $("pFactor");
+  const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
+  if(idx>=0) pfSel.selectedIndex = idx;
+}
+
+function loadPresets(){
+  try{
+    return JSON.parse(localStorage.getItem(PRESET_KEY) || "{}");
+  }catch{
+    return {};
+  }
+}
+
+function savePresets(obj){
+  localStorage.setItem(PRESET_KEY, JSON.stringify(obj));
+}
+
+function refreshPresetSelect(){
+  const sel = $("presetSelect");
+  if(!sel) return;
+  const presets = loadPresets();
+  const current = sel.value;
+
+  sel.innerHTML = `<option value="">条件呼び出し</option>`;
+  Object.keys(presets).forEach(name=>{
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+
+  if(current && presets[current]) sel.value = current;
+}
+
+function saveCurrentPreset(){
+  const name = prompt("保存名を入力してください");
+  if(!name) return;
+
+  const presets = loadPresets();
+  presets[name] = getCurrentFormData();
+  savePresets(presets);
+  localStorage.setItem(LAST_PRESET_KEY, name);
+  refreshPresetSelect();
+  $("presetSelect").value = name;
+  alert(`「${name}」を保存しました`);
+}
+
+function loadSelectedPreset(){
+  const name = $("presetSelect").value;
+  if(!name) return;
+  const presets = loadPresets();
+  if(!presets[name]) return;
+
+  applyFormData(presets[name]);
+  localStorage.setItem(LAST_PRESET_KEY, name);
+}
+
+function restoreLastPreset(){
+  refreshPresetSelect();
+  const last = localStorage.getItem(LAST_PRESET_KEY);
+  const presets = loadPresets();
+  if(last && presets[last]){
+    $("presetSelect").value = last;
+    applyFormData(presets[last]);
+  }
+}
+
+function resetFormAll(){
+  localStorage.removeItem(LAST_PRESET_KEY);
+
+  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
+  ids.forEach(id=>{
+    const el = $(id);
+    if(!el) return;
+    if(el.tagName==="SELECT"){ el.selectedIndex = 0; }
+    else el.value = "";
+  });
+
+  goal = "maintain";
+  pTier = "std";
+  chartMonths = 1;
+
+  ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
+    const b=$(i);
+    const is=(i==="goal-maintain");
+    b.classList.toggle("active",is);
+    b.setAttribute("aria-selected",is?"true":"false");
+    b.setAttribute("aria-pressed",is?"true":"false");
+  });
+
+  $("targetCol").style.display = "none";
+  $("carbCol").style.display = "none";
+  $("fitnessType").disabled = true;
+  $("onoff").disabled = true;
+  setNoneOptionVisible("fitnessType", false);
+  setNoneOptionVisible("onoff", false);
+  ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
+
+  if($("presetSelect")) $("presetSelect").value = "";
+  updatePFMenu();
+}
 
 /* テーマ */
 function applyThemeFromStorage(){
@@ -314,6 +496,9 @@ function updateThemeBtn(){
 }
 $('themeToggle').addEventListener('click', toggleTheme);
 applyThemeFromStorage();
+$("saveBtn").addEventListener("click", saveCurrentPreset);
+$("resetBtn").addEventListener("click", resetFormAll);
+$("presetSelect").addEventListener("change", loadSelectedPreset);
 
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
@@ -951,6 +1136,8 @@ function restoreFormFresh(){
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 }
 if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
+restoreLastPreset();
+refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
