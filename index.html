@@ -455,7 +455,76 @@ function restoreLastPreset(){
     applyFormData(presets[last]);
   }
 }
+function renameSelectedPreset(){
+  const current = $("presetSelect").value;
+  if(!current){
+    alert("編集する条件を先に選択してください");
+    return;
+  }
 
+  const presets = loadPresets();
+  if(!presets[current]) return;
+
+  const nextName = prompt("新しい保存名を入力してください", current);
+  if(!nextName) return;
+
+  const trimmed = nextName.trim();
+  if(!trimmed){
+    alert("保存名を入力してください");
+    return;
+  }
+  if(trimmed === current) return;
+
+  if(presets[trimmed]){
+    alert("同じ名前の条件がすでにあります");
+    return;
+  }
+
+  presets[trimmed] = presets[current];
+  delete presets[current];
+  savePresets(presets);
+
+  localStorage.setItem(LAST_PRESET_KEY, trimmed);
+  refreshPresetSelect();
+  $("presetSelect").value = trimmed;
+}
+
+function deleteSelectedPreset(){
+  const current = $("presetSelect").value;
+  if(!current){
+    alert("削除する条件を先に選択してください");
+    return;
+  }
+
+  const presets = loadPresets();
+  if(!presets[current]) return;
+
+  const ok = confirm(`「${current}」を削除しますか？`);
+  if(!ok) return;
+
+  delete presets[current];
+  savePresets(presets);
+
+  const last = localStorage.getItem(LAST_PRESET_KEY);
+  if(last === current){
+    localStorage.removeItem(LAST_PRESET_KEY);
+  }
+
+  refreshPresetSelect();
+  $("presetSelect").value = "";
+}
+
+function openPresetManageMenu(){
+  const current = $("presetSelect").value;
+  if(!current){
+    alert("先に条件を選択してください");
+    return;
+  }
+
+  const action = prompt("編集=1 / 削除=2");
+  if(action === "1") renameSelectedPreset();
+  if(action === "2") deleteSelectedPreset();
+}
 function resetFormAll(){
   localStorage.removeItem(LAST_PRESET_KEY);
 
