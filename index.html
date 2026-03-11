@@ -178,12 +178,12 @@
           </select>
         </div>
         <div id="carbCol" style="display:none">
-          <label>糖質摂取量（目安）</label>
+          <label>目標の糖質上限（g/日）</label>
           <select id="carbIntake">
             <option value="" selected disabled>選択してください</option>
-            <option value="30">〜30g</option>
-            <option value="50">〜50g</option>
-            <option value="70">〜70g</option>
+            <option value="30">30g</option>
+            <option value="50">50g</option>
+            <option value="70">70g</option>
           </select>
         </div>
       </div>
@@ -675,7 +675,7 @@ function requireFilled(){
   if(!$("diet").value) miss.push("食事法");
   if(!$("habit").value) miss.push("運動習慣");
   const diet = $("diet").value;
-  if((diet==="Ketovore" || diet==="TKD") && !$("carbIntake").value){ miss.push("糖質摂取量（目安）"); }
+  if((diet==="Ketovore" || diet==="TKD") && !$("carbIntake").value){ miss.push("目標の糖質上限（g/日）"); }
   if($("habit").value && $("habit").value!=="1.2"){
     if(!$("fitnessType").value) miss.push("フィットネス");
     if(!$("onoff").value) miss.push("オン/オフ");
@@ -813,7 +813,7 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
   $("macroNote").textContent=
-    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質摂取量（目安）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
+    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜目標の糖質上限（g/日）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
