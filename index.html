@@ -415,13 +415,25 @@ function saveCurrentPreset(){
   const name = prompt("保存名を入力してください");
   if(!name) return;
 
+  const trimmed = name.trim();
+  if(!trimmed){
+    alert("保存名を入力してください");
+    return;
+  }
+
   const presets = loadPresets();
-  presets[name] = getCurrentFormData();
+
+  if(presets[trimmed]){
+    alert("同じ名前の条件は保存できません");
+    return;
+  }
+
+  presets[trimmed] = getCurrentFormData();
   savePresets(presets);
-  localStorage.setItem(LAST_PRESET_KEY, name);
+  localStorage.setItem(LAST_PRESET_KEY, trimmed);
   refreshPresetSelect();
-  $("presetSelect").value = name;
-  alert(`「${name}」を保存しました`);
+  $("presetSelect").value = trimmed;
+  alert(`「${trimmed}」を保存しました`);
 }
 
 function loadSelectedPreset(){
