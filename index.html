@@ -486,6 +486,51 @@ function renameSelectedPreset(){
     alert("編集する条件を先に選択してください");
     return;
   }
+  
+$("presetEditBtn").addEventListener("click", ()=>{
+
+  const presets = loadPresets();
+  const names = Object.keys(presets);
+
+  if(!names.length){
+    alert("保存された条件がありません");
+    return;
+  }
+
+  const name = prompt(
+    "編集する条件\n\n" + names.join("\n")
+  );
+
+  if(!name || !presets[name]) return;
+
+  $("presetSelect").value = name;
+  renameSelectedPreset();
+
+  $("presetMenu").style.display = "none";
+
+});
+$("presetDeleteBtn").addEventListener("click", ()=>{
+
+  const presets = loadPresets();
+  const names = Object.keys(presets);
+
+  if(!names.length){
+    alert("保存された条件がありません");
+    return;
+  }
+
+  const name = prompt(
+    "削除する条件\n\n" + names.join("\n")
+  );
+
+  if(!name || !presets[name]) return;
+
+  $("presetSelect").value = name;
+  deleteSelectedPreset();
+
+  $("presetMenu").style.display = "none";
+
+});
 
   const presets = loadPresets();
   if(!presets[current]) return;
@@ -596,10 +641,11 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
-$("presetManageBtn").addEventListener("click", ()=>{
+$("presetManageBtn").addEventListener("click", (e)=>{
+  e.stopPropagation();
   const menu = $("presetMenu");
-  menu.style.display =
-    menu.style.display === "block" ? "none" : "block";
+  if(!menu) return;
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
 });
   
 /* 入力クランプ（範囲：30–250kg） */
