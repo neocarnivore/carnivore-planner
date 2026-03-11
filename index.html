@@ -119,12 +119,6 @@ body:not(.light){
     <select id="presetSelect" style="width:auto;max-width:140px;padding:8px 10px">
       <option value="">条件呼び出し</option>
     </select>
-
-    <button id="presetManageBtn" type="button"
-style="width:auto;padding:8px 10px;background:transparent;border:1px solid var(--border);color:var(--text)">
-･･･
-</button>
-    
     <button id="themeToggle" style="width:auto;padding:8px 12px;background:transparent;border:1px solid var(--border);color:var(--text)">🌙/☀︎</button>
   </div>
 </header>
@@ -420,26 +414,8 @@ function saveCurrentPreset(){
   const name = prompt("保存名を入力してください");
   if(!name) return;
 
-  const trimmed = name.trim();
-  if(!trimmed){
-    alert("保存名を入力してください");
-    return;
-  }
-
   const presets = loadPresets();
-
-  if(presets[trimmed]){
-    alert("同じ名前の条件は保存できません");
-    return;
-  }
-
-  presets[trimmed] = getCurrentFormData();
-  savePresets(presets);
-  localStorage.setItem(LAST_PRESET_KEY, trimmed);
-  refreshPresetSelect();
-  $("presetSelect").value = trimmed;
-  alert(`「${trimmed}」を保存しました`);
-}
+  presets[name] = getCurrentFormData();
   savePresets(presets);
   localStorage.setItem(LAST_PRESET_KEY, name);
   refreshPresetSelect();
@@ -466,71 +442,7 @@ function restoreLastPreset(){
     applyFormData(presets[last]);
   }
 }
-function renameSelectedPreset(){
-  const current = $("presetSelect").value;
-  if(!current){
-    alert("編集する条件を先に選択してください");
-    return;
-  }
 
-  const presets = loadPresets();
-  if(!presets[current]) return;
-
-  const nextName = prompt("新しい保存名を入力してください", current);
-  if(!nextName) return;
-
-  const trimmed = nextName.trim();
-  if(!trimmed){
-    alert("保存名を入力してください");
-    return;
-  }
-  if(trimmed === current) return;
-
-  if(presets[trimmed]){
-    alert("同じ名前の条件がすでにあります");
-    return;
-  }
-
-  presets[trimmed] = presets[current];
-  delete presets[current];
-  savePresets(presets);
-
-  localStorage.setItem(LAST_PRESET_KEY, trimmed);
-  refreshPresetSelect();
-  $("presetSelect").value = trimmed;
-}
-
-function deleteSelectedPreset(){
-  const current = $("presetSelect").value;
-  if(!current){
-    alert("削除する条件を先に選択してください");
-    return;
-  }
-
-  const presets = loadPresets();
-  if(!presets[current]) return;
-
-  const ok = confirm(`「${current}」を削除しますか？`);
-  if(!ok) return;
-
-  delete presets[current];
-  savePresets(presets);
-  refreshPresetSelect();
-  $("presetSelect").value="";
-}
-
-function openPresetManageMenu(){
-  const current = $("presetSelect").value;
-  if(!current){
-    alert("先に条件を選択してください");
-    return;
-  }
-
-  const action = prompt("編集=1 / 削除=2");
-  if(action==="1") renameSelectedPreset();
-  if(action==="2") deleteSelectedPreset();
-}
-  
 function resetFormAll(){
   localStorage.removeItem(LAST_PRESET_KEY);
 
@@ -588,7 +500,6 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
-$("presetManageBtn").addEventListener("click", openPresetManageMenu);
 
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
