@@ -352,6 +352,10 @@ const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
 
+function closePresetMenu(){
+  const menu = $("presetMenu");
+  if(menu) menu.style.display = "none";
+}
 function getCurrentFormData(){
   return {
     sex:$("sex").value,
@@ -437,6 +441,7 @@ function refreshPresetSelect(){
 }
 
 function saveCurrentPreset(){
+  closePresetMenu();
   const name = prompt("保存名を入力してください");
   if(!name) return;
 
@@ -462,6 +467,7 @@ function saveCurrentPreset(){
 }
 
 function loadSelectedPreset(){
+  closePresetMenu();
   const name = $("presetSelect").value;
   if(!name) return;
   const presets = loadPresets();
@@ -486,57 +492,12 @@ function renameSelectedPreset(){
     alert("編集する条件を先に選択してください");
     return;
   }
-  
-$("presetEditBtn").addEventListener("click", ()=>{
-
-  const presets = loadPresets();
-  const names = Object.keys(presets);
-
-  if(!names.length){
-    alert("保存された条件がありません");
-    return;
-  }
-
-  const name = prompt(
-    "編集する条件\n\n" + names.join("\n")
-  );
-
-  if(!name || !presets[name]) return;
-
-  $("presetSelect").value = name;
-  renameSelectedPreset();
-
-  $("presetMenu").style.display = "none";
-
-});
-$("presetDeleteBtn").addEventListener("click", ()=>{
-
-  const presets = loadPresets();
-  const names = Object.keys(presets);
-
-  if(!names.length){
-    alert("保存された条件がありません");
-    return;
-  }
-
-  const name = prompt(
-    "削除する条件\n\n" + names.join("\n")
-  );
-
-  if(!name || !presets[name]) return;
-
-  $("presetSelect").value = name;
-  deleteSelectedPreset();
-
-  $("presetMenu").style.display = "none";
-
-});
 
   const presets = loadPresets();
   if(!presets[current]) return;
 
   const nextName = prompt("新しい保存名を入力してください", current);
-  if(!nextName) return;
+  if(nextName == null) return;
 
   const trimmed = nextName.trim();
   if(!trimmed){
@@ -560,6 +521,7 @@ $("presetDeleteBtn").addEventListener("click", ()=>{
 }
 
 function deleteSelectedPreset(){
+  closePresetMenu();
   const current = $("presetSelect").value;
   if(!current){
     alert("削除する条件を先に選択してください");
@@ -585,8 +547,9 @@ function deleteSelectedPreset(){
 }
 
 function resetFormAll(){
+  closePresetMenu();
   localStorage.removeItem(LAST_PRESET_KEY);
-
+  
   const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
   ids.forEach(id=>{
     const el = $(id);
@@ -645,8 +608,81 @@ $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
   if(!menu) return;
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
 });
+$("presetEditBtn").addEventListener("click", (e)=>{
+  e.stopPropagation();
+
+  const presets = loadPresets();
+  const names = Object.keys(presets);
+
+  if(!names.length){
+    alert("保存された条件がありません");
+    closePresetMenu();
+    return;
+  }
+
+  const name = prompt("編集する条件名を入力してください\n\n" + names.join("\n"));
+  if(name == null){
+    closePresetMenu();
+    return;
+  }
+
+  const trimmed = name.trim();
+  if(!trimmed || !presets[trimmed]){
+    alert("該当する条件名がありません");
+    closePresetMenu();
+    return;
+  }
+
+  $("presetSelect").value = trimmed;
+  renameSelectedPreset();
+  closePresetMenu();
+});
+
+$("presetDeleteBtn").addEventListener("click", (e)=>{
+  e.stopPropagation();
+
+  const presets = loadPresets();
+  const names = Object.keys(presets);
+
+  if(!names.length){
+    alert("保存された条件がありません");
+    closePresetMenu();
+    return;
+  }
+
+  const name = prompt("削除する条件名を入力してください\n\n" + names.join("\n"));
+  if(name == null){
+    closePresetMenu();
+    return;
+  }
+
+  const trimmed = name.trim();
+  if(!trimmed || !presets[trimmed]){
+    alert("該当する条件名がありません");
+    closePresetMenu();
+    return;
+  }
+
+  $("presetSelect").value = trimmed;
+  deleteSelectedPreset();
+  closePresetMenu();
+});
+document.addEventListener("click", (e)=>{
+  const menu = $("presetMenu");
+  const btn = $("presetManageBtn");
+
+  if(!menu || !btn) return;
+
+  const clickedInsideMenu = menu.contains(e.target);
+  const clickedManageBtn = btn.contains(e.target);
+
+  if(!clickedInsideMenu && !clickedManageBtn){
+    closePresetMenu();
+  }
+});
+window.addEventListener("scroll", closePresetMenu, { passive:true });
   
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
