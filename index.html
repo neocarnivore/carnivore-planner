@@ -582,7 +582,8 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
-
+$("presetManageBtn").addEventListener("click", openPresetManageMenu);
+  
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
   const el = $(id);
