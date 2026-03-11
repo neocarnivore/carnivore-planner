@@ -19,7 +19,22 @@
     --axis:#13283d;--grid:rgba(19,40,61,.10);--axisLine:rgba(19,40,61,.35)
   }
   *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
-  body{margin:0;background:linear-gradient(180deg,var(--bg),#10131b00);color:var(--text)}
+  body{
+  margin:0;
+  background:linear-gradient(180deg,var(--bg),#10131b00);
+  color:var(--text);
+}
+
+/* ダークモードだけ背景グラデ変更 */
+body:not(.light){
+  background:linear-gradient(
+    180deg,
+    #0b0b0f 0%,
+    #0b0b0f 35%,
+    #f6f8fb 70%,
+    #ffffff 100%
+  );
+}
   header{
     position:sticky;top:0;z-index:1000;
     display:flex;justify-content:space-between;align-items:center;gap:8px;
@@ -28,7 +43,12 @@
     border-bottom:1px solid var(--border);
     backdrop-filter:saturate(1.1);
   }
-  .wrap{padding:10px;max-width:1080px;margin:auto}
+  .wrap{
+  padding:10px;
+  max-width:1080px;
+  margin:auto;
+  min-height:100vh;
+}
   .card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 8px 24px rgba(0,0,0,.18);border:1px solid var(--border)}
   label{display:block;font-size:13px;color:var(--muted);margin:8px 0 6px}
   input,select,button{width:100%;padding:12px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
