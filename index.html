@@ -394,22 +394,10 @@ const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
-let activePresetName = "";
-let presetDirty = false;
 
 function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
-}
-function markPresetDirty(){
-  if(!activePresetName) return;
-  presetDirty = true;
-}
-
-function detachPresetSelection(){
-  activePresetName = "";
-  presetDirty = false;
-  if($("presetSelect")) $("presetSelect").value = "";
 }
 function getCurrentFormData(){
   return {
@@ -481,9 +469,8 @@ function savePresets(obj){
 function refreshPresetSelect(){
   const sel = $("presetSelect");
   if(!sel) return;
-
   const presets = loadPresets();
-  const current = activePresetName || sel.value;
+  const current = sel.value;
 
   sel.innerHTML = `<option value="">条件呼び出し</option>`;
   Object.keys(presets).forEach(name=>{
@@ -493,11 +480,7 @@ function refreshPresetSelect(){
     sel.appendChild(opt);
   });
 
-  if(current && presets[current]){
-    sel.value = current;
-  }else{
-    sel.value = "";
-  }
+  if(current && presets[current]) sel.value = current;
 }
 
 function saveCurrentPreset(){
@@ -523,9 +506,6 @@ function saveCurrentPreset(){
   localStorage.setItem(LAST_PRESET_KEY, trimmed);
   refreshPresetSelect();
   $("presetSelect").value = trimmed;
-  activePresetName = trimmed;
-  presetDirty = false;
-
   alert(`「${trimmed}」を保存しました`);
 }
 
@@ -538,9 +518,6 @@ function loadSelectedPreset(){
 
   applyFormData(presets[name]);
   localStorage.setItem(LAST_PRESET_KEY, name);
-
-  activePresetName = name;
-  presetDirty = false;
 }
 
 function restoreLastPreset(){
@@ -550,8 +527,6 @@ function restoreLastPreset(){
   if(last && presets[last]){
     $("presetSelect").value = last;
     applyFormData(presets[last]);
-    activePresetName = last;
-    presetDirty = false;
   }
 }
 function renameSelectedPreset(){
@@ -583,12 +558,9 @@ function renameSelectedPreset(){
   delete presets[current];
   savePresets(presets);
 
-    localStorage.setItem(LAST_PRESET_KEY, trimmed);
+  localStorage.setItem(LAST_PRESET_KEY, trimmed);
   refreshPresetSelect();
   $("presetSelect").value = trimmed;
-  activePresetName = trimmed;
-  presetDirty = false;
-}
 }
 
 function deleteSelectedPreset(){
@@ -613,8 +585,8 @@ function deleteSelectedPreset(){
     localStorage.removeItem(LAST_PRESET_KEY);
   }
 
-    detachPresetSelection();
   refreshPresetSelect();
+  $("presetSelect").value = "";
 }
 
 function resetFormAll(){
@@ -649,14 +621,14 @@ function resetFormAll(){
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 
-    detachPresetSelection();
+  if($("presetSelect")) $("presetSelect").value = "";
   updatePFMenu();
 }
 
 /* テーマ */
 function applyThemeFromStorage(){
-  const saved = localStorage.getItem('theme');
-  document.body.classList.toggle('light', saved === 'light');
+  document.body.classList.add('light');
+  localStorage.setItem('theme', 'light');
   updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
@@ -675,12 +647,6 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
-$("pFactor").addEventListener("change", ()=>{
-  const sel = $("pFactor");
-  const o = sel.options[sel.selectedIndex];
-  pTier = o?.dataset?.tier || 'std';
-  markPresetDirty();
-});
 $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
@@ -827,22 +793,6 @@ const GOAL_FACTOR = { maintain:1.00, cut:0.90, bulk:1.10 };
   $(id).addEventListener("input", ()=>{ updatePFMenu(); });
 });
 
-function bindDirtyTracking(){
-  ["sex","age","height","weight","diet","habit","fitnessType","onoff","carbIntake","targetWeight"].forEach(id=>{
-    const el = $(id);
-    if(!el) return;
-    const evt = (el.tagName === "SELECT") ? "change" : "input";
-    el.addEventListener(evt, markPresetDirty);
-  });
-
-  ["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
-    $(id).addEventListener("click", markPresetDirty);
-  });
-
-  document.querySelectorAll(".chartBtns button").forEach(btn=>{
-    btn.addEventListener("click", markPresetDirty);
-  });
-}
 function setNoneOptionVisible(selectId, visible){
   const sel = $(selectId);
   const opt = Array.from(sel.options).find(o=>o.value==="none");
@@ -929,29 +879,31 @@ function updatePFMenu(){
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
 
+  sel.addEventListener('change', ()=>{
+    const o = sel.options[sel.selectedIndex];
+    pTier = o?.dataset?.tier || 'std';
+  });
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
-
-  if(!requireFilled()){
+  if(requireFilled()){
+    if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
+    const vp = document.querySelector('meta[name="viewport"]');
+    if(vp){
+      const orig = vp.getAttribute('content');
+      vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
+      setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
+    }
+    window.scrollTo({top:0, left:0, behavior:'auto'});
+    saveFormToSession();
+    sessionStorage.setItem("autocalc","1");
+    location.reload();
+  }else{
     const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
-    $("calcBtn").setAttribute("aria-pressed", pressed ? "false" : "true");
-    return;
+    $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
   }
-
-  if(document.activeElement && typeof document.activeElement.blur === "function"){
-    document.activeElement.blur();
-  }
-
-  window.scrollTo({top:0, left:0, behavior:"auto"});
-
-  if(activePresetName && presetDirty){
-    detachPresetSelection();
-  }
-
-  calc();
 });
 
 /* 補助（既存） */
@@ -1340,6 +1292,52 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
 
+/* セッション保存 */
+function saveFormToSession(){
+  const data = {
+    sex:$("sex").value, age:$("age").value, height:$("height").value, weight:$("weight").value,
+    habit:$("habit").value, diet:$("diet").value, carb:$("carbIntake").value,
+    pFactor:$("pFactor").value, pTier, fitnessType:$("fitnessType").value, onoff:$("onoff").value,
+    goal, targetWeight:$("targetWeight").value, chartMonths
+  };
+  sessionStorage.setItem("plannerAutoForm", JSON.stringify(data));
+}
+function restoreFromSessionAndAutoCalc(){
+  const raw = sessionStorage.getItem("plannerAutoForm");
+  const auto = sessionStorage.getItem("autocalc")==="1";
+  if(!raw || !auto) return false;
+  try{
+    const d = JSON.parse(raw);
+    if(d.sex) $("sex").value=d.sex;
+    if(d.age) $("age").value=d.age;
+    if(d.height) $("height").value=d.height;
+    if(d.weight) $("weight").value=d.weight;
+    if(d.diet) $("diet").value=d.diet;
+    if(d.habit) $("habit").value=d.habit;
+    if(d.fitnessType) $("fitnessType").value=d.fitnessType;
+    if(d.onoff) $("onoff").value=d.onoff;
+    if(d.carb!=null){ $("carbIntake").value=d.carb; }
+    pTier = d.pTier || 'std';
+    goal = d.goal || "maintain";
+    $("targetWeight").value = d.targetWeight || "";
+    ["goal-cut","goal-maintain","goal-bulk"].forEach(i=>{
+      const b=$(i); const is=(b.dataset.goal===goal);
+      b.classList.toggle("active",is); b.setAttribute("aria-selected",is?"true":"false"); b.setAttribute("aria-pressed",is?"true":"false");
+    });
+    $("targetCol").style.display = (goal==="maintain") ? "none" : "block";
+    toggleCarb(); enforceHabitRules();
+    updatePFMenu(); // ← S/A/H/Wのみで再生成
+    const pfSel = $("pFactor");
+    const idx = Array.from(pfSel.options).findIndex(o=>o.dataset.tier===pTier);
+    if(idx>=0) pfSel.selectedIndex = idx;
+    if(d.chartMonths){ chartMonths = +d.chartMonths; }
+    calc();
+  }catch{}
+  sessionStorage.removeItem("plannerAutoForm");
+  sessionStorage.removeItem("autocalc");
+  return true;
+}
+
 /* 初期化 */
 function restoreFormFresh(){
   const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
@@ -1364,10 +1362,9 @@ function restoreFormFresh(){
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 }
-restoreFormFresh();
-refreshPresetSelect();
+if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 restoreLastPreset();
-bindDirtyTracking();
+refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
