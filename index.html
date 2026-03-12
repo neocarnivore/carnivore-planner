@@ -401,9 +401,8 @@ function closePresetMenu(){
   if(menu) menu.classList.remove("show");
 }
 function detachPresetSelection(){
-  if(isApplyingPreset) return;
   const sel = $("presetSelect");
-  if(sel && sel.value){
+  if(sel){
     sel.value = "";
   }
   localStorage.removeItem(LAST_PRESET_KEY);
@@ -747,19 +746,7 @@ document.addEventListener("click", (e)=>{
   }
 });
 window.addEventListener("scroll", closePresetMenu, { passive:true });
-  [
-  "sex","age","height","weight","diet","habit","fitnessType","onoff",
-  "carbIntake","targetWeight","pFactor"
-].forEach(id=>{
-  const el = $(id);
-  if(!el) return;
-  el.addEventListener("input", detachPresetSelection);
-  el.addEventListener("change", detachPresetSelection);
-});
-
-["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
-  $(id).addEventListener("click", detachPresetSelection);
-});
+  
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
   const el = $(id);
@@ -917,6 +904,8 @@ function updatePFMenu(){
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
   if(requireFilled()){
+    detachPresetSelection();
+
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
     const vp = document.querySelector('meta[name="viewport"]');
     if(vp){
