@@ -394,17 +394,15 @@ const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
-let isApplyingPreset = false;
 
 function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
 }
+
 function detachPresetSelection(){
   const sel = $("presetSelect");
-  if(sel){
-    sel.value = "";
-  }
+  if(sel) sel.value = "";
   localStorage.removeItem(LAST_PRESET_KEY);
 }
 function getCurrentFormData(){
@@ -524,12 +522,8 @@ function loadSelectedPreset(){
   const presets = loadPresets();
   if(!presets[name]) return;
 
-  isApplyingPreset = true;
   applyFormData(presets[name]);
-  isApplyingPreset = false;
-
   localStorage.setItem(LAST_PRESET_KEY, name);
-  $("presetSelect").value = name;
 }
 
 function restoreLastPreset(){
@@ -538,10 +532,7 @@ function restoreLastPreset(){
   const presets = loadPresets();
   if(last && presets[last]){
     $("presetSelect").value = last;
-    isApplyingPreset = true;
     applyFormData(presets[last]);
-    isApplyingPreset = false;
-    $("presetSelect").value = last;
   }
 }
 function renameSelectedPreset(){
@@ -642,8 +633,8 @@ function resetFormAll(){
 
 /* テーマ */
 function applyThemeFromStorage(){
-  document.body.classList.add('light');
-  localStorage.setItem('theme', 'light');
+  const saved = localStorage.getItem('theme');
+  document.body.classList.toggle('light', saved === 'light');
   updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
@@ -662,6 +653,7 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
+
 $("pFactor").addEventListener("change", ()=>{
   const sel = $("pFactor");
   const o = sel.options[sel.selectedIndex];
@@ -898,29 +890,31 @@ function updatePFMenu(){
   const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
+
+    const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
+  sel.selectedIndex = (idx>=0? idx : 1);
+  pTier = PF_TIERS[sel.selectedIndex].key;
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
-  if(requireFilled()){
-    detachPresetSelection();
 
-    if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
-    const vp = document.querySelector('meta[name="viewport"]');
-    if(vp){
-      const orig = vp.getAttribute('content');
-      vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
-      setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
-    }
-    window.scrollTo({top:0, left:0, behavior:'auto'});
-    saveFormToSession();
-    sessionStorage.setItem("autocalc","1");
-    location.reload();
-  }else{
+  if(!requireFilled()){
     const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
     $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
+    return;
   }
+
+  detachPresetSelection();
+
+  if(document.activeElement && typeof document.activeElement.blur === 'function'){
+    document.activeElement.blur();
+  }
+
+  window.scrollTo({top:0, left:0, behavior:'auto'});
+  saveFormToSession();
+  calc();
 });
 
 /* 補助（既存） */
@@ -1379,17 +1373,12 @@ function restoreFormFresh(){
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 }
-const restoredAutoCalc = restoreFromSessionAndAutoCalc();
-
-if(!restoredAutoCalc){
-  restoreFormFresh();
-  restoreLastPreset();
-}
-
+if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
+restoreLastPreset();
 refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
 </script>
 </body>
-</html>
+
