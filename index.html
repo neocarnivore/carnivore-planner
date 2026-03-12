@@ -422,6 +422,25 @@ function getCurrentFormData(){
   };
 }
 
+function isSamePresetData(a, b){
+  if(!a || !b) return false;
+  return (
+    (a.sex ?? "") === (b.sex ?? "") &&
+    (a.age ?? "") === (b.age ?? "") &&
+    (a.height ?? "") === (b.height ?? "") &&
+    (a.weight ?? "") === (b.weight ?? "") &&
+    (a.habit ?? "") === (b.habit ?? "") &&
+    (a.diet ?? "") === (b.diet ?? "") &&
+    (a.carb ?? "") === (b.carb ?? "") &&
+    (a.pTier ?? "") === (b.pTier ?? "") &&
+    (a.fitnessType ?? "") === (b.fitnessType ?? "") &&
+    (a.onoff ?? "") === (b.onoff ?? "") &&
+    (a.goal ?? "") === (b.goal ?? "") &&
+    (a.targetWeight ?? "") === (b.targetWeight ?? "") &&
+    String(a.chartMonths ?? "") === String(b.chartMonths ?? "")
+  );
+}
+
 function applyFormData(d){
   if(!d) return;
   if(d.sex != null) $("sex").value = d.sex;
@@ -894,8 +913,18 @@ $("pFactor").addEventListener("change", ()=>{
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
   if(requireFilled()){
-    localStorage.removeItem(LAST_PRESET_KEY);
-if($("presetSelect")) $("presetSelect").value = "";
+    const selectedName = $("presetSelect") ? $("presetSelect").value : "";
+    const presets = loadPresets();
+    const currentData = getCurrentFormData();
+    const selectedPresetData = selectedName && presets[selectedName] ? presets[selectedName] : null;
+
+    if(selectedPresetData && !isSamePresetData(currentData, selectedPresetData)){
+      localStorage.removeItem(LAST_PRESET_KEY);
+      if($("presetSelect")) $("presetSelect").value = "";
+    }else if(selectedName){
+      localStorage.setItem(LAST_PRESET_KEY, selectedName);
+    }
+
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
     const vp = document.querySelector('meta[name="viewport"]');
     if(vp){
