@@ -631,8 +631,9 @@ function resetFormAll(){
 
 /* テーマ */
 function applyThemeFromStorage(){
-  document.body.classList.add('light');
-  localStorage.setItem('theme', 'light');
+  const saved = localStorage.getItem('theme');
+  const isLight = saved === null ? true : saved === 'light';
+  document.body.classList.toggle('light', isLight);
   updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
