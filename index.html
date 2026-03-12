@@ -399,6 +399,12 @@ function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
 }
+function detachPresetSelection(){
+  const sel = $("presetSelect");
+  if(sel && sel.value){
+    sel.value = "";
+  }
+}
 function getCurrentFormData(){
   return {
     sex:$("sex").value,
@@ -518,6 +524,7 @@ function loadSelectedPreset(){
 
   applyFormData(presets[name]);
   localStorage.setItem(LAST_PRESET_KEY, name);
+  $("presetSelect").value = name;
 }
 
 function restoreLastPreset(){
@@ -726,7 +733,19 @@ document.addEventListener("click", (e)=>{
   }
 });
 window.addEventListener("scroll", closePresetMenu, { passive:true });
-  
+  [
+  "sex","age","height","weight","diet","habit","fitnessType","onoff",
+  "carbIntake","targetWeight","pFactor"
+].forEach(id=>{
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("input", detachPresetSelection);
+  el.addEventListener("change", detachPresetSelection);
+});
+
+["goal-cut","goal-maintain","goal-bulk"].forEach(id=>{
+  $(id).addEventListener("click", detachPresetSelection);
+});
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
   const el = $(id);
@@ -1362,8 +1381,13 @@ function restoreFormFresh(){
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 }
-if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
-restoreLastPreset();
+const restoredAutoCalc = restoreFromSessionAndAutoCalc();
+
+if(!restoredAutoCalc){
+  restoreFormFresh();
+  restoreLastPreset();
+}
+
 refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
