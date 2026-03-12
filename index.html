@@ -882,18 +882,19 @@ function updatePFMenu(){
   const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
-
-  sel.addEventListener('change', ()=>{
-    const o = sel.options[sel.selectedIndex];
-    pTier = o?.dataset?.tier || 'std';
-  });
 }
+$("pFactor").addEventListener("change", ()=>{
+  const sel = $("pFactor");
+  const o = sel.options[sel.selectedIndex];
+  pTier = o?.dataset?.tier || "std";
+});
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
   if(requireFilled()){
-    detachPresetSelection();
+    localStorage.removeItem(LAST_PRESET_KEY);
+if($("presetSelect")) $("presetSelect").value = "";
     if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
     const vp = document.querySelector('meta[name="viewport"]');
     if(vp){
