@@ -399,12 +399,6 @@ function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
 }
-
-function detachPresetSelection(){
-  const sel = $("presetSelect");
-  if(sel) sel.value = "";
-  localStorage.removeItem(LAST_PRESET_KEY);
-}
 function getCurrentFormData(){
   return {
     sex:$("sex").value,
@@ -633,8 +627,8 @@ function resetFormAll(){
 
 /* テーマ */
 function applyThemeFromStorage(){
-  const saved = localStorage.getItem('theme');
-  document.body.classList.toggle('light', saved === 'light');
+  document.body.classList.add('light');
+  localStorage.setItem('theme', 'light');
   updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
@@ -653,12 +647,6 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
-
-$("pFactor").addEventListener("change", ()=>{
-  const sel = $("pFactor");
-  const o = sel.options[sel.selectedIndex];
-  pTier = o?.dataset?.tier || "std";
-});
 $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
@@ -891,30 +879,31 @@ function updatePFMenu(){
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
 
-    const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
-  sel.selectedIndex = (idx>=0? idx : 1);
-  pTier = PF_TIERS[sel.selectedIndex].key;
+  sel.addEventListener('change', ()=>{
+    const o = sel.options[sel.selectedIndex];
+    pTier = o?.dataset?.tier || 'std';
+  });
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
 $("calcBtn").addEventListener("click", ()=>{
   updatePFMenu();
-
-  if(!requireFilled()){
+  if(requireFilled()){
+    if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
+    const vp = document.querySelector('meta[name="viewport"]');
+    if(vp){
+      const orig = vp.getAttribute('content');
+      vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
+      setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
+    }
+    window.scrollTo({top:0, left:0, behavior:'auto'});
+    saveFormToSession();
+    sessionStorage.setItem("autocalc","1");
+    location.reload();
+  }else{
     const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
     $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
-    return;
   }
-
-  detachPresetSelection();
-
-  if(document.activeElement && typeof document.activeElement.blur === 'function'){
-    document.activeElement.blur();
-  }
-
-  window.scrollTo({top:0, left:0, behavior:'auto'});
-  saveFormToSession();
-  calc();
 });
 
 /* 補助（既存） */
