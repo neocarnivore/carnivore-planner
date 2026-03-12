@@ -394,16 +394,19 @@ const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
+let isApplyingPreset = false;
 
 function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
 }
 function detachPresetSelection(){
+  if(isApplyingPreset) return;
   const sel = $("presetSelect");
   if(sel && sel.value){
     sel.value = "";
   }
+  localStorage.removeItem(LAST_PRESET_KEY);
 }
 function getCurrentFormData(){
   return {
@@ -522,7 +525,10 @@ function loadSelectedPreset(){
   const presets = loadPresets();
   if(!presets[name]) return;
 
+  isApplyingPreset = true;
   applyFormData(presets[name]);
+  isApplyingPreset = false;
+
   localStorage.setItem(LAST_PRESET_KEY, name);
   $("presetSelect").value = name;
 }
@@ -533,7 +539,10 @@ function restoreLastPreset(){
   const presets = loadPresets();
   if(last && presets[last]){
     $("presetSelect").value = last;
+    isApplyingPreset = true;
     applyFormData(presets[last]);
+    isApplyingPreset = false;
+    $("presetSelect").value = last;
   }
 }
 function renameSelectedPreset(){
@@ -654,6 +663,11 @@ applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
 $("presetSelect").addEventListener("change", loadSelectedPreset);
+$("pFactor").addEventListener("change", ()=>{
+  const sel = $("pFactor");
+  const o = sel.options[sel.selectedIndex];
+  pTier = o?.dataset?.tier || "std";
+});
 $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
@@ -897,11 +911,6 @@ function updatePFMenu(){
   const idx = PF_TIERS.findIndex(t=>t.key===prevTier);
   sel.selectedIndex = (idx>=0? idx : 1);
   pTier = PF_TIERS[sel.selectedIndex].key;
-
-  sel.addEventListener('change', ()=>{
-    const o = sel.options[sel.selectedIndex];
-    pTier = o?.dataset?.tier || 'std';
-  });
 }
 
 /* 計算ボタン：保存→リロード→自動計算 */
