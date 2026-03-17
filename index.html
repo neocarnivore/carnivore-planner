@@ -169,71 +169,6 @@ body:not(.light){
 #presetManageBtn:active{
   transform:scale(.97);
 }
-.infoTap{
-  appearance:none;
-  -webkit-appearance:none;
-  cursor:pointer;
-}
-.infoTap:active{
-  transform:scale(.985);
-}
-
-.infoModal{
-  position:fixed;
-  inset:0;
-  z-index:4000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  background:rgba(8,12,18,.32);
-  backdrop-filter:blur(8px);
-  opacity:0;
-  visibility:hidden;
-  transition:opacity .22s ease, visibility .22s ease;
-}
-.infoModal.show{
-  opacity:1;
-  visibility:visible;
-}
-.infoPanel{
-  width:min(520px,100%);
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:18px 16px 16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.22);
-  transform:translateY(10px) scale(.98);
-  transition:transform .22s ease;
-}
-.infoModal.show .infoPanel{
-  transform:translateY(0) scale(1);
-}
-.infoTitle{
-  font-size:18px;
-  font-weight:800;
-  margin-bottom:12px;
-}
-.infoBlock{
-  background:var(--input);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px 14px;
-  margin-top:10px;
-  text-align:left;
-}
-.infoLabel{
-  display:block;
-  font-size:12px;
-  color:var(--muted);
-  margin-bottom:4px;
-}
-.infoClose{
-  margin-top:14px;
-  background:transparent;
-  border:1px solid var(--border);
-  color:var(--text);
-}
 </style>
 </head>
 <body>
@@ -381,12 +316,11 @@ body:not(.light){
   <div class="card" id="baseCard" style="display:none" aria-live="polite">
     <h3>基礎データ</h3>
     <div class="row3">
-  <button class="kpi infoTap" id="bmiBox" type="button"><div class="small">BMI</div><b id="bmi">–</b></button>
-  <button class="kpi infoTap" id="bmrBox" type="button"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></button>
-  <button class="kpi infoTap" id="tdeeBox" type="button"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></button>
-</div>
+      <div class="kpi"><div class="small">BMI</div><b id="bmi">–</b></div>
+      <div class="kpi"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
+      <div class="kpi"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
+    </div>
     <div class="small" id="bmiClassTxt" style="margin-top:8px;opacity:.9"></div>
-    <div class="small" id="baseExplain" style="margin-top:8px;line-height:1.7;white-space:pre-line"></div>
   </div>
 
   <!-- あなたの目安 -->
@@ -454,13 +388,7 @@ body:not(.light){
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
   </p>
 </div>
-<div id="infoModal" class="infoModal">
-  <div class="infoPanel">
-    <div id="infoTitle" class="infoTitle">詳細</div>
-    <div id="infoBody"></div>
-    <button id="infoClose" class="infoClose" type="button">閉じる</button>
-  </div>
-</div>
+
 <script>
 const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
@@ -1400,132 +1328,6 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
   drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
-function openInfoModal(type){
-  const sex = $("sex").value;
-  const age = +$("age").value || 0;
-  const h = +$("height").value || 0;
-  const w = +$("weight").value || 0;
-  const bmi = w / Math.pow(h/100,2);
-  const bmrRaw = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-  const af = parseFloat($("habit").value) || 1.2;
-  const fitnessType = ($("habit").value==="1.2") ? "none" : $("fitnessType").value;
-  const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
-  const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
-  const tdeeRaw = bmrRaw * af * dayF;
-
-  let title = "";
-  let body = "";
-
-  if(type==="bmi"){
-    title = "BMI";
-    body = `
-      <div class="infoBlock">
-        <span class="infoLabel">BMI区分</span>
-        ${classText(bmi)}
-      </div>
-    `;
-  }
-
-  if(type==="bmr"){
-    title = "BMR";
-    body = `
-      <div class="infoBlock">
-        <span class="infoLabel">採用式</span>
-        Mifflin-St Jeor式
-      </div>
-      <div class="infoBlock">
-        <span class="infoLabel">計算式</span>
-        ${sex==="M"
-          ? `10×${w} + 6.25×${h} - 5×${age} + 5`
-          : `10×${w} + 6.25×${h} - 5×${age} - 161`}
-      </div>
-      <div class="infoBlock">
-        <span class="infoLabel">結果</span>
-        ${bmrRaw.toFixed(1)} → ${Math.round(bmrRaw).toLocaleString()} kcal/日
-      </div>
-    `;
-  }
-
-  if(type==="tdee"){
-    title = "TDEE";
-    body = `
-      <div class="infoBlock">
-        <span class="infoLabel">基本式</span>
-        BMR × AF × 日別補正
-      </div>
-      <div class="infoBlock">
-        <span class="infoLabel">今回</span>
-        ${Math.round(bmrRaw).toLocaleString()} × ${af.toFixed(2).replace(/\.?0+$/,'')} × ${dayF.toFixed(2)}
-      </div>
-      <div class="infoBlock">
-        <span class="infoLabel">結果</span>
-        ${tdeeRaw.toFixed(2)} → ${Math.round(tdeeRaw).toLocaleString()} kcal/日
-      </div>
-    `;
-  }
-
-  $("infoTitle").textContent = title;
-  $("infoBody").innerHTML = body;
-  $("infoModal").classList.add("show");
-}
-
-function closeInfoModal(){
-  $("infoModal").classList.remove("show");
-}
-
-$("bmiBox").addEventListener("click", ()=> openInfoModal("bmi"));
-$("bmrBox").addEventListener("click", ()=> openInfoModal("bmr"));
-$("tdeeBox").addEventListener("click", ()=> openInfoModal("tdee"));
-$("infoClose").addEventListener("click", closeInfoModal);
-$("infoModal").addEventListener("click", (e)=>{
-  if(e.target.id==="infoModal") closeInfoModal();
-});
-function setupBaseExplain(){
-  $("bmiBox").onclick = ()=>{
-    const bmi = +$("bmi").textContent;
-    if(!Number.isFinite(bmi)) return;
-    $("baseExplain").textContent =
-      `BMI
-• BMI区分：${classText(bmi)}`;
-  };
-
-  $("bmrBox").onclick = ()=>{
-    const sex = $("sex").value;
-    const age = +$("age").value || 0;
-    const h = +$("height").value || 0;
-    const w = +$("weight").value || 0;
-    const raw = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-    const formula = (sex==="M")
-      ? `10×${w} + 6.25×${h} - 5×${age} + 5`
-      : `10×${w} + 6.25×${h} - 5×${age} - 161`;
-
-    $("baseExplain").textContent =
-      `BMR
-• 採用式：Mifflin-St Jeor式
-• 計算式：${formula}
-• 結果：${raw.toFixed(1)} → ${Math.round(raw).toLocaleString()} kcal/日`;
-  };
-
-  $("tdeeBox").onclick = ()=>{
-    const sex = $("sex").value;
-    const age = +$("age").value || 0;
-    const h = +$("height").value || 0;
-    const w = +$("weight").value || 0;
-    const af = parseFloat($("habit").value) || 1.2;
-    const fitnessType = ($("habit").value==="1.2") ? "none" : $("fitnessType").value;
-    const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
-
-    const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
-    const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
-    const raw = bmr * af * dayF;
-
-    $("baseExplain").textContent =
-      `TDEE
-• 基本式：BMR × AF × 日別補正
-• 今回：${Math.round(bmr).toLocaleString()} × ${af.toFixed(2)} × ${dayF.toFixed(2)}
-• 結果：${raw.toFixed(2)} → ${Math.round(raw).toLocaleString()} kcal/日`;
-  };
-}
 
 /* セッション保存 */
 function saveFormToSession(){
@@ -1603,7 +1405,5 @@ refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
-setupBaseExplain();
 </script>
 </body>
-
