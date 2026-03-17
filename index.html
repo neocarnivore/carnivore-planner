@@ -316,11 +316,12 @@ body:not(.light){
   <div class="card" id="baseCard" style="display:none" aria-live="polite">
     <h3>基礎データ</h3>
     <div class="row3">
-      <div class="kpi"><div class="small">BMI</div><b id="bmi">–</b></div>
-      <div class="kpi"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
-      <div class="kpi"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
-    </div>
+  <div class="kpi" id="bmiBox"><div class="small">BMI</div><b id="bmi">–</b></div>
+  <div class="kpi" id="bmrBox"><div class="small">BMR（基礎代謝 kcal）</div><b id="bmr">–</b></div>
+  <div class="kpi" id="tdeeBox"><div class="small">TDEE（総消費 kcal）</div><b id="tdee">–</b></div>
+</div>
     <div class="small" id="bmiClassTxt" style="margin-top:8px;opacity:.9"></div>
+    <div class="small" id="baseExplain" style="margin-top:8px;line-height:1.7;white-space:pre-line"></div>
   </div>
 
   <!-- あなたの目安 -->
@@ -1328,6 +1329,52 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const targetKg = (goal!=="maintain" && +$("targetWeight").value>0) ? clamp(+$("targetWeight").value,30,250) : null;
   drawWeightChart({startKg:w,targetKg,months:chartMonths,dailyDeltaKcal:(kcal-tdee),kcalPerKg:7700,isCut:(goal==="cut")});
 }
+function setupBaseExplain(){
+  $("bmiBox").onclick = ()=>{
+    const bmi = +$("bmi").textContent;
+    if(!Number.isFinite(bmi)) return;
+    $("baseExplain").textContent =
+      `BMI
+• BMI区分：${classText(bmi)}`;
+  };
+
+  $("bmrBox").onclick = ()=>{
+    const sex = $("sex").value;
+    const age = +$("age").value || 0;
+    const h = +$("height").value || 0;
+    const w = +$("weight").value || 0;
+    const raw = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
+    const formula = (sex==="M")
+      ? `10×${w} + 6.25×${h} - 5×${age} + 5`
+      : `10×${w} + 6.25×${h} - 5×${age} - 161`;
+
+    $("baseExplain").textContent =
+      `BMR
+• 採用式：Mifflin-St Jeor式
+• 計算式：${formula}
+• 結果：${raw.toFixed(1)} → ${Math.round(raw).toLocaleString()} kcal/日`;
+  };
+
+  $("tdeeBox").onclick = ()=>{
+    const sex = $("sex").value;
+    const age = +$("age").value || 0;
+    const h = +$("height").value || 0;
+    const w = +$("weight").value || 0;
+    const af = parseFloat($("habit").value) || 1.2;
+    const fitnessType = ($("habit").value==="1.2") ? "none" : $("fitnessType").value;
+    const onoff = ($("habit").value==="1.2") ? "none" : $("onoff").value;
+
+    const bmr = (sex==="M") ? (10*w + 6.25*h - 5*age + 5) : (10*w + 6.25*h - 5*age - 161);
+    const dayF = dailyAdjustment($("habit").value, fitnessType, onoff);
+    const raw = bmr * af * dayF;
+
+    $("baseExplain").textContent =
+      `TDEE
+• 基本式：BMR × AF × 日別補正
+• 今回：${Math.round(bmr).toLocaleString()} × ${af.toFixed(2)} × ${dayF.toFixed(2)}
+• 結果：${raw.toFixed(2)} → ${Math.round(raw).toLocaleString()} kcal/日`;
+  };
+}
 
 /* セッション保存 */
 function saveFormToSession(){
@@ -1405,6 +1452,7 @@ refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
+setupBaseExplain();
 </script>
 </body>
 
