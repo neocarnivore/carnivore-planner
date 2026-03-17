@@ -7,6 +7,132 @@
 <meta name="theme-color" content="#0b0b0f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-meat-194.png">
+
+  .foodCard{
+    cursor:pointer;
+    transition:transform .16s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .foodCard:active{
+    transform:scale(.985);
+  }
+  .foodCard:hover{
+    border-color:var(--acc);
+  }
+
+  .foodModal{
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .22s ease, visibility .22s ease;
+  }
+  .foodModal.show{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+
+  .foodModalBackdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(7,10,16,.28);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .light .foodModalBackdrop{
+    background:rgba(255,255,255,.28);
+  }
+
+  .foodModalPanel{
+    position:relative;
+    width:min(520px, 100%);
+    max-height:min(78vh, 680px);
+    overflow:auto;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:0 24px 70px rgba(0,0,0,.22);
+    padding:18px 16px 16px;
+    transform:translateY(14px) scale(.96);
+    opacity:0;
+    transition:transform .26s cubic-bezier(.2,.8,.2,1), opacity .22s ease;
+  }
+  .foodModal.show .foodModalPanel{
+    transform:translateY(0) scale(1);
+    opacity:1;
+  }
+
+  .foodModalHead{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .foodModalTitle{
+    font-size:20px;
+    font-weight:800;
+    line-height:1.2;
+  }
+  .foodModalSub{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .foodModalClose{
+    width:auto;
+    min-width:42px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+    font-weight:800;
+    flex:0 0 auto;
+  }
+
+  .foodList{
+    display:grid;
+    gap:10px;
+  }
+  .foodItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--input);
+  }
+  .foodItemName{
+    font-weight:700;
+    font-size:15px;
+  }
+  .foodItemMeta{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .foodItemValue{
+    text-align:right;
+    white-space:nowrap;
+  }
+  .foodItemGram{
+    font-weight:800;
+    font-size:16px;
+  }
+  .foodItemKcal{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:3px;
+  }
 <style>
   :root{
     --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#5c6e83;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
