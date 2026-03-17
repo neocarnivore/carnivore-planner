@@ -169,141 +169,6 @@ body:not(.light){
 #presetManageBtn:active{
   transform:scale(.97);
 }
-  .macroBox.tapable{
-    cursor:pointer;
-    transition:transform .14s ease, box-shadow .18s ease, border-color .18s ease;
-  }
-  .macroBox.tapable:active{
-    transform:scale(.985);
-  }
-
-  .sheetOverlay{
-    position:fixed;
-    inset:0;
-    z-index:3000;
-    display:flex;
-    align-items:flex-end;
-    justify-content:center;
-    padding:16px;
-    background:rgba(255,255,255,.18);
-    backdrop-filter:blur(14px) saturate(1.05);
-    -webkit-backdrop-filter:blur(14px) saturate(1.05);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .2s ease;
-  }
-  .sheetOverlay.show{
-    opacity:1;
-    pointer-events:auto;
-  }
-
-  .macroSheet{
-    width:min(560px,100%);
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:24px;
-    box-shadow:0 18px 50px rgba(0,0,0,.16);
-    padding:16px 16px 18px;
-    transform:translateY(16px) scale(.98);
-    transition:transform .22s cubic-bezier(.2,.8,.2,1);
-  }
-  .sheetOverlay.show .macroSheet{
-    transform:translateY(0) scale(1);
-  }
-
-  .sheetHandle{
-    width:54px;
-    height:5px;
-    border-radius:999px;
-    background:rgba(120,140,160,.28);
-    margin:0 auto 14px;
-  }
-
-  .sheetTop{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:14px;
-  }
-  .sheetTitle{
-    font-size:26px;
-    font-weight:800;
-    line-height:1.2;
-    letter-spacing:-.02em;
-  }
-  .sheetSub{
-    font-size:13px;
-    color:var(--muted);
-    margin-top:4px;
-  }
-  .sheetClose{
-    width:42px;
-    height:42px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background:var(--input);
-    color:var(--text);
-    font-size:24px;
-    line-height:1;
-    display:grid;
-    place-items:center;
-    flex:0 0 auto;
-  }
-
-  .ratioNums{
-    display:flex;
-    justify-content:space-between;
-    align-items:end;
-    gap:16px;
-    margin-bottom:10px;
-  }
-  .ratioNums .side{
-    font-size:14px;
-    color:var(--muted);
-    font-weight:700;
-  }
-  .ratioNums .side b{
-    display:block;
-    font-size:30px;
-    color:var(--text);
-    line-height:1.05;
-    margin-bottom:2px;
-  }
-  .ratioNums .right{
-    text-align:right;
-  }
-
-  .goldBar{
-    height:16px;
-    border-radius:999px;
-    overflow:hidden;
-    background:#edf3ef;
-    border:1px solid var(--border);
-    display:flex;
-    margin-bottom:14px;
-  }
-  .goldBar .fatSide{
-    background:linear-gradient(90deg,var(--acc),#67c9a5);
-  }
-  .goldBar .proteinSide{
-    background:#dfe9e3;
-  }
-
-  .goldLegend{
-    display:flex;
-    justify-content:space-between;
-    gap:16px;
-    font-size:15px;
-    font-weight:700;
-  }
-  .goldLegend span{
-    color:var(--text);
-  }
-  .goldLegend .muted{
-    color:var(--muted);
-    font-weight:600;
-  }
 </style>
 </head>
 <body>
@@ -467,7 +332,7 @@ body:not(.light){
     </div>
     <div class="row3">
       <div class="kpi macroBox"><div class="label">タンパク質</div><div class="val" id="p">–</div><div class="small">g/日</div><div class="kcal"><b id="pkcal">–</b><span class="small">kcal</span></div><div class="bar p"><span id="pbar"></span></div></div>
-      <div class="kpi macroBox tapable" id="fatBox"><div class="label">脂質</div><div class="val" id="f">–</div><div class="small">g/日</div><div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div><div class="bar f"><span id="fbar"></span></div></div>
+      <div class="kpi macroBox"><div class="label">脂質</div><div class="val" id="f">–</div><div class="small">g/日</div><div class="kcal"><b id="fkcal">–</b><span class="small">kcal</span></div><div class="bar f"><span id="fbar"></span></div></div>
       <div class="kpi macroBox"><div class="label">糖質</div><div class="val" id="c">–</div><div class="small">g/日</div><div class="kcal"><b id="ckcal">–</b><span class="small">kcal</span></div><div class="bar c"><span id="cbar"></span></div></div>
     </div>
     <div class="row3" style="margin-top:10px">
@@ -477,40 +342,6 @@ body:not(.light){
     </div>
     <div class="small" id="macroNote" style="margin-top:6px;opacity:.95"></div>
     <div class="warn" id="fatWarn" style="display:none"></div>
-  </div>
-    <div id="macroSheetOverlay" class="sheetOverlay" aria-hidden="true">
-    <div class="macroSheet" role="dialog" aria-modal="true" aria-labelledby="macroSheetTitle">
-      <div class="sheetHandle"></div>
-
-      <div class="sheetTop">
-        <div>
-          <div class="sheetTitle" id="macroSheetTitle">脂質とタンパク質のカロリー比率</div>
-          <div class="sheetSub">脂質とタンパク質の黄金比率</div>
-        </div>
-        <button type="button" class="sheetClose" id="macroSheetClose">×</button>
-      </div>
-
-      <div class="ratioNums">
-        <div class="side">
-          <b id="fatRatioPct">–%</b>
-          脂質
-        </div>
-        <div class="side right">
-          <b id="proteinRatioPct">–%</b>
-          タンパク質
-        </div>
-      </div>
-
-      <div class="goldBar">
-        <div id="fatRatioBar" class="fatSide" style="width:75%"></div>
-        <div id="proteinRatioBar" class="proteinSide" style="width:25%"></div>
-      </div>
-
-      <div class="goldLegend">
-        <span>脂質 <span class="muted" id="fatRatioKcal">– kcal</span></span>
-        <span>タンパク質 <span class="muted" id="proteinRatioKcal">– kcal</span></span>
-      </div>
-    </div>
   </div>
 
   <!-- 食材/体重タブ -->
@@ -563,29 +394,7 @@ const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
-function openMacroSheet(){
-  const fk = parseFloat(($("fkcal").textContent || "0").replace(/,/g,"")) || 0;
-  const pk = parseFloat(($("pkcal").textContent || "0").replace(/,/g,"")) || 0;
-  const total = fk + pk || 1;
 
-  const fatPct = Math.round(fk / total * 100);
-  const proteinPct = 100 - fatPct;
-
-  $("fatRatioPct").textContent = fatPct + "%";
-  $("proteinRatioPct").textContent = proteinPct + "%";
-  $("fatRatioBar").style.width = fatPct + "%";
-  $("proteinRatioBar").style.width = proteinPct + "%";
-  $("fatRatioKcal").textContent = (Math.round(fk)).toLocaleString() + " kcal";
-  $("proteinRatioKcal").textContent = (Math.round(pk)).toLocaleString() + " kcal";
-
-  $("macroSheetOverlay").classList.add("show");
-  $("macroSheetOverlay").setAttribute("aria-hidden","false");
-}
-
-function closeMacroSheet(){
-  $("macroSheetOverlay").classList.remove("show");
-  $("macroSheetOverlay").setAttribute("aria-hidden","true");
-}
 function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
@@ -858,11 +667,6 @@ function updateThemeBtn(){
   btn.textContent = isLight ? '☀︎/🌙' : '🌙/☀︎';
 }
 $('themeToggle').addEventListener('click', toggleTheme);
-$("fatBox").addEventListener("click", openMacroSheet);
-$("macroSheetClose").addEventListener("click", closeMacroSheet);
-$("macroSheetOverlay").addEventListener("click", (e)=>{
-  if(e.target.id === "macroSheetOverlay") closeMacroSheet();
-});
 applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
 $("resetBtn").addEventListener("click", resetFormAll);
@@ -946,9 +750,7 @@ document.addEventListener("click", (e)=>{
   }
 });
 window.addEventListener("scroll", closePresetMenu, { passive:true });
-  document.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape") closeMacroSheet();
-});
+  
 /* 入力クランプ（範囲：30–250kg） */
 function attachClamp(id, min, max){
   const el = $(id);
