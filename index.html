@@ -169,193 +169,6 @@ body:not(.light){
 #presetManageBtn:active{
   transform:scale(.97);
 }
-  .tab.triple{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-
-  .foodCard{
-    cursor:pointer;
-    transition:transform .14s ease,border-color .16s ease,opacity .16s ease;
-  }
-  .foodCard:active{transform:scale(.985)}
-  .foodCard.activePick{border-color:var(--acc)}
-
-  .pickerTop{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-bottom:10px;
-    flex-wrap:wrap;
-  }
-  .pickerStat{
-    font-size:12px;
-    color:var(--muted);
-    background:var(--input);
-    border:1px solid var(--border);
-    border-radius:999px;
-    padding:8px 12px;
-  }
-  .pickedList{
-    display:grid;
-    gap:8px;
-    margin-top:10px;
-  }
-  .pickedItem{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    padding:10px 12px;
-    background:var(--input);
-    border:1px solid var(--border);
-    border-radius:12px;
-  }
-  .pickedItemName{font-weight:700}
-  .pickedItemMeta{font-size:12px;color:var(--muted);margin-top:2px}
-  .pickedItemVal{font-weight:800}
-
-  .foodModal{
-    position:fixed;
-    inset:0;
-    z-index:3000;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-    transition:opacity .2s ease,visibility .2s ease;
-  }
-  .foodModal.show{
-    opacity:1;
-    visibility:visible;
-    pointer-events:auto;
-  }
-  .foodModalBg{
-    position:absolute;
-    inset:0;
-    background:rgba(8,10,16,.32);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-  }
-  .light .foodModalBg{
-    background:rgba(255,255,255,.28);
-  }
-  .foodModalPanel{
-    position:relative;
-    width:min(640px,100%);
-    max-height:min(82vh,760px);
-    overflow:auto;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:22px;
-    box-shadow:0 20px 60px rgba(0,0,0,.22);
-    padding:16px;
-    transform:translateY(10px) scale(.98);
-    opacity:0;
-    transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .2s ease;
-  }
-  .foodModal.show .foodModalPanel{
-    transform:translateY(0) scale(1);
-    opacity:1;
-  }
-  .foodModalHead{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:10px;
-    margin-bottom:12px;
-  }
-  .foodModalTitle{font-size:20px;font-weight:900;line-height:1.2}
-  .foodModalSub{font-size:12px;color:var(--muted);margin-top:4px}
-  .foodModalClose{
-    width:auto;
-    padding:10px 12px;
-    border-radius:12px;
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--text);
-    font-weight:800;
-  }
-  .foodModalRemain{
-    margin-bottom:12px;
-    font-size:13px;
-    color:var(--muted);
-  }
-  .foodGrid{
-    display:grid;
-    gap:10px;
-  }
-  .foodPickCard{
-    background:var(--input);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:12px;
-    transition:opacity .16s ease,border-color .16s ease,transform .14s ease;
-  }
-  .foodPickCard.disabled{
-    opacity:.42;
-    pointer-events:none;
-  }
-  .foodPickTop{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    align-items:flex-start;
-  }
-  .foodPickName{
-    font-size:15px;
-    font-weight:800;
-    line-height:1.3;
-  }
-  .foodPickUnit{
-    font-size:12px;
-    color:var(--muted);
-    margin-top:4px;
-  }
-  .foodMacros{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin-top:10px;
-  }
-  .foodMacros span{
-    font-size:12px;
-    padding:6px 8px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background:var(--card);
-    color:var(--muted);
-  }
-  .foodControls{
-    margin-top:12px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .foodCtrBtns{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .foodCtrBtns button{
-    width:auto;
-    min-width:42px;
-    padding:10px 12px;
-    border-radius:12px;
-  }
-  .foodQty{
-    min-width:110px;
-    text-align:center;
-    font-weight:800;
-    font-size:14px;
-  }
-  .foodHint{
-    font-size:11px;
-    color:var(--muted);
-    margin-top:8px;
-  }
 </style>
 </head>
 <body>
@@ -533,11 +346,10 @@ body:not(.light){
 
   <!-- 食材/体重タブ -->
   <div class="card" id="mixCard" style="display:none" aria-live="polite">
-    <div class="tab triple" role="tablist" aria-label="食材/選択/体重タブ">
-  <button id="tab-food" class="active" data-target="foodSection">食材別の目安摂取量</button>
-  <button id="tab-picker" data-target="pickerSection">食材選択</button>
-  <button id="tab-chart" data-target="chartSection">体重推移（推定）</button>
-</div>
+    <div class="tab duo" role="tablist" aria-label="食材/体重タブ">
+      <button id="tab-food" class="active" data-target="foodSection">食材別の目安摂取量</button>
+      <button id="tab-chart" data-target="chartSection">体重推移（推定）</button>
+    </div>
 
     <section id="foodSection" class="section" style="display:block">
       <h3>食材別の目安摂取量</h3>
@@ -553,55 +365,7 @@ body:not(.light){
         100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
     </section>
-    
-    <section id="pickerSection" class="section" style="display:none">
-      <div class="pickerTop">
-        <h3 style="margin:0">食材選択</h3>
-        <div class="pickerStat" id="pickerSummary">まだ選択されていません</div>
-      </div>
 
-      <div class="row6">
-        <div class="kpi foodCard" data-foodtype="meat">
-          <span class="small">肉</span>
-          <b id="pickMeat">0</b>
-          <span class="small">g</span>
-          <div class="small">上限 <b id="pickMeatMax">–</b> g</div>
-        </div>
-        <div class="kpi foodCard" data-foodtype="fish">
-          <span class="small">魚介類</span>
-          <b id="pickFish">0</b>
-          <span class="small">g</span>
-          <div class="small">上限 <b id="pickFishMax">–</b> g</div>
-        </div>
-        <div class="kpi foodCard" data-foodtype="eggs">
-          <span class="small">卵</span>
-          <b id="pickEggs">0</b>
-          <span class="small">g</span>
-          <div class="small">上限 <b id="pickEggsMax">–</b> g</div>
-        </div>
-        <div class="kpi foodCard" data-foodtype="dairy">
-          <span class="small">乳製品</span>
-          <b id="pickDairy">0</b>
-          <span class="small">g/ml</span>
-          <div class="small">上限 <b id="pickDairyMax">–</b> g</div>
-        </div>
-        <div class="kpi foodCard" data-foodtype="veg">
-          <span class="small">野菜</span>
-          <b id="pickVeg">0</b>
-          <span class="small">g</span>
-          <div class="small">上限 <b id="pickVegMax">–</b> g</div>
-        </div>
-        <div class="kpi foodCard" data-foodtype="fruit">
-          <span class="small">果物</span>
-          <b id="pickFruit">0</b>
-          <span class="small">g</span>
-          <div class="small">上限 <b id="pickFruitMax">–</b> g</div>
-        </div>
-      </div>
-
-      <div id="pickedList" class="pickedList"></div>
-    </section>
-    
     <section id="chartSection" class="section" style="display:none">
       <h3>体重推移（推定）</h3>
       <div class="kpi chartCard" style="border:none;background:transparent;box-shadow:none">
@@ -623,22 +387,6 @@ body:not(.light){
     各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
   </p>
-  <div id="foodModal" class="foodModal" aria-hidden="true">
-  <div id="foodModalBg" class="foodModalBg"></div>
-
-  <div class="foodModalPanel" role="dialog" aria-modal="true" aria-labelledby="foodModalTitle">
-    <div class="foodModalHead">
-      <div>
-        <div id="foodModalTitle" class="foodModalTitle">食材選択</div>
-        <div id="foodModalSub" class="foodModalSub">カテゴリごとに追加</div>
-      </div>
-      <button type="button" id="foodModalClose" class="foodModalClose">×</button>
-    </div>
-
-    <div id="foodModalRemain" class="foodModalRemain"></div>
-    <div id="foodGrid" class="foodGrid"></div>
-  </div>
-</div>
 </div>
 
 <script>
@@ -896,11 +644,8 @@ function resetFormAll(){
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
 
-    if($("presetSelect")) $("presetSelect").value = "";
-  selectedFoods = {};
-  currentFoodType = null;
+  if($("presetSelect")) $("presetSelect").value = "";
   updatePFMenu();
-  renderPickerSummary();
 }
 
 /* テーマ */
@@ -1036,13 +781,12 @@ function toggleCarb(){
 $("diet").addEventListener("change", toggleCarb);
 
 /* 食材/体重タブ切替 */
-["tab-food","tab-picker","tab-chart"].forEach(id=>{
+["tab-food","tab-chart"].forEach(id=>{
   $(id).addEventListener("click",(e)=>{
-    ["tab-food","tab-picker","tab-chart"].forEach(i=>$(i).classList.remove('active'));
+    ["tab-food","tab-chart"].forEach(i=>$(i).classList.remove('active'));
     e.currentTarget.classList.add('active');
     const target = e.currentTarget.dataset.target;
     $("foodSection").style.display = (target==="foodSection")?"block":"none";
-    $("pickerSection").style.display = (target==="pickerSection")?"block":"none";
     $("chartSection").style.display = (target==="chartSection")?"block":"none";
     if(target==="chartSection" && window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
   });
@@ -1578,15 +1322,6 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   $("gVeg").textContent   = (diet==="Carnivore"?0:Math.round((kVeg  /KCAL_PER_100G.veg  *100)/10)*10); $("kVeg").textContent   = Math.round(kVeg);
   $("gFruit").textContent = (diet==="Carnivore"?0:Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruit);
 
-    baseMacroTargets = {
-    protein: protein_g,
-    fat: fat_g,
-    carb: carb_g,
-    kcal: kcal
-  };
-
-  syncPickerTargets();
-  renderPickerSummary();
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
   updateBars(pk, fk, ck, kcal);
 
@@ -1668,308 +1403,7 @@ if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 restoreLastPreset();
 refreshPresetSelect();
 
-  selectedFoods = {};
-  currentFoodType = null;
-  renderPickerSummary();
-  
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
-const FOOD_DB = {
-  meat: [
-    { id:"beef_lean",   name:"牛肉（赤身）",       unitType:"100g", gramPerUnit:100, protein:21.0, fat:12.0, carb:0.0, kcal:188 },
-    { id:"beef_fatty",  name:"牛肉（脂身多め）",   unitType:"100g", gramPerUnit:100, protein:15.0, fat:28.0, carb:0.0, kcal:308 },
-    { id:"pork",        name:"豚肉",              unitType:"100g", gramPerUnit:100, protein:19.0, fat:19.0, carb:0.2, kcal:248 },
-    { id:"chicken_thigh", name:"鶏もも",         unitType:"100g", gramPerUnit:100, protein:16.0, fat:14.0, carb:0.0, kcal:200 },
-    { id:"chicken_breast",name:"鶏むね",         unitType:"100g", gramPerUnit:100, protein:23.0, fat:2.0,  carb:0.0, kcal:108 },
-    { id:"lamb",        name:"ラム",              unitType:"100g", gramPerUnit:100, protein:17.0, fat:24.0, carb:0.0, kcal:287 },
-    { id:"liver",       name:"レバー",            unitType:"100g", gramPerUnit:100, protein:19.0, fat:3.7,  carb:3.7, kcal:132 }
-  ],
-  fish: [
-    { id:"salmon",      name:"サーモン",          unitType:"100g", gramPerUnit:100, protein:22.0, fat:13.0, carb:0.0, kcal:211 },
-    { id:"mackerel",    name:"サバ",              unitType:"100g", gramPerUnit:100, protein:20.6, fat:16.8, carb:0.3, kcal:247 },
-    { id:"sardine",     name:"イワシ",            unitType:"100g", gramPerUnit:100, protein:19.2, fat:9.2,  carb:0.2, kcal:156 },
-    { id:"tuna",        name:"マグロ赤身",        unitType:"100g", gramPerUnit:100, protein:26.4, fat:1.4,  carb:0.1, kcal:125 },
-    { id:"whitefish",   name:"白身魚",            unitType:"100g", gramPerUnit:100, protein:20.0, fat:2.0,  carb:0.0, kcal:100 },
-    { id:"shrimp",      name:"エビ",              unitType:"100g", gramPerUnit:100, protein:20.0, fat:0.8,  carb:0.1, kcal:87 }
-  ],
-  eggs: [
-    { id:"egg",         name:"鶏卵",              unitType:"piece", gramPerUnit:50,  protein:6.2,  fat:5.2,  carb:0.2, kcal:76, pieceLabel:"1個" },
-    { id:"quail_egg",   name:"うずら卵",          unitType:"piece", gramPerUnit:10,  protein:1.2,  fat:1.0,  carb:0.0, kcal:15, pieceLabel:"1個" }
-  ],
-  dairy: [
-    { id:"milk",        name:"牛乳",              unitType:"100ml", gramPerUnit:100, protein:3.3,  fat:3.8,  carb:4.8, kcal:67 },
-    { id:"sheep_milk",  name:"羊乳",              unitType:"100ml", gramPerUnit:100, protein:5.4,  fat:6.0,  carb:5.1, kcal:103 },
-    { id:"cheese",      name:"チーズ",            unitType:"100g",  gramPerUnit:100, protein:22.0, fat:28.0, carb:1.3, kcal:356 },
-    { id:"greek_yogurt",name:"ギリシャヨーグルト",unitType:"100g",  gramPerUnit:100, protein:10.0, fat:4.0,  carb:4.0, kcal:100 },
-    { id:"butter",      name:"バター",            unitType:"100g",  gramPerUnit:100, protein:0.6,  fat:81.0, carb:0.2, kcal:700 }
-  ],
-  veg: [
-    { id:"leafy",       name:"葉物野菜",          unitType:"100g", gramPerUnit:100, protein:2.0, fat:0.4, carb:3.0, kcal:20 },
-    { id:"root",        name:"根菜",              unitType:"100g", gramPerUnit:100, protein:1.0, fat:0.2, carb:10.0, kcal:45 },
-    { id:"avocado",     name:"アボカド",          unitType:"100g", gramPerUnit:100, protein:2.1, fat:18.7, carb:6.2, kcal:187 },
-    { id:"mushroom",    name:"きのこ",            unitType:"100g", gramPerUnit:100, protein:2.7, fat:0.5, carb:4.0, kcal:22 }
-  ],
-  fruit: [
-    { id:"berries",     name:"ベリー類",          unitType:"100g", gramPerUnit:100, protein:1.0, fat:0.3, carb:10.0, kcal:48 },
-    { id:"citrus",      name:"柑橘類",            unitType:"100g", gramPerUnit:100, protein:0.8, fat:0.2, carb:11.0, kcal:46 },
-    { id:"banana",      name:"バナナ",            unitType:"100g", gramPerUnit:100, protein:1.1, fat:0.2, carb:22.5, kcal:93 },
-    { id:"nuts",        name:"ナッツ類",          unitType:"100g", gramPerUnit:100, protein:18.0, fat:56.0, carb:18.0, kcal:650 }
-  ]
-};
-
-let categoryTargets = { meat:0, fish:0, eggs:0, dairy:0, veg:0, fruit:0 };
-let selectedFoods = {};
-let currentFoodType = null;
-let baseMacroTargets = { protein:0, fat:0, carb:0, kcal:0 };
-
-function getFoodById(id){
-  for(const type of Object.keys(FOOD_DB)){
-    const found = FOOD_DB[type].find(x=>x.id===id);
-    if(found) return {...found, type};
-  }
-  return null;
-}
-
-function getSelectedCategoryGrams(type){
-  return Object.values(selectedFoods)
-    .filter(item => item.type === type)
-    .reduce((sum, item) => sum + item.grams, 0);
-}
-
-function getSelectedMacroTotals(){
-  let protein=0, fat=0, carb=0, kcal=0;
-  Object.values(selectedFoods).forEach(item=>{
-    const f = getFoodById(item.id);
-    if(!f) return;
-    if(f.unitType==="piece"){
-      protein += f.protein * item.units;
-      fat     += f.fat * item.units;
-      carb    += f.carb * item.units;
-      kcal    += f.kcal * item.units;
-    }else{
-      const ratio = item.grams / 100;
-      protein += f.protein * ratio;
-      fat     += f.fat * ratio;
-      carb    += f.carb * ratio;
-      kcal    += f.kcal * ratio;
-    }
-  });
-  return { protein, fat, carb, kcal };
-}
-
-function syncPickerTargets(){
-  categoryTargets = {
-    meat: +($("gMeat").textContent || 0),
-    fish: +($("gFish").textContent || 0),
-    eggs: +($("gEggs").textContent || 0),
-    dairy:+($("gDairy").textContent || 0),
-    veg:  +($("gVeg").textContent || 0),
-    fruit:+($("gFruit").textContent || 0)
-  };
-
-  $("pickMeatMax").textContent  = categoryTargets.meat || 0;
-  $("pickFishMax").textContent  = categoryTargets.fish || 0;
-  $("pickEggsMax").textContent  = categoryTargets.eggs || 0;
-  $("pickDairyMax").textContent = categoryTargets.dairy || 0;
-  $("pickVegMax").textContent   = categoryTargets.veg || 0;
-  $("pickFruitMax").textContent = categoryTargets.fruit || 0;
-}
-
-function renderPickerSummary(){
-  $("pickMeat").textContent  = getSelectedCategoryGrams("meat");
-  $("pickFish").textContent  = getSelectedCategoryGrams("fish");
-  $("pickEggs").textContent  = getSelectedCategoryGrams("eggs");
-  $("pickDairy").textContent = getSelectedCategoryGrams("dairy");
-  $("pickVeg").textContent   = getSelectedCategoryGrams("veg");
-  $("pickFruit").textContent = getSelectedCategoryGrams("fruit");
-
-  const totals = getSelectedMacroTotals();
-  $("pickerSummary").textContent =
-    `選択済み P ${Math.round(totals.protein)}g / F ${Math.round(totals.fat)}g / C ${Math.round(totals.carb)}g / ${Math.round(totals.kcal)}kcal`;
-
-  const list = Object.values(selectedFoods);
-  $("pickedList").innerHTML = list.length ? list.map(item=>{
-    const f = getFoodById(item.id);
-    if(!f) return "";
-    const unitText = f.unitType==="piece"
-      ? `${item.units}個 / ${item.grams}g`
-      : `${item.grams}${f.unitType==="100ml" ? "ml" : "g"}`;
-    return `
-      <div class="pickedItem">
-        <div>
-          <div class="pickedItemName">${f.name}</div>
-          <div class="pickedItemMeta">${typeLabel(item.type)} ・ ${unitText}</div>
-        </div>
-        <div class="pickedItemVal">
-          ${Math.round(item.kcal)}kcal
-        </div>
-      </div>
-    `;
-  }).join("") : `<div class="small" style="opacity:.8">まだ食材が選択されていません。</div>`;
-
-  applySelectedToMacroDisplay();
-}
-
-function typeLabel(type){
-  return ({
-    meat:"肉",
-    fish:"魚介類",
-    eggs:"卵",
-    dairy:"乳製品",
-    veg:"野菜",
-    fruit:"果物"
-  })[type] || type;
-}
-
-function getFoodCurrentUnits(foodId){
-  return selectedFoods[foodId]?.units || 0;
-}
-
-function canAddFood(food){
-  const current = getSelectedCategoryGrams(food.type);
-  const limit = categoryTargets[food.type] || 0;
-  return current + food.gramPerUnit <= limit;
-}
-
-function addFoodUnit(foodId){
-  const food = getFoodById(foodId);
-  if(!food) return;
-  if(!canAddFood(food)) return;
-
-  const prev = selectedFoods[foodId] || {
-    id: food.id,
-    type: food.type,
-    units: 0,
-    grams: 0,
-    kcal: 0
-  };
-
-  prev.units += 1;
-  prev.grams += food.gramPerUnit;
-  if(food.unitType==="piece"){
-    prev.kcal += food.kcal;
-  }else{
-    prev.kcal += food.kcal * (food.gramPerUnit / 100);
-  }
-  selectedFoods[foodId] = prev;
-
-  renderPickerSummary();
-  if(currentFoodType) renderFoodModal(currentFoodType);
-}
-
-function removeFoodUnit(foodId){
-  const food = getFoodById(foodId);
-  const prev = selectedFoods[foodId];
-  if(!food || !prev) return;
-
-  prev.units -= 1;
-  prev.grams -= food.gramPerUnit;
-  if(food.unitType==="piece"){
-    prev.kcal -= food.kcal;
-  }else{
-    prev.kcal -= food.kcal * (food.gramPerUnit / 100);
-  }
-
-  if(prev.units <= 0 || prev.grams <= 0){
-    delete selectedFoods[foodId];
-  }else{
-    selectedFoods[foodId] = prev;
-  }
-
-  renderPickerSummary();
-  if(currentFoodType) renderFoodModal(currentFoodType);
-}
-
-function formatFoodQty(food, units, grams){
-  if(food.unitType==="piece") return `${units}個`;
-  if(food.unitType==="100ml") return `${grams}ml`;
-  return `${grams}g`;
-}
-
-function renderFoodModal(type){
-  currentFoodType = type;
-  const list = FOOD_DB[type] || [];
-  const used = getSelectedCategoryGrams(type);
-  const limit = categoryTargets[type] || 0;
-  const remain = Math.max(0, limit - used);
-
-  $("foodModalTitle").textContent = typeLabel(type);
-  $("foodModalSub").textContent = "追加するとマクロとカテゴリ量に反映";
-  $("foodModalRemain").textContent = `選択済み ${used}${type==="dairy" ? "g/ml" : "g"} / 上限 ${limit}${type==="dairy" ? "g" : "g"} ｜ 残り ${remain}${type==="dairy" ? "g/ml" : "g"}`;
-
-  $("foodGrid").innerHTML = list.map(food=>{
-    const units = getFoodCurrentUnits(food.id);
-    const grams = units * food.gramPerUnit;
-    const disabled = !canAddFood(food);
-    const unitLabel = food.unitType==="piece" ? "1個=50g基準" : food.unitType;
-    return `
-      <div class="foodPickCard ${disabled ? "disabled" : ""}">
-        <div class="foodPickTop">
-          <div>
-            <div class="foodPickName">${food.name}</div>
-            <div class="foodPickUnit">${unitLabel}</div>
-          </div>
-        </div>
-
-        <div class="foodMacros">
-          <span>P ${food.protein}</span>
-          <span>F ${food.fat}</span>
-          <span>C ${food.carb}</span>
-          <span>${food.kcal}kcal</span>
-        </div>
-
-        <div class="foodControls">
-          <div class="foodCtrBtns">
-            <button type="button" onclick="removeFoodUnit('${food.id}')">−</button>
-            <div class="foodQty">${formatFoodQty(food, units, grams)}</div>
-            <button type="button" onclick="addFoodUnit('${food.id}')">＋</button>
-          </div>
-        </div>
-
-        <div class="foodHint">
-          ${disabled ? `残り${remain}${food.unitType==="100ml" ? "ml" : "g"}のため追加不可` : `あと追加可能`}
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  $("foodModal").classList.add("show");
-  $("foodModal").setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-}
-
-function closeFoodModal(){
-  $("foodModal").classList.remove("show");
-  $("foodModal").setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
-function applySelectedToMacroDisplay(){
-  const totals = getSelectedMacroTotals();
-
-  $("p").textContent = Math.round(totals.protein);
-  $("f").textContent = Math.round(totals.fat);
-  $("c").textContent = Math.round(totals.carb);
-  $("kcal").textContent = Math.round(totals.kcal).toLocaleString();
-
-  $("pkcal").textContent = Math.round(totals.protein * 4).toLocaleString();
-  $("fkcal").textContent = Math.round(totals.fat * 9).toLocaleString();
-  $("ckcal").textContent = Math.round(totals.carb * 4).toLocaleString();
-
-  updateBars(totals.protein*4, totals.fat*9, totals.carb*4, totals.kcal);
-}
-
-document.querySelectorAll("[data-foodtype]").forEach(card=>{
-  card.addEventListener("click", ()=>{
-    syncPickerTargets();
-    renderFoodModal(card.dataset.foodtype);
-  });
-});
-
-$("foodModalClose").addEventListener("click", closeFoodModal);
-$("foodModalBg").addEventListener("click", closeFoodModal);
-document.addEventListener("keydown", e=>{
-  if(e.key==="Escape") closeFoodModal();
-});
 </script>
 </body>
