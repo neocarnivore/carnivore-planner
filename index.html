@@ -1257,10 +1257,11 @@ function calc(){
   $("tdee").textContent=Math.round(tdee).toLocaleString();
 
   const effPPerKg = (w>0)? (protein_g/w) : pFactor;
-  const effNote = (Math.abs(effPPerKg - pFactor) > 0.05) ? `｜実効p≈${effPPerKg.toFixed(2)}g/kg` : "";
-  $("bmiClassTxt").textContent=
-    `BMI区分：${classText(bmi)}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
+const effNote = `｜実効p≈${effPPerKg.toFixed(2)}g/kg`;
 
+$("bmiClassTxt").textContent =
+  `BMI区分：${classText(bmi)}${effNote}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
+  
   $("dietLabel").textContent =
 diet==="Carnivore" ? "カーニボア" :
 diet==="Ketovore" ? "ケトボア" :
