@@ -365,7 +365,397 @@ body:not(.light){
         100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
     </section>
+<!-- ===== 週間PFC / kcalプレビュー：ここから差し込み ===== -->
+<section id="weekMacroSection" class="section" style="display:block;margin-top:14px">
+  <h3>一週間の目安</h3>
 
+  <div class="weekMacroCard">
+    <div class="weekTopline">
+      <div class="weekCounts">
+        <span class="miniStat"><span>運動日</span><b id="wmTrainCount">2</b></span>
+        <span class="miniStat"><span>休息日</span><b id="wmRestCount">5</b></span>
+      </div>
+
+      <button id="wmExtraToggle" type="button" class="weekToggleBtn" aria-pressed="false">
+        休息日を1日だけ運動日に切替
+      </button>
+    </div>
+
+    <div class="weekLegend">
+      <span><i class="dot p"></i>P</span>
+      <span><i class="dot f"></i>F</span>
+      <span><i class="dot c"></i>C</span>
+    </div>
+
+    <div class="weekChartWrap">
+      <div class="weekChart" id="weekChart"></div>
+    </div>
+
+    <div class="weekHint small" id="wmHint">
+      現在の入力内容をもとに、週間の見た目をプレビューしています。
+    </div>
+  </div>
+</section>
+
+<style>
+  .weekMacroCard{
+    background:transparent;
+    border:none;
+    box-shadow:none;
+    padding:0;
+  }
+
+  .weekTopline{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:2px 0 12px;
+  }
+
+  .weekCounts{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .miniStat{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    background:var(--input);
+    border-radius:999px;
+    line-height:1;
+  }
+  .miniStat span{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .miniStat b{
+    font-size:14px;
+    color:var(--text);
+  }
+
+  .weekToggleBtn{
+    width:auto;
+    padding:9px 12px;
+    border-radius:999px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .weekToggleBtn.active{
+    background:var(--acc);
+    border-color:transparent;
+    color:#fff;
+  }
+
+  .weekLegend{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    margin:0 0 10px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .weekLegend span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{
+    width:8px;
+    height:8px;
+    border-radius:999px;
+    display:inline-block;
+  }
+  .dot.p{ background:var(--p); }
+  .dot.f{ background:var(--f); }
+  .dot.c{ background:var(--c); }
+
+  .weekChartWrap{
+    background:var(--input);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:12px 10px 10px;
+    overflow:hidden;
+  }
+
+  .weekChart{
+    display:grid;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:10px;
+    align-items:end;
+    min-height:248px;
+  }
+
+  .weekDay{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+
+  .weekBarZone{
+    height:184px;
+    width:100%;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    position:relative;
+  }
+
+  .weekCol{
+    width:100%;
+    max-width:46px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+
+  .weekKcal{
+    width:100%;
+    height:var(--kcalH,120px);
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(72,209,181,.22), rgba(72,209,181,.08));
+    border:1px solid var(--border);
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom:8px;
+  }
+
+  .light .weekKcal{
+    background:linear-gradient(180deg, rgba(10,163,127,.14), rgba(10,163,127,.05));
+  }
+
+  .weekKcalNum{
+    font-size:10px;
+    font-weight:800;
+    color:var(--text);
+    opacity:.9;
+    line-height:1;
+  }
+
+  .weekPfcMini{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:4px;
+    height:42px;
+  }
+
+  .weekPfcMini span{
+    width:9px;
+    border-radius:999px;
+    display:block;
+    min-height:6px;
+    opacity:.98;
+  }
+  .weekPfcMini .p{ background:var(--p); height:var(--pH,18px); }
+  .weekPfcMini .f{ background:var(--f); height:var(--fH,26px); }
+  .weekPfcMini .c{ background:var(--c); height:var(--cH,10px); }
+
+  .weekLabel{
+    font-size:11px;
+    color:var(--muted);
+    line-height:1;
+    letter-spacing:.02em;
+  }
+
+  .weekType{
+    font-size:10px;
+    color:var(--muted);
+    line-height:1;
+    opacity:.8;
+  }
+
+  .weekHint{
+    margin-top:8px;
+    opacity:.92;
+  }
+
+  @media (max-width:560px){
+    .weekChart{
+      gap:8px;
+    }
+    .weekKcal{
+      max-width:38px;
+    }
+    .weekPfcMini span{
+      width:8px;
+    }
+  }
+</style>
+
+<script>
+(function(){
+  const DAYS_JP = ["月","火","水","木","金","土","日"];
+  const extraBtn = document.getElementById("wmExtraToggle");
+  const chartEl  = document.getElementById("weekChart");
+  const trainEl  = document.getElementById("wmTrainCount");
+  const restEl   = document.getElementById("wmRestCount");
+  const hintEl   = document.getElementById("wmHint");
+
+  if(!extraBtn || !chartEl || !trainEl || !restEl) return;
+
+  let extraTrainingDay = false;
+
+  function numText(id, fallback){
+    const el = document.getElementById(id);
+    if(!el) return fallback;
+    const n = parseFloat(String(el.textContent).replace(/,/g,""));
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function getHabitTrainDays(){
+    const habit = document.getElementById("habit")?.value || "";
+    if(habit === "1.2")   return 0;
+    if(habit === "1.375") return 2;
+    if(habit === "1.55")  return 4;
+    if(habit === "1.725") return 6;
+    if(habit === "1.9")   return 7;
+    return 2;
+  }
+
+  function clamp(n, min, max){
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function getBaseMacros(){
+    const kcal = numText("kcal", 2200);
+    const p = numText("p", 140);
+    const f = numText("f", 160);
+    const c = numText("c", 30);
+
+    return { kcal, p, f, c };
+  }
+
+  function deriveDayValues(base){
+    const train = {
+      kcal: Math.round(base.kcal * 1.06),
+      p:    Math.round(base.p * 1.04),
+      f:    Math.round(base.f * 0.96),
+      c:    Math.round(base.c * 1.28)
+    };
+
+    const rest = {
+      kcal: Math.round(base.kcal * 0.96),
+      p:    Math.round(base.p * 0.98),
+      f:    Math.round(base.f * 1.03),
+      c:    Math.round(base.c * 0.78)
+    };
+
+    if((document.getElementById("diet")?.value || "") === "Carnivore"){
+      train.c = Math.max(8, Math.round(base.c));
+      rest.c  = Math.max(8, Math.round(base.c));
+    }
+
+    return { train, rest };
+  }
+
+  function makeWeekPattern(trainDays){
+    const totalTrain = clamp(trainDays + (extraTrainingDay ? 1 : 0), 0, 7);
+    const arr = new Array(7).fill("rest");
+
+    if(totalTrain === 0) return arr;
+    if(totalTrain === 7) return arr.map(()=> "train");
+
+    const preferred = [1, 3, 5, 0, 2, 4, 6];
+    for(let i=0; i<totalTrain; i++){
+      arr[preferred[i]] = "train";
+    }
+    return arr;
+  }
+
+  function render(){
+    const base = getBaseMacros();
+    const values = deriveDayValues(base);
+    const trainDaysBase = getHabitTrainDays();
+    const pattern = makeWeekPattern(trainDaysBase);
+    const trainCount = pattern.filter(v => v === "train").length;
+    const restCount  = 7 - trainCount;
+
+    trainEl.textContent = trainCount;
+    restEl.textContent = restCount;
+
+    extraBtn.classList.toggle("active", extraTrainingDay);
+    extraBtn.setAttribute("aria-pressed", extraTrainingDay ? "true" : "false");
+
+    const kcals = pattern.map(type => values[type].kcal);
+    const ps    = pattern.map(type => values[type].p);
+    const fs    = pattern.map(type => values[type].f);
+    const cs    = pattern.map(type => values[type].c);
+
+    const maxK = Math.max(...kcals, 1);
+    const maxP = Math.max(...ps, 1);
+    const maxF = Math.max(...fs, 1);
+    const maxC = Math.max(...cs, 1);
+
+    chartEl.innerHTML = pattern.map((type, i) => {
+      const d = values[type];
+      const kcalH = Math.round((d.kcal / maxK) * 124) + 34;
+      const pH = Math.round((d.p / maxP) * 30) + 6;
+      const fH = Math.round((d.f / maxF) * 30) + 6;
+      const cH = Math.round((d.c / maxC) * 30) + 6;
+
+      return `
+        <div class="weekDay">
+          <div class="weekBarZone">
+            <div class="weekCol">
+              <div class="weekKcal" style="--kcalH:${kcalH}px">
+                <div class="weekKcalNum">${d.kcal}</div>
+              </div>
+              <div class="weekPfcMini">
+                <span class="p" style="--pH:${pH}px"></span>
+                <span class="f" style="--fH:${fH}px"></span>
+                <span class="c" style="--cH:${cH}px"></span>
+              </div>
+            </div>
+          </div>
+          <div class="weekLabel">${DAYS_JP[i]}</div>
+        </div>
+      `;
+    }).join("");
+
+    const habitText = document.getElementById("habit")?.selectedOptions?.[0]?.textContent || "未選択";
+    hintEl.textContent = `運動習慣「${habitText}」に合わせた週間プレビューです。棒の大きいほうがkcal、下の3本がP/F/Cです。`;
+  }
+
+  extraBtn.addEventListener("click", () => {
+    extraTrainingDay = !extraTrainingDay;
+    render();
+  });
+
+  ["habit","diet","onoff","sex","age","height","weight","pFactor","carbIntake"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("change", render);
+    el.addEventListener("input", render);
+  });
+
+  ["calcBtn","themeToggle","tab-food"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("click", ()=> setTimeout(render, 30));
+  });
+
+  window.addEventListener("load", render);
+  setTimeout(render, 50);
+})();
+</script>
+<!-- ===== 週間PFC / kcalプレビュー：ここまで差し込み ===== -->
     <section id="chartSection" class="section" style="display:none">
       <h3>体重推移（推定）</h3>
       <div class="kpi chartCard" style="border:none;background:transparent;box-shadow:none">
