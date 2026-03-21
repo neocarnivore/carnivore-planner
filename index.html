@@ -365,15 +365,12 @@ body:not(.light){
         100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
     </section>
-  <!-- ===== 週間マクロ配分：ここから（macroCardの直後 / mixCardの前に置く） ===== -->
+ <!-- ===== 週間マクロ配分：ここから（macroCardの直後 / mixCardの前に置く） ===== -->
 <section id="weekMacroSection" class="section" style="display:none;margin:10px 0 0">
   <div class="card weekStandaloneCard">
     <div class="weekHeader">
       <div class="weekHeaderLeft">
         <h3 class="weekTitle">週間マクロ配分</h3>
-      </div>
-
-      <div class="weekHeaderRight">
         <div class="small weekAvgTextRow">
           <span class="weekAvgText" id="weekAvgText">週平均：P116g / F154g / C50g</span>
           <div class="weekLegend">
@@ -391,7 +388,7 @@ body:not(.light){
     </div>
 
     <div class="small weekFormula" id="weekFormulaText">
-      実効p≈2.40g/kg（f:p=7:3）｜F = {kcal - (P×4 + C×4)} ÷ 9
+      実効p≈2.40g/kg（f:p=7:3）｜F = {kcal - 4(P + C)} ÷ 9
     </div>
   </div>
 </section>
@@ -412,39 +409,32 @@ body:not(.light){
 
   .weekHeaderLeft{
     min-width:0;
+    width:100%;
   }
 
   .weekTitle{
-    margin:0;
-  }
-
-  .weekHeaderRight{
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
-    gap:4px;
-    margin-left:auto;
-    min-width:0;
+    margin:0 0 6px;
   }
 
   .weekAvgTextRow{
     display:flex;
     align-items:center;
-    justify-content:flex-end;
+    justify-content:flex-start;
     gap:12px;
     width:100%;
-    text-align:right;
+    text-align:left;
     opacity:.95;
     flex-wrap:wrap;
   }
 
   .weekAvgText{
     white-space:nowrap;
+    text-align:left;
   }
 
   .weekLegend{
     display:flex;
-    justify-content:flex-end;
+    justify-content:flex-start;
     gap:12px;
     font-size:12px;
     color:var(--muted);
@@ -471,40 +461,43 @@ body:not(.light){
     border:1px solid var(--border);
     background:var(--input);
     border-radius:16px;
-    padding:10px 8px 12px;
+    padding:12px 8px 12px;
     overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .weekChartShell *,
+  .weekChartShell *::before,
+  .weekChartShell *::after{
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select:none;
+    -webkit-user-select:none;
   }
 
   .weekLineSvg{
     position:absolute;
     left:8px;
     right:8px;
-    top:26px;
+    top:36px;
     width:calc(100% - 16px);
-    height:108px;
-    pointer-events:auto;
+    height:96px;
+    pointer-events:none;
     z-index:4;
     overflow:visible;
   }
   .weekLinePath{
     fill:none;
     stroke:#48d1b5;
-    stroke-width:3.2;
+    stroke-width:3.1;
     stroke-linecap:round;
     stroke-linejoin:round;
     pointer-events:none;
   }
   .weekLineMarker{
     fill:#48d1b5;
-    cursor:pointer;
-    transition:transform .16s ease, filter .18s ease, opacity .16s ease;
-    transform-origin:center;
-    pointer-events:auto;
-  }
-  .weekLineMarker:hover,
-  .weekLineMarker.active{
-    transform:scale(1.14);
-    filter:drop-shadow(0 2px 10px rgba(72,209,181,.34));
+    opacity:.98;
   }
 
   .weekChart{
@@ -525,30 +518,42 @@ body:not(.light){
     gap:4px;
     user-select:none;
     position:relative;
+    transform:none !important;
   }
 
   .weekTopArea{
-    height:22px;
+    height:28px;
     display:flex;
     align-items:flex-end;
     justify-content:center;
+    width:100%;
+    position:relative;
+    z-index:6;
+    pointer-events:none;
   }
 
   .weekKcalTop{
     font-size:11px;
     font-weight:800;
     line-height:1;
-    opacity:0;
-    transform:translateY(4px);
-    transition:opacity .18s ease, transform .18s ease;
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:rgba(15,18,24,.84);
+    backdrop-filter:blur(10px) saturate(1.08);
+    box-shadow:0 12px 24px rgba(0,0,0,.10);
+    white-space:nowrap;
     pointer-events:none;
   }
-  .weekDay.showKcal .weekKcalTop{
-    opacity:1;
-    transform:translateY(0);
+  .light .weekKcalTop{
+    background:rgba(246,248,251,.88);
+    border:1px solid rgba(19,40,61,.08);
+    color:#111;
+    box-shadow:0 12px 24px rgba(19,40,61,.06);
   }
-  .light .weekKcalTop{ color:#111; }
-  body:not(.light) .weekKcalTop{ color:#fff; }
+  body:not(.light) .weekKcalTop{
+    color:#fff;
+  }
 
   .weekBarZone{
     height:208px;
@@ -565,11 +570,12 @@ body:not(.light){
     flex-direction:column;
     align-items:center;
     gap:8px;
-    transition:transform .18s ease;
+    transform:none !important;
+    transition:none !important;
   }
 
   .weekDay.dragLift .weekCol{
-    transform:translateY(-6px) scale(1.03);
+    transform:none !important;
   }
 
   .weekBar{
@@ -585,38 +591,29 @@ body:not(.light){
     box-shadow:
       0 8px 18px rgba(0,0,0,.10),
       inset 0 1px 0 rgba(255,255,255,.05);
-    transition:
-      transform .18s ease,
-      box-shadow .18s ease,
-      height .24s ease,
-      filter .18s ease;
+    transition:height .24s ease, filter .18s ease;
     position:relative;
+    transform:none !important;
   }
 
   .weekDay.dragLift .weekBar{
+    transform:none !important;
     box-shadow:
-      0 18px 34px rgba(0,0,0,.16),
+      0 8px 18px rgba(0,0,0,.10),
       inset 0 1px 0 rgba(255,255,255,.05);
   }
 
-  .weekDay.isToday .weekBar{
-    filter:none;
-  }
+  /* 今日のバー外周だけ極薄リング */
   .weekDay.isToday .weekBar::after{
     content:"";
     position:absolute;
-    inset:-2px;
+    inset:-3px;
     border-radius:14px 14px 5px 5px;
     pointer-events:none;
-    box-shadow:0 0 0 2px #111;
+    box-shadow:0 0 0 1px rgba(120,128,140,.18);
   }
   body:not(.light) .weekDay.isToday .weekBar::after{
-    box-shadow:0 0 0 2px #fff;
-  }
-
-  .weekDay.isToday .weekLabel{
-    color:var(--text);
-    font-weight:800;
+    box-shadow:0 0 0 1px rgba(255,255,255,.18);
   }
 
   .weekSeg{
@@ -635,6 +632,18 @@ body:not(.light){
   .weekSeg.f{ background:var(--f); }
   .weekSeg.c{ background:var(--c); }
 
+  /* 境界線に若干スペース（白） */
+  .weekSeg + .weekSeg::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:1px;
+    background:rgba(255,255,255,.92);
+    pointer-events:none;
+  }
+
   .weekSegLabel{
     font-size:10px;
     font-weight:800;
@@ -650,7 +659,7 @@ body:not(.light){
     display:flex;
     align-items:center;
     justify-content:center;
-    min-height:18px;
+    min-height:20px;
     width:100%;
   }
 
@@ -659,7 +668,18 @@ body:not(.light){
     align-items:center;
     justify-content:center;
     gap:1px;
-    min-height:18px;
+    min-height:20px;
+    border-radius:999px;
+    padding:2px 6px;
+    transition:none;
+  }
+
+  /* 今日だけラベル背景を極薄ピル化 */
+  .weekDay.isToday .weekDayLabel{
+    background:rgba(120,128,140,.07);
+  }
+  body:not(.light) .weekDay.isToday .weekDayLabel{
+    background:rgba(255,255,255,.08);
   }
 
   .weekMenuBtn{
@@ -677,6 +697,15 @@ body:not(.light){
     transform:translateY(-.4px);
     position:relative;
     z-index:2;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+
+  .weekMenuBtn:focus,
+  .weekMenuBtn:active{
+    outline:none;
+    box-shadow:none;
+    transform:translateY(-.4px);
   }
 
   .weekLabel{
@@ -744,9 +773,10 @@ body:not(.light){
     font-size:11px;
     font-weight:700;
     transition:
-      transform .12s ease,
       background .16s ease,
       border-color .16s ease;
+    -webkit-appearance:none;
+    appearance:none;
   }
   .weekMenu button + button{
     margin-top:4px;
@@ -756,8 +786,11 @@ body:not(.light){
     color:#fff;
     border-color:transparent;
   }
-  .weekMenu button:active{
-    transform:scale(.985);
+  .weekMenu button:active,
+  .weekMenu button:focus{
+    outline:none;
+    box-shadow:none;
+    transform:none;
   }
 
   .weekFormula{
@@ -766,22 +799,29 @@ body:not(.light){
     opacity:.95;
   }
 
+  /* iOS等のダブルタップ拡大・タップ時拡大っぽさ抑制 */
+  button,
+  svg,
+  polygon,
+  path,
+  .weekDay,
+  .weekBar,
+  .weekCol,
+  .weekMenuBtn{
+    touch-action:manipulation;
+  }
+
   @media (max-width:560px){
     .weekChart{ gap:4px; }
     .weekCol{ max-width:30px; }
     .weekKcalTop{ font-size:10px; }
     .weekSegLabel{ font-size:9px; }
-    .weekHeaderRight{
-      width:100%;
-      align-items:flex-end;
-      margin-left:0;
-    }
     .weekAvgTextRow{
-      justify-content:flex-end;
+      justify-content:flex-start;
       gap:10px;
     }
     .weekLegend{
-      justify-content:flex-end;
+      justify-content:flex-start;
     }
   }
 </style>
@@ -802,14 +842,7 @@ body:not(.light){
 
   const state = {
     days: [],
-    openMenuIndex: null,
-    showKcalIndex: null,
-    dragIndex: null,
-    dragActive: false,
-    longPressTimer: null,
-    longPressArmed: false,
-    startX: 0,
-    startY: 0
+    openMenuIndex: null
   };
 
   function shouldShowWeek(){
@@ -869,7 +902,6 @@ body:not(.light){
   function resetDaysFromHabit(){
     state.days = buildDefaultDays();
     state.openMenuIndex = null;
-    state.showKcalIndex = null;
   }
 
   function enforceFatFloorLocal(protein_g, carb_g, fat_g, body_w){
@@ -982,7 +1014,7 @@ body:not(.light){
   function drawLine(dayData){
     const maxK = Math.max(...dayData.map(d => d.kcal), 1);
     const minY = 12;
-    const maxY = 92;
+    const maxY = 90;
     const stepX = 700 / 7;
 
     const points = dayData.map((d, i) => {
@@ -995,11 +1027,8 @@ body:not(.light){
 
     lineSvg.innerHTML = `
       <path class="weekLinePath" d="${path}"></path>
-      ${points.map((p, i) => {
-        const size = 14;
-        const pts = `${p.x},${p.y-size/2} ${p.x-size/2},${p.y+size/2} ${p.x+size/2},${p.y+size/2}`;
-        const active = state.showKcalIndex === i ? "active" : "";
-        return `<polygon class="weekLineMarker ${active}" data-marker="${i}" points="${pts}"></polygon>`;
+      ${points.map((p) => {
+        return `<circle class="weekLineMarker" cx="${p.x}" cy="${p.y}" r="4.5"></circle>`;
       }).join("")}
     `;
   }
@@ -1023,7 +1052,7 @@ body:not(.light){
 
     const weight = parseFloat(document.getElementById("weight")?.value || "0") || 0;
     const effP = weight > 0 ? (avgP / weight) : 0;
-    formulaEl.innerHTML = `実効p≈${effP.toFixed(2)}g/kg（f:p=${ratioText}）｜F = {kcal - (P×4 + C×4)} ÷ 9`;
+    formulaEl.innerHTML = `実効p≈${effP.toFixed(2)}g/kg（f:p=${ratioText}）｜F = {kcal - 4(P + C)} ÷ 9`;
 
     const todayIndex = getLocalTodayIndexMondayFirst();
 
@@ -1043,7 +1072,7 @@ body:not(.light){
       const menuAlignClass = i === 0 ? "align-left" : i === 6 ? "align-right" : "align-mid";
 
       return `
-        <div class="weekDay ${state.showKcalIndex===i ? "showKcal":""} ${todayIndex===i ? "isToday":""}" data-index="${i}">
+        <div class="weekDay ${todayIndex===i ? "isToday":""}" data-index="${i}">
           <div class="weekTopArea">
             <div class="weekKcalTop">${d.kcal}kcal</div>
           </div>
@@ -1081,83 +1110,6 @@ body:not(.light){
 
     drawLine(dayData);
   }
-
-  function clearLongPress(){
-    if(state.longPressTimer){
-      clearTimeout(state.longPressTimer);
-      state.longPressTimer = null;
-    }
-    state.longPressArmed = false;
-  }
-
-  function onMarkerPointerDown(e){
-    const marker = e.target.closest("[data-marker]");
-    if(!marker) return;
-
-    const idx = Number(marker.dataset.marker);
-    state.dragIndex = idx;
-    state.startX = e.clientX;
-    state.startY = e.clientY;
-    state.dragActive = false;
-
-    clearLongPress();
-    state.longPressTimer = setTimeout(() => {
-      state.longPressArmed = true;
-      state.dragActive = true;
-      const dayEl = weekChart.querySelector(`.weekDay[data-index="${state.dragIndex}"]`);
-      if(dayEl) dayEl.classList.add("dragLift");
-    }, 260);
-  }
-
-  function onMarkerPointerMove(e){
-    if(!state.longPressArmed){
-      const dx = Math.abs(e.clientX - state.startX);
-      const dy = Math.abs(e.clientY - state.startY);
-      if(dx > 8 || dy > 8){
-        clearLongPress();
-      }
-      return;
-    }
-
-    if(!state.dragActive) return;
-
-    const targetDay = document.elementFromPoint(e.clientX, e.clientY)?.closest(".weekDay");
-    if(!targetDay) return;
-
-    const from = state.dragIndex;
-    const to = Number(targetDay.dataset.index);
-
-    if(Number.isFinite(from) && Number.isFinite(to) && from !== to){
-      const moved = state.days.splice(from, 1)[0];
-      state.days.splice(to, 0, moved);
-      state.dragIndex = to;
-      render();
-    }
-  }
-
-  function onMarkerPointerUp(e){
-    const marker = e.target.closest("[data-marker]");
-    const moved = state.dragActive;
-
-    clearLongPress();
-    weekChart.querySelectorAll(".weekDay").forEach(el => el.classList.remove("dragLift"));
-
-    if(marker && !moved){
-      const idx = Number(marker.dataset.marker);
-      state.showKcalIndex = state.showKcalIndex === idx ? null : idx;
-      render();
-    }
-
-    setTimeout(() => {
-      state.dragActive = false;
-      state.dragIndex = null;
-    }, 0);
-  }
-
-  lineSvg.addEventListener("pointerdown", onMarkerPointerDown);
-  document.addEventListener("pointermove", onMarkerPointerMove, { passive:true });
-  document.addEventListener("pointerup", onMarkerPointerUp, { passive:true });
-  document.addEventListener("pointercancel", onMarkerPointerUp, { passive:true });
 
   document.addEventListener("click", (e)=>{
     const menuBtn = e.target.closest(".weekMenuBtn");
