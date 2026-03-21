@@ -368,7 +368,10 @@ body:not(.light){
 <!-- ===== 週間PFC / kcalプレビュー：ここから差し込み ===== -->
 <section id="weekMacroSection" class="section" style="display:block;margin-top:14px">
   <div class="weekStandaloneCard">
-    <h3 style="margin:0 0 12px">一週間の目安</h3>
+    <div class="weekHead">
+      <h3 style="margin:0">一週間の目安</h3>
+      <div class="weekRatio" id="weekRatioText">F：P＝7.5：2.5</div>
+    </div>
 
     <div class="weekLegend">
       <span><i class="dot p"></i>P</span>
@@ -377,6 +380,7 @@ body:not(.light){
     </div>
 
     <div class="weekChartWrap">
+      <svg id="weekLineSvg" class="weekLineSvg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="weekChart" id="weekChart"></div>
     </div>
   </div>
@@ -389,6 +393,22 @@ body:not(.light){
     padding:14px;
     border:1px solid var(--border);
     box-shadow:0 8px 24px rgba(0,0,0,.18);
+  }
+
+  .weekHead{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+
+  .weekRatio{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:700;
+    letter-spacing:.02em;
   }
 
   .weekLegend{
@@ -410,22 +430,55 @@ body:not(.light){
     border-radius:999px;
     display:inline-block;
   }
-  .dot.p{ background:var(--p); }
-  .dot.f{ background:var(--f); }
-  .dot.c{ background:var(--c); }
+  .dot.p{ background:rgba(72,170,255,.92); box-shadow:0 0 10px rgba(72,170,255,.18); }
+  .dot.f{ background:rgba(255,198,102,.92); box-shadow:0 0 10px rgba(255,198,102,.18); }
+  .dot.c{ background:rgba(94,224,184,.92); box-shadow:0 0 10px rgba(94,224,184,.16); }
 
   .weekChartWrap{
-    background:var(--input);
+    position:relative;
+    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
     border:1px solid var(--border);
     border-radius:16px;
-    padding:14px 10px 10px;
+    padding:18px 10px 12px;
     overflow:hidden;
+  }
+  .light .weekChartWrap{
+    background:linear-gradient(180deg, rgba(19,40,61,.025), rgba(19,40,61,.01));
+  }
+
+  .weekLineSvg{
+    position:absolute;
+    inset:18px 10px 52px 10px;
+    width:calc(100% - 20px);
+    height:182px;
+    pointer-events:none;
+    overflow:visible;
+  }
+  .weekLinePath{
+    fill:none;
+    stroke:rgba(255,255,255,.52);
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 2px 8px rgba(255,255,255,.12));
+  }
+  .light .weekLinePath{
+    stroke:rgba(19,40,61,.32);
+    filter:drop-shadow(0 2px 8px rgba(19,40,61,.06));
+  }
+  .weekLinePoint{
+    fill:rgba(255,255,255,.78);
+  }
+  .light .weekLinePoint{
+    fill:rgba(19,40,61,.34);
   }
 
   .weekChart{
+    position:relative;
+    z-index:2;
     display:grid;
     grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:10px;
+    gap:8px;
     align-items:end;
     min-height:250px;
   }
@@ -436,10 +489,25 @@ body:not(.light){
     flex-direction:column;
     align-items:center;
     gap:8px;
+    user-select:none;
+    touch-action:none;
+  }
+  .weekDay.dragReady{
+    opacity:.68;
+    transform:scale(.985);
+  }
+
+  .weekKcalTop{
+    font-size:11px;
+    font-weight:800;
+    color:var(--text);
+    line-height:1;
+    min-height:12px;
+    letter-spacing:.01em;
   }
 
   .weekBarZone{
-    height:190px;
+    height:186px;
     width:100%;
     display:flex;
     align-items:flex-end;
@@ -448,7 +516,7 @@ body:not(.light){
 
   .weekCol{
     width:100%;
-    max-width:48px;
+    max-width:40px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -458,52 +526,94 @@ body:not(.light){
   .weekKcal{
     width:100%;
     height:var(--kcalH,120px);
-    border-radius:14px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:10px 10px 2px 2px;
     overflow:hidden;
     display:flex;
     flex-direction:column;
     justify-content:flex-end;
     position:relative;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    background:rgba(255,255,255,.025);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      0 10px 20px rgba(0,0,0,.10);
   }
-
   .light .weekKcal{
-    background:rgba(19,40,61,.03);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+    border:1px solid rgba(19,40,61,.08);
+    background:rgba(19,40,61,.025);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.75),
+      0 10px 18px rgba(19,40,61,.05);
   }
 
   .weekSeg{
     width:100%;
     min-height:2px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
   }
-  .weekSeg.c{
-    background:linear-gradient(180deg, rgba(72,209,181,.92), rgba(72,209,181,.72));
-  }
-  .weekSeg.f{
-    background:linear-gradient(180deg, rgba(255,180,84,.95), rgba(255,180,84,.78));
-  }
-  .weekSeg.p{
-    background:linear-gradient(180deg, rgba(42,161,255,.96), rgba(42,161,255,.80));
-  }
-
-  .weekKcalNum{
+  .weekSeg::after{
+    content:"";
     position:absolute;
-    left:50%;
-    bottom:8px;
-    transform:translateX(-50%);
-    font-size:10px;
-    font-weight:800;
-    color:#fff;
-    line-height:1;
-    z-index:2;
-    text-shadow:0 1px 2px rgba(0,0,0,.35);
-    letter-spacing:.01em;
+    inset:0;
+    opacity:.82;
     pointer-events:none;
   }
-  .light .weekKcalNum{
-    color:#fff;
+  .weekSeg.c{
+    background:linear-gradient(180deg, rgba(118,239,202,.46), rgba(77,207,168,.26));
+  }
+  .weekSeg.c::after{
+    background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
+  }
+
+  .weekSeg.f{
+    background:linear-gradient(180deg, rgba(255,214,140,.52), rgba(255,190,86,.30));
+  }
+  .weekSeg.f::after{
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0));
+  }
+
+  .weekSeg.p{
+    background:linear-gradient(180deg, rgba(118,192,255,.52), rgba(72,161,255,.30));
+  }
+  .weekSeg.p::after{
+    background:linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,0));
+  }
+
+  .weekSegLabel{
+    position:relative;
+    z-index:2;
+    font-size:10px;
+    font-weight:800;
+    color:rgba(255,255,255,.94);
+    line-height:1;
+    text-shadow:0 1px 2px rgba(0,0,0,.20);
+    letter-spacing:.01em;
+  }
+
+  .weekFooter{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    position:relative;
+  }
+
+  .weekMenuBtn{
+    width:auto;
+    min-width:18px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1;
+    font-weight:900;
+    cursor:pointer;
   }
 
   .weekLabel{
@@ -513,61 +623,83 @@ body:not(.light){
     letter-spacing:.02em;
   }
 
+  .weekMenu{
+    position:absolute;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%) translateY(8px);
+    min-width:96px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px;
+    box-shadow:0 12px 26px rgba(0,0,0,.16);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
+    z-index:20;
+  }
+  .weekMenu.show{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transform:translateX(-50%) translateY(0);
+  }
+  .weekMenu button{
+    width:100%;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:10px;
+    font-size:12px;
+    font-weight:700;
+    margin:0;
+  }
+  .weekMenu button + button{
+    margin-top:6px;
+  }
+  .weekMenu button.active{
+    background:var(--acc);
+    color:#fff;
+    border-color:transparent;
+  }
+
   @media (max-width:560px){
-    .weekChart{
-      gap:8px;
-    }
-    .weekCol{
-      max-width:40px;
-    }
+    .weekChart{ gap:6px; }
+    .weekCol{ max-width:34px; }
+    .weekKcalTop{ font-size:10px; }
+    .weekSegLabel{ font-size:9px; }
   }
 </style>
 
 <script>
 (function(){
   const DAYS_JP = ["月","火","水","木","金","土","日"];
-  const chartEl = document.getElementById("weekChart");
   const weekSection = document.getElementById("weekMacroSection");
+  const chartEl = document.getElementById("weekChart");
+  const lineSvg = document.getElementById("weekLineSvg");
+  const ratioEl = document.getElementById("weekRatioText");
+  const tabFood = document.getElementById("tab-food");
+  const tabChart = document.getElementById("tab-chart");
 
-  if(!chartEl || !weekSection) return;
+  if(!weekSection || !chartEl || !lineSvg) return;
 
-  function numText(id, fallback){
-    const el = document.getElementById(id);
-    if(!el) return fallback;
-    const n = parseFloat(String(el.textContent).replace(/,/g,""));
-    return Number.isFinite(n) ? n : fallback;
-  }
-
-  function showWeekSection(show){
-    weekSection.style.display = show ? "block" : "none";
-  }
-
-  function getHabitTrainDays(){
-    const habit = document.getElementById("habit")?.value || "";
-    if(habit === "1.2")   return 0;
-    if(habit === "1.375") return 2;
-    if(habit === "1.55")  return 4;
-    if(habit === "1.725") return 6;
-    if(habit === "1.9")   return 7;
-    return 0;
-  }
-
-  function makeWeekPattern(trainDays){
-    const arr = new Array(7).fill("rest");
-    if(trainDays <= 0) return arr;
-    if(trainDays >= 7) return arr.map(()=> "train");
-
-    const preferred = [1, 3, 5, 0, 2, 4, 6];
-    for(let i=0; i<trainDays; i++){
-      arr[preferred[i]] = "train";
-    }
-    return arr;
-  }
+  const state = {
+    days: [],
+    longPressTimer: null,
+    dragIndex: null,
+    dragReady: false,
+    pointerX: 0,
+    pointerY: 0,
+    openedMenuIndex: null
+  };
 
   function parseFPRatio(txt){
-    if(!txt) return { fat:0.75, prot:0.25 };
+    if(!txt) return {fat:0.75, prot:0.25};
     const [f,p] = txt.split(":").map(Number);
-    const s = (f+p) || 1;
+    const s = (f + p) || 1;
     return { fat:Math.max(0, f/s), prot:Math.max(0, p/s) };
   }
 
@@ -593,8 +725,41 @@ body:not(.light){
 
     const addedFatG = (needFatG - (needKcal / 9));
     fat_g += Math.max(0, addedFatG);
-
     return { protein_g, carb_g, fat_g };
+  }
+
+  function getCurrentFPRText(){
+    const pfSel = document.getElementById("pFactor");
+    const curOpt = pfSel?.options?.[pfSel.selectedIndex];
+    return (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr : "7.5:2.5";
+  }
+
+  function getHabitTrainDays(){
+    const habit = document.getElementById("habit")?.value || "";
+    if(habit === "1.2")   return 0;
+    if(habit === "1.375") return 2;
+    if(habit === "1.55")  return 4;
+    if(habit === "1.725") return 6;
+    if(habit === "1.9")   return 7;
+    return 0;
+  }
+
+  function buildDefaultDays(){
+    const trainDays = getHabitTrainDays();
+    const arr = DAYS_JP.map(label => ({ label, type:"rest" }));
+    if(trainDays <= 0) return arr;
+    if(trainDays >= 7) return arr.map(d => ({...d, type:"train"}));
+
+    const preferred = [1,3,5,0,2,4,6];
+    for(let i=0;i<trainDays;i++){
+      arr[preferred[i]].type = "train";
+    }
+    return arr;
+  }
+
+  function resetDaysFromHabit(){
+    state.days = buildDefaultDays();
+    state.openedMenuIndex = null;
   }
 
   function calcDay(onoffType){
@@ -605,15 +770,10 @@ body:not(.light){
     const habit = document.getElementById("habit")?.value || "";
     const diet = document.getElementById("diet")?.value || "";
     const carbSel = parseFloat(document.getElementById("carbIntake")?.value || "");
-    const fitnessType = habit === "1.2"
-      ? "none"
-      : (document.getElementById("fitnessType")?.value || "none");
+    const fitnessType = habit === "1.2" ? "none" : (document.getElementById("fitnessType")?.value || "none");
 
     if(!sex || !age || !h || !w || !habit || !diet){
-      return {
-        kcal:2200, p:140, f:160, c:30,
-        pk:560, fk:1440, ck:120
-      };
+      return { kcal:2200, p:140, f:160, c:30, pk:560, fk:1440, ck:120 };
     }
 
     const bmr = (sex==="M")
@@ -623,41 +783,22 @@ body:not(.light){
     const af = parseFloat(habit) || 1.2;
     const goalNow = (typeof goal !== "undefined" && goal) ? goal : "maintain";
     const gF = (typeof GOAL_FACTOR !== "undefined" && GOAL_FACTOR[goalNow]) ? GOAL_FACTOR[goalNow] : 1.0;
-
-    const dayAdj = (typeof dailyAdjustment === "function")
-      ? dailyAdjustment(habit, fitnessType, onoffType)
-      : 1.0;
-
+    const dayAdj = (typeof dailyAdjustment === "function") ? dailyAdjustment(habit, fitnessType, onoffType) : 1.0;
     const tdee = bmr * af * dayAdj;
     const targetKcal = tdee * gF;
 
     let carb_g = 8;
     if(typeof carbsBy === "function"){
       carb_g = carbsBy(diet, carbSel, onoffType);
-    }else{
-      if(diet === "Carnivore"){
-        carb_g = 8;
-      }else if(diet === "TKD"){
-        const base = Number.isFinite(carbSel) ? carbSel : 30;
-        carb_g = onoffType === "off" ? Math.min(20, Math.round(base * 0.4)) : base;
-      }else{
-        carb_g = Number.isFinite(carbSel) ? carbSel : 30;
-      }
     }
 
-    const pfSel = document.getElementById("pFactor");
-    const curOpt = pfSel?.options?.[pfSel.selectedIndex];
-    const fpr = (curOpt && curOpt.dataset && curOpt.dataset.fpr)
-      ? curOpt.dataset.fpr
-      : "7.5:2.5";
+    const fpr = getCurrentFPRText();
     const share = parseFPRatio(fpr);
 
     let ck = carb_g * 4;
     let remain = Math.max(0, targetKcal - ck);
-
     let pk = remain * share.prot;
     let fk = remain * share.fat;
-
     let protein_g = pk / 4;
     let fat_g = fk / 9;
 
@@ -681,65 +822,220 @@ body:not(.light){
     };
   }
 
-  function render(){
-    const tabChartBtn = document.getElementById("tab-chart");
-    if(tabChartBtn && tabChartBtn.classList.contains("active")){
-      showWeekSection(false);
-      return;
-    }
-    showWeekSection(true);
+  function updateVisibility(){
+    const chartActive = !!(tabChart && tabChart.classList.contains("active"));
+    weekSection.style.display = chartActive ? "none" : "block";
+  }
 
-    const trainDays = getHabitTrainDays();
-    const pattern = makeWeekPattern(trainDays);
+  function drawLine(dayData){
+    const maxK = Math.max(...dayData.map(d => d.kcal), 1);
+    const xStep = 100 / 6;
+    const plotTop = 10;
+    const plotBottom = 92;
+    const pts = dayData.map((d, i) => {
+      const x = i * xStep;
+      const y = plotBottom - ((d.kcal / maxK) * (plotBottom - plotTop));
+      return { x, y };
+    });
+
+    const path = pts.map((p, i) => `${i===0 ? "M":"L"} ${p.x} ${p.y}`).join(" ");
+    lineSvg.innerHTML = `
+      <path class="weekLinePath" d="${path}"></path>
+      ${pts.map(p => `<circle class="weekLinePoint" cx="${p.x}" cy="${p.y}" r="1.55"></circle>`).join("")}
+    `;
+  }
+
+  function render(){
+    updateVisibility();
+    if(weekSection.style.display === "none") return;
+
+    if(!state.days.length) resetDaysFromHabit();
+
+    const fprText = getCurrentFPRText();
+    ratioEl.textContent = `F：P＝${fprText}`;
 
     const train = calcDay("on");
-    const rest  = calcDay("off");
-
-    const dayData = pattern.map(type => type === "train" ? train : rest);
+    const rest = calcDay("off");
+    const dayData = state.days.map(d => d.type === "train" ? train : rest);
     const maxK = Math.max(...dayData.map(d => d.kcal), 1);
 
-    chartEl.innerHTML = dayData.map((d, i) => {
-      const kcalH = Math.round((d.kcal / maxK) * 128) + 34;
+    chartEl.innerHTML = state.days.map((day, i) => {
+      const d = dayData[i];
+      const kcalH = Math.round((d.kcal / maxK) * 124) + 34;
       const totalMacroKcal = Math.max(1, d.pk + d.fk + d.ck);
-
       const pPct = (d.pk / totalMacroKcal) * 100;
       const fPct = (d.fk / totalMacroKcal) * 100;
       const cPct = (d.ck / totalMacroKcal) * 100;
 
+      const showP = pPct > 11;
+      const showF = fPct > 11;
+      const showC = d.c >= 50 && cPct > 11;
+
       return `
-        <div class="weekDay">
+        <div class="weekDay" data-index="${i}">
+          <div class="weekKcalTop">${d.kcal}</div>
+
           <div class="weekBarZone">
             <div class="weekCol">
               <div class="weekKcal" style="--kcalH:${kcalH}px">
-                <div class="weekSeg c" style="height:${cPct}%"></div>
-                <div class="weekSeg f" style="height:${fPct}%"></div>
-                <div class="weekSeg p" style="height:${pPct}%"></div>
-                <div class="weekKcalNum">${d.kcal}</div>
+                <div class="weekSeg c" style="height:${cPct}%">
+                  ${showC ? `<span class="weekSegLabel">${d.c}</span>` : ``}
+                </div>
+                <div class="weekSeg f" style="height:${fPct}%">
+                  ${showF ? `<span class="weekSegLabel">${d.f}</span>` : ``}
+                </div>
+                <div class="weekSeg p" style="height:${pPct}%">
+                  ${showP ? `<span class="weekSegLabel">${d.p}</span>` : ``}
+                </div>
               </div>
             </div>
           </div>
-          <div class="weekLabel">${DAYS_JP[i]}</div>
+
+          <div class="weekFooter">
+            <button type="button" class="weekMenuBtn" data-menu-btn="${i}">▼</button>
+            <div class="weekLabel">${day.label}</div>
+
+            <div class="weekMenu ${state.openedMenuIndex===i ? "show":""}" data-menu="${i}">
+              <button type="button" data-type="train" data-i="${i}" class="${day.type==="train" ? "active":""}">運動日</button>
+              <button type="button" data-type="rest" data-i="${i}" class="${day.type==="rest" ? "active":""}">休息日</button>
+            </div>
+          </div>
         </div>
       `;
     }).join("");
+
+    drawLine(dayData);
+    bindDayEvents();
   }
 
-  ["habit","diet","onoff","sex","age","height","weight","pFactor","carbIntake","fitnessType","goal-cut","goal-maintain","goal-bulk","targetWeight"].forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener("change", ()=> setTimeout(render, 0));
-    el.addEventListener("input", ()=> setTimeout(render, 0));
-    el.addEventListener("click", ()=> setTimeout(render, 0));
+  function bindDayEvents(){
+    chartEl.querySelectorAll(".weekDay").forEach(dayEl => {
+      dayEl.addEventListener("pointerdown", onPointerDown, { passive:true });
+    });
+  }
+
+  function clearLongPress(){
+    if(state.longPressTimer){
+      clearTimeout(state.longPressTimer);
+      state.longPressTimer = null;
+    }
+  }
+
+  function onPointerDown(e){
+    const dayEl = e.currentTarget;
+    if(e.target.closest(".weekMenu") || e.target.closest(".weekMenuBtn")) return;
+
+    const idx = Number(dayEl.dataset.index);
+    state.dragIndex = idx;
+    state.dragReady = false;
+    state.pointerX = e.clientX;
+    state.pointerY = e.clientY;
+
+    clearLongPress();
+    state.longPressTimer = setTimeout(() => {
+      state.dragReady = true;
+      dayEl.classList.add("dragReady");
+    }, 260);
+
+    document.addEventListener("pointermove", onPointerMove, { passive:true });
+    document.addEventListener("pointerup", onPointerUp, { passive:true, once:true });
+    document.addEventListener("pointercancel", onPointerUp, { passive:true, once:true });
+  }
+
+  function onPointerMove(e){
+    state.pointerX = e.clientX;
+    state.pointerY = e.clientY;
+    if(!state.dragReady){
+      const dx = Math.abs(e.clientX - state.pointerX);
+      const dy = Math.abs(e.clientY - state.pointerY);
+      if(dx > 8 || dy > 8) clearLongPress();
+    }
+  }
+
+  function onPointerUp(){
+    clearLongPress();
+    document.removeEventListener("pointermove", onPointerMove);
+
+    chartEl.querySelectorAll(".weekDay").forEach(el => el.classList.remove("dragReady"));
+
+    if(state.dragReady && state.dragIndex != null){
+      const target = document.elementFromPoint(state.pointerX, state.pointerY)?.closest(".weekDay");
+      if(target){
+        const from = state.dragIndex;
+        const to = Number(target.dataset.index);
+        if(Number.isFinite(to) && from !== to){
+          const moved = state.days.splice(from, 1)[0];
+          state.days.splice(to, 0, moved);
+        }
+      }
+    }
+
+    state.dragIndex = null;
+    state.dragReady = false;
+    render();
+  }
+
+  document.addEventListener("click", (e)=>{
+    const btn = e.target.closest(".weekMenuBtn");
+    const choice = e.target.closest(".weekMenu button");
+    const insideMenu = e.target.closest(".weekMenu");
+
+    if(choice){
+      const i = Number(choice.dataset.i);
+      const type = choice.dataset.type;
+      if(Number.isFinite(i) && state.days[i]){
+        state.days[i].type = type;
+      }
+      state.openedMenuIndex = null;
+      render();
+      return;
+    }
+
+    if(btn){
+      const i = Number(btn.dataset.menuBtn);
+      state.openedMenuIndex = state.openedMenuIndex === i ? null : i;
+      render();
+      return;
+    }
+
+    if(!insideMenu){
+      if(state.openedMenuIndex != null){
+        state.openedMenuIndex = null;
+        render();
+      }
+    }
   });
 
-  ["calcBtn","themeToggle","tab-food","tab-chart"].forEach(id=>{
+  const idsResetPattern = ["habit"];
+  idsResetPattern.forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    el.addEventListener("click", ()=> setTimeout(render, 30));
+    el.addEventListener("change", ()=>{
+      resetDaysFromHabit();
+      render();
+    });
   });
 
-  window.addEventListener("load", render);
-  setTimeout(render, 80);
+  ["diet","onoff","sex","age","height","weight","pFactor","carbIntake","fitnessType","goal-cut","goal-maintain","goal-bulk","targetWeight","calcBtn","themeToggle"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("change", render);
+    el.addEventListener("input", render);
+    el.addEventListener("click", render);
+  });
+
+  if(tabFood){
+    new MutationObserver(updateVisibility).observe(tabFood, { attributes:true, attributeFilter:["class"] });
+  }
+  if(tabChart){
+    new MutationObserver(updateVisibility).observe(tabChart, { attributes:true, attributeFilter:["class"] });
+  }
+
+  window.addEventListener("load", ()=>{
+    resetDaysFromHabit();
+    updateVisibility();
+    render();
+  });
 })();
 </script>
 <!-- ===== 週間PFC / kcalプレビュー：ここまで差し込み ===== -->
