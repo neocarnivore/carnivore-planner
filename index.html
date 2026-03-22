@@ -1162,11 +1162,10 @@ body:not(.light){
           </div>
 
           <div class="weekBottom">
-            <div class="weekDayLabel">
-              <button type="button" class="weekMenuBtn" data-menu-btn="${i}" aria-label="${day.label}の設定">▼</button>
-              <div class="weekLabel">${day.label}</div>
-            </div>
-
+            <div class="weekDayLabel" data-menu-btn="${i}">
+  <button type="button" class="weekMenuBtn" data-menu-btn="${i}" aria-label="${day.label}の設定">▼</button>
+  <div class="weekLabel">${day.label}</div>
+</div>
             <div class="weekMenu ${menuAlignClass} ${state.openMenuIndex===i ? "show":""}" data-menu="${i}">
               <button type="button" data-type="train" data-i="${i}" class="${day.type==="train" ? "active":""}">運動日</button>
               <button type="button" data-type="rest" data-i="${i}" class="${day.type==="rest" ? "active":""}">休息日</button>
@@ -1180,7 +1179,7 @@ body:not(.light){
   }
 
   document.addEventListener("click", (e)=>{
-    const menuBtn = e.target.closest(".weekMenuBtn");
+    const menuBtn = e.target.closest("[data-menu-btn]");
     const menuChoice = e.target.closest(".weekMenu button");
     const insideMenu = e.target.closest(".weekMenu");
 
