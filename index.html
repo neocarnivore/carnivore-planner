@@ -371,8 +371,10 @@ body:not(.light){
     <div class="weekHeader">
       <div class="weekHeaderLeft">
         <h3 class="weekTitle">週間マクロ配分</h3>
-        <div class="small weekAvgTextRow">
+
+        <div class="small weekMetaRow">
           <span class="weekAvgText" id="weekAvgText">週平均：P116g / F154g / C50g</span>
+
           <div class="weekLegend">
             <span><i class="dot p"></i>P</span>
             <span><i class="dot f"></i>F</span>
@@ -388,7 +390,7 @@ body:not(.light){
     </div>
 
     <div class="small weekFormula" id="weekFormulaText">
-      実効p≈2.40g/kg（f:p=7:3）｜F = {kcal - 4(P + C)} ÷ 9
+      BMI区分：普通(18.5–24.9)｜実効p≈2.40g/kg（f:p=7:3）｜目標E≈40.6kcal/kg｜日別補正×1.12｜目標補正×1.00
     </div>
   </div>
 </section>
@@ -403,7 +405,7 @@ body:not(.light){
     align-items:flex-start;
     justify-content:space-between;
     gap:12px;
-    margin-bottom:12px;
+    margin-bottom:14px;
     flex-wrap:wrap;
   }
 
@@ -413,18 +415,17 @@ body:not(.light){
   }
 
   .weekTitle{
-    margin:0 0 6px;
+    margin:0 0 10px;
   }
 
-  .weekAvgTextRow{
+  .weekMetaRow{
     display:flex;
     align-items:center;
-    justify-content:flex-start;
+    justify-content:space-between;
     gap:12px;
     width:100%;
-    text-align:left;
     opacity:.95;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
   }
 
   .weekAvgText{
@@ -434,12 +435,13 @@ body:not(.light){
 
   .weekLegend{
     display:flex;
-    justify-content:flex-start;
+    justify-content:flex-end;
     gap:12px;
     font-size:12px;
     color:var(--muted);
     line-height:1;
     white-space:nowrap;
+    margin-left:auto;
   }
   .weekLegend span{
     display:inline-flex;
@@ -459,19 +461,20 @@ body:not(.light){
   .weekChartShell{
     position:relative;
     border:1px solid var(--border);
-    background:var(--input);
+    background:#fff;
     border-radius:16px;
     padding:12px 8px 12px;
     overflow:hidden;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    box-shadow:none !important;
   }
 
   .weekChartShell *,
   .weekChartShell *::before,
   .weekChartShell *::after{
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
     user-select:none;
     -webkit-user-select:none;
   }
@@ -480,9 +483,9 @@ body:not(.light){
     position:absolute;
     left:8px;
     right:8px;
-    top:36px;
+    top:52px;
     width:calc(100% - 16px);
-    height:96px;
+    height:86px;
     pointer-events:none;
     z-index:4;
     overflow:visible;
@@ -490,14 +493,17 @@ body:not(.light){
   .weekLinePath{
     fill:none;
     stroke:#48d1b5;
-    stroke-width:3.1;
+    stroke-width:3;
     stroke-linecap:round;
     stroke-linejoin:round;
     pointer-events:none;
   }
   .weekLineMarker{
     fill:#48d1b5;
-    opacity:.98;
+    stroke:none;
+    opacity:1;
+    vector-effect:non-scaling-stroke;
+    shape-rendering:geometricPrecision;
   }
 
   .weekChart{
@@ -507,7 +513,7 @@ body:not(.light){
     grid-template-columns:repeat(7,minmax(0,1fr));
     gap:6px;
     align-items:end;
-    min-height:262px;
+    min-height:270px;
   }
 
   .weekDay{
@@ -515,14 +521,14 @@ body:not(.light){
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:4px;
+    gap:8px;
     user-select:none;
     position:relative;
     transform:none !important;
   }
 
   .weekTopArea{
-    height:28px;
+    height:42px;
     display:flex;
     align-items:flex-end;
     justify-content:center;
@@ -530,29 +536,31 @@ body:not(.light){
     position:relative;
     z-index:6;
     pointer-events:none;
+    margin-bottom:4px;
   }
 
   .weekKcalTop{
     font-size:11px;
     font-weight:800;
-    line-height:1;
-    padding:6px 8px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background:rgba(15,18,24,.84);
-    backdrop-filter:blur(10px) saturate(1.08);
-    box-shadow:0 12px 24px rgba(0,0,0,.10);
+    line-height:1.02;
     white-space:nowrap;
+    text-align:center;
+    color:#111;
+    letter-spacing:.01em;
     pointer-events:none;
   }
-  .light .weekKcalTop{
-    background:rgba(246,248,251,.88);
-    border:1px solid rgba(19,40,61,.08);
-    color:#111;
-    box-shadow:0 12px 24px rgba(19,40,61,.06);
+  .weekKcalTop span{
+    display:block;
   }
-  body:not(.light) .weekKcalTop{
-    color:#fff;
+  .weekKcalTop .num{
+    font-size:12px;
+    font-weight:800;
+  }
+  .weekKcalTop .unit{
+    font-size:10px;
+    font-weight:700;
+    color:#666;
+    margin-top:2px;
   }
 
   .weekBarZone{
@@ -581,16 +589,14 @@ body:not(.light){
   .weekBar{
     width:100%;
     height:var(--barH,150px);
-    background:rgba(255,255,255,.02);
+    background:#fff;
     border:1px solid var(--border);
     border-radius:12px 12px 3px 3px;
     overflow:hidden;
     display:flex;
     flex-direction:column;
     justify-content:flex-end;
-    box-shadow:
-      0 8px 18px rgba(0,0,0,.10),
-      inset 0 1px 0 rgba(255,255,255,.05);
+    box-shadow:none !important;
     transition:height .24s ease, filter .18s ease;
     position:relative;
     transform:none !important;
@@ -598,9 +604,7 @@ body:not(.light){
 
   .weekDay.dragLift .weekBar{
     transform:none !important;
-    box-shadow:
-      0 8px 18px rgba(0,0,0,.10),
-      inset 0 1px 0 rgba(255,255,255,.05);
+    box-shadow:none !important;
   }
 
   /* 今日のバー外周だけ極薄リング */
@@ -610,10 +614,10 @@ body:not(.light){
     inset:-3px;
     border-radius:14px 14px 5px 5px;
     pointer-events:none;
-    box-shadow:0 0 0 1px rgba(120,128,140,.18);
+    box-shadow:0 0 0 1px rgba(120,128,140,.14);
   }
   body:not(.light) .weekDay.isToday .weekBar::after{
-    box-shadow:0 0 0 1px rgba(255,255,255,.18);
+    box-shadow:0 0 0 1px rgba(255,255,255,.16);
   }
 
   .weekSeg{
@@ -632,7 +636,7 @@ body:not(.light){
   .weekSeg.f{ background:var(--f); }
   .weekSeg.c{ background:var(--c); }
 
-  /* 境界線に若干スペース（白） */
+  /* 各境界線に若干スペース */
   .weekSeg + .weekSeg::before{
     content:"";
     position:absolute;
@@ -640,7 +644,7 @@ body:not(.light){
     left:0;
     right:0;
     height:1px;
-    background:rgba(255,255,255,.92);
+    background:rgba(255,255,255,.96);
     pointer-events:none;
   }
 
@@ -799,10 +803,9 @@ body:not(.light){
     opacity:.95;
   }
 
-  /* iOS等のダブルタップ拡大・タップ時拡大っぽさ抑制 */
   button,
   svg,
-  polygon,
+  circle,
   path,
   .weekDay,
   .weekBar,
@@ -814,14 +817,12 @@ body:not(.light){
   @media (max-width:560px){
     .weekChart{ gap:4px; }
     .weekCol{ max-width:30px; }
-    .weekKcalTop{ font-size:10px; }
     .weekSegLabel{ font-size:9px; }
-    .weekAvgTextRow{
-      justify-content:flex-start;
+    .weekMetaRow{
       gap:10px;
     }
     .weekLegend{
-      justify-content:flex-start;
+      gap:10px;
     }
   }
 </style>
@@ -865,11 +866,11 @@ body:not(.light){
   function parseFPRatioText(){
     const pfSel = document.getElementById("pFactor");
     const curOpt = pfSel?.options?.[pfSel.selectedIndex];
-    return (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr : "7:3";
+    return (curOpt && curOpt.dataset && curOpt.dataset.fpr) ? curOpt.dataset.fpr : "7.5:2.5";
   }
 
   function parseFPRatio(txt){
-    if(!txt) return {fat:0.7, prot:0.3};
+    if(!txt) return {fat:0.75, prot:0.25};
     const [f,p] = txt.split(":").map(Number);
     const s = (f+p) || 1;
     return { fat:Math.max(0, f/s), prot:Math.max(0, p/s) };
@@ -880,7 +881,7 @@ body:not(.light){
     if(habit === "1.2")   return 0;
     if(habit === "1.375") return 2;
     if(habit === "1.55")  return 4;
-    if(habit === "1.725") return 6;
+    if(habit === "1.725") return 5; /* 週5〜6日は運動日5 / 休息日2 */
     if(habit === "1.9")   return 7;
     return 0;
   }
@@ -940,7 +941,7 @@ body:not(.light){
     const fitnessType = habit === "1.2" ? "none" : (document.getElementById("fitnessType")?.value || "none");
 
     if(!sex || !age || !h || !w || !habit || !diet){
-      return { kcal:2200, p:140, f:160, c:30, pk:560, fk:1440, ck:120 };
+      return { kcal:2200, p:140, f:160, c:30, pk:560, fk:1440, ck:120, tdee:2200, gF:1, dayAdj:1 };
     }
 
     const bmr = (sex==="M")
@@ -986,7 +987,10 @@ body:not(.light){
       c: Math.round(carb_g),
       pk: Math.round(pk),
       fk: Math.round(fk),
-      ck: Math.round(ck)
+      ck: Math.round(ck),
+      tdee,
+      gF,
+      dayAdj
     };
   }
 
@@ -1014,7 +1018,7 @@ body:not(.light){
   function drawLine(dayData){
     const maxK = Math.max(...dayData.map(d => d.kcal), 1);
     const minY = 12;
-    const maxY = 90;
+    const maxY = 84;
     const stepX = 700 / 7;
 
     const points = dayData.map((d, i) => {
@@ -1028,9 +1032,28 @@ body:not(.light){
     lineSvg.innerHTML = `
       <path class="weekLinePath" d="${path}"></path>
       ${points.map((p) => {
-        return `<circle class="weekLineMarker" cx="${p.x}" cy="${p.y}" r="4.5"></circle>`;
+        return `<circle class="weekLineMarker" cx="${p.x}" cy="${p.y}" r="4.8"></circle>`;
       }).join("")}
     `;
+  }
+
+  function getBmiInfo(){
+    const h = parseFloat(document.getElementById("height")?.value || "0") || 0;
+    const w = parseFloat(document.getElementById("weight")?.value || "0") || 0;
+    if(!h || !w) return { label:"—", bmi:0 };
+
+    const m = h / 100;
+    const bmi = w / (m * m);
+
+    let label = "普通";
+    if(bmi < 18.5) label = "低体重";
+    else if(bmi < 25) label = "普通";
+    else if(bmi < 30) label = "肥満(1度)";
+    else if(bmi < 35) label = "肥満(2度)";
+    else if(bmi < 40) label = "肥満(3度)";
+    else label = "肥満(4度)";
+
+    return { label, bmi };
   }
 
   function render(){
@@ -1044,15 +1067,30 @@ body:not(.light){
     const dayData = state.days.map(d => d.type === "train" ? train : rest);
     const maxK = Math.max(...dayData.map(d => d.kcal), 1);
 
-    const avgP = Math.round(dayData.reduce((s,d)=>s+d.p,0) / 7);
+    const avgPExact = dayData.reduce((s,d)=>s+d.p,0) / 7;
     const avgF = Math.round(dayData.reduce((s,d)=>s+d.f,0) / 7);
     const avgC = Math.round(dayData.reduce((s,d)=>s+d.c,0) / 7);
+    const avgP = Math.round(avgPExact);
 
     avgEl.textContent = `週平均：P${avgP}g / F${avgF}g / C${avgC}g`;
 
     const weight = parseFloat(document.getElementById("weight")?.value || "0") || 0;
-    const effP = weight > 0 ? (avgP / weight) : 0;
-    formulaEl.innerHTML = `実効p≈${effP.toFixed(2)}g/kg（f:p=${ratioText}）｜F = {kcal - 4(P + C)} ÷ 9`;
+    const effP = weight > 0 ? (avgPExact / weight) : 0;
+
+    const bmiInfo = getBmiInfo();
+    const goalNow = (typeof goal !== "undefined" && goal) ? goal : "maintain";
+    const gF = (typeof GOAL_FACTOR !== "undefined" && GOAL_FACTOR[goalNow]) ? GOAL_FACTOR[goalNow] : 1.0;
+
+    const avgKcalExact = dayData.reduce((s,d)=>s+d.kcal,0) / 7;
+    const goalE = weight > 0 ? (avgKcalExact / weight) : 0;
+
+    let dominantDayAdj = train.dayAdj;
+    const trainCount = state.days.filter(d => d.type === "train").length;
+    const restCount = 7 - trainCount;
+    if(restCount > trainCount) dominantDayAdj = rest.dayAdj;
+
+    formulaEl.innerHTML =
+      `BMI区分：${bmiInfo.label}(18.5–24.9)｜実効p≈${effP.toFixed(2)}g/kg（f:p=${ratioText}）｜目標E≈${goalE.toFixed(1)}kcal/kg｜日別補正×${Number(dominantDayAdj).toFixed(2)}｜目標補正×${Number(gF).toFixed(2)}`;
 
     const todayIndex = getLocalTodayIndexMondayFirst();
 
@@ -1074,7 +1112,10 @@ body:not(.light){
       return `
         <div class="weekDay ${todayIndex===i ? "isToday":""}" data-index="${i}">
           <div class="weekTopArea">
-            <div class="weekKcalTop">${d.kcal}kcal</div>
+            <div class="weekKcalTop">
+              <span class="num">${Number(d.kcal).toLocaleString()}</span>
+              <span class="unit">kcal</span>
+            </div>
           </div>
 
           <div class="weekBarZone">
@@ -1173,6 +1214,17 @@ body:not(.light){
     resetDaysFromHabit();
     if(updateWeekVisibility()) render();
   });
+
+  /* ページ全体のダブルタップズーム抑制 */
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", function(e){
+    const now = Date.now();
+    if(now - lastTouchEnd <= 300){
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive:false });
+
 })();
 </script>
 <!-- ===== 週間マクロ配分：ここまで ===== -->
