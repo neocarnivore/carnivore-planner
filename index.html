@@ -483,7 +483,7 @@ body:not(.light){
     position:absolute;
     left:8px;
     right:8px;
-    top:36px;
+    top:54px; /* ← 前より下。kcal丸と棒グラフの中間寄り */
     width:calc(100% - 16px);
     height:86px;
     pointer-events:none;
@@ -679,7 +679,7 @@ body:not(.light){
     display:flex;
     align-items:center;
     justify-content:center;
-    min-height:20px;
+    min-height:24px;
     width:100%;
   }
 
@@ -687,18 +687,39 @@ body:not(.light){
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:1px;
-    min-height:20px;
+    gap:2px;
+    min-height:22px;
     border-radius:999px;
-    padding:2px 6px;
-    transition:none;
+    padding:2px 7px;
+    transition:
+      background .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease,
+      color .18s ease;
+    border:1px solid transparent;
   }
 
+  /* 今日だけ自然に目立たせる */
   .weekDay.isToday .weekDayLabel{
-    background:rgba(120,128,140,.07);
+    background:rgba(120,128,140,.08);
+    border-color:rgba(120,128,140,.16);
+    box-shadow:0 1px 0 rgba(255,255,255,.4) inset;
   }
   body:not(.light) .weekDay.isToday .weekDayLabel{
-    background:rgba(255,255,255,.08);
+    background:rgba(255,255,255,.075);
+    border-color:rgba(255,255,255,.14);
+    box-shadow:0 1px 0 rgba(255,255,255,.06) inset;
+  }
+
+  .weekDay.isToday .weekLabel{
+    color:var(--text);
+    font-weight:800;
+    letter-spacing:.01em;
+  }
+
+  .weekDay.isToday .weekMenuBtn{
+    color:var(--text);
+    opacity:.8;
   }
 
   .weekMenuBtn{
