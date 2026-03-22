@@ -365,6 +365,23 @@ body:not(.light){
         100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
     </section>
+
+    <section id="chartSection" class="section" style="display:none">
+      <h3>体重推移（推定）</h3>
+      <div class="kpi chartCard" style="border:none;background:transparent;box-shadow:none">
+        <div class="chartHeader">
+          <div class="small" id="chartTitle" style="font-weight:700">期間</div>
+          <div class="chartBtns" role="tablist" aria-label="期間">
+            <button class="active" data-months="1">1ヶ月</button>
+            <button data-months="3">3ヶ月</button>
+            <button data-months="6">6ヶ月</button>
+            <button data-months="12">12ヶ月</button>
+          </div>
+        </div>
+        <canvas id="wtChart" height="260" aria-label="体重推移グラフ" role="img"></canvas>
+      </div>
+    </section>
+  </div>
 <!-- ===== 週間マクロ配分：ここから（macroCardの直後 / mixCardの前に置く） ===== -->
 <section id="weekMacroSection" class="section" style="display:none;margin:10px 0 0">
   <div class="card weekStandaloneCard">
@@ -1237,23 +1254,6 @@ body:not(.light){
 })();
 </script>
 <!-- ===== 週間マクロ配分：ここまで ===== -->
-    <section id="chartSection" class="section" style="display:none">
-      <h3>体重推移（推定）</h3>
-      <div class="kpi chartCard" style="border:none;background:transparent;box-shadow:none">
-        <div class="chartHeader">
-          <div class="small" id="chartTitle" style="font-weight:700">期間</div>
-          <div class="chartBtns" role="tablist" aria-label="期間">
-            <button class="active" data-months="1">1ヶ月</button>
-            <button data-months="3">3ヶ月</button>
-            <button data-months="6">6ヶ月</button>
-            <button data-months="12">12ヶ月</button>
-          </div>
-        </div>
-        <canvas id="wtChart" height="260" aria-label="体重推移グラフ" role="img"></canvas>
-      </div>
-    </section>
-  </div>
-
   <p class="small footerNote" style="margin-top:20px">
     各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
