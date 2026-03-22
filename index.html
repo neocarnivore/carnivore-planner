@@ -486,6 +486,10 @@ body:not(.light){
     touch-action:manipulation;
     box-shadow:none !important;
   }
+  body:not(.light) .weekChartShell{
+    background:#000;
+    border-color:rgba(255,255,255,.14);
+  }
 
   .weekChartShell *,
   .weekChartShell *::before,
@@ -500,7 +504,7 @@ body:not(.light){
     position:absolute;
     left:8px;
     right:8px;
-    top:54px; /* ← 前より下。kcal丸と棒グラフの中間寄り */
+    top:54px;
     width:calc(100% - 16px);
     height:86px;
     pointer-events:none;
@@ -575,7 +579,7 @@ body:not(.light){
     box-sizing:border-box;
   }
   body:not(.light) .weekKcalTop{
-    background:rgba(19,23,29,.92);
+    background:rgba(0,0,0,.92);
     border-color:rgba(255,255,255,.22);
     color:#fff;
   }
@@ -591,7 +595,7 @@ body:not(.light){
     margin-top:1px;
   }
   body:not(.light) .weekKcalTop .unit{
-    color:rgba(255,255,255,.68);
+    color:rgba(255,255,255,.72);
   }
 
   .weekBarZone{
@@ -634,7 +638,8 @@ body:not(.light){
     box-sizing:border-box;
   }
   body:not(.light) .weekBar{
-    border-color:rgba(255,255,255,.22);
+    background:#000;
+    border-color:rgba(255,255,255,.24);
   }
 
   .weekDay.dragLift .weekBar{
@@ -704,7 +709,7 @@ body:not(.light){
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:2px;
+    gap:3px;
     min-height:22px;
     border-radius:999px;
     padding:2px 7px;
@@ -716,15 +721,14 @@ body:not(.light){
     border:1px solid transparent;
   }
 
-  /* 今日だけ自然に目立たせる */
   .weekDay.isToday .weekDayLabel{
     background:rgba(120,128,140,.08);
     border-color:rgba(120,128,140,.16);
     box-shadow:0 1px 0 rgba(255,255,255,.4) inset;
   }
   body:not(.light) .weekDay.isToday .weekDayLabel{
-    background:rgba(255,255,255,.075);
-    border-color:rgba(255,255,255,.14);
+    background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.16);
     box-shadow:0 1px 0 rgba(255,255,255,.06) inset;
   }
 
@@ -736,7 +740,7 @@ body:not(.light){
 
   .weekDay.isToday .weekMenuBtn{
     color:var(--text);
-    opacity:.8;
+    opacity:.88;
   }
 
   .weekMenuBtn{
@@ -757,6 +761,9 @@ body:not(.light){
     -webkit-appearance:none;
     appearance:none;
   }
+  body:not(.light) .weekMenuBtn{
+    color:rgba(255,255,255,.72);
+  }
 
   .weekMenuBtn:focus,
   .weekMenuBtn:active{
@@ -770,6 +777,9 @@ body:not(.light){
     color:var(--muted);
     line-height:1;
     letter-spacing:.02em;
+  }
+  body:not(.light) .weekLabel{
+    color:rgba(255,255,255,.88);
   }
 
   .weekMenu{
@@ -796,6 +806,11 @@ body:not(.light){
     background:rgba(246,248,251,.84);
     border:1px solid rgba(19,40,61,.08);
     box-shadow:0 12px 24px rgba(19,40,61,.10);
+  }
+  body:not(.light) .weekMenu{
+    background:rgba(0,0,0,.94);
+    border-color:rgba(255,255,255,.12);
+    box-shadow:0 14px 30px rgba(0,0,0,.38);
   }
 
   .weekMenu.show{
@@ -835,6 +850,11 @@ body:not(.light){
     -webkit-appearance:none;
     appearance:none;
   }
+  body:not(.light) .weekMenu button{
+    border-color:rgba(255,255,255,.12);
+    color:#fff;
+  }
+
   .weekMenu button + button{
     margin-top:4px;
   }
@@ -1162,10 +1182,11 @@ body:not(.light){
           </div>
 
           <div class="weekBottom">
-            <div class="weekDayLabel" data-menu-btn="${i}">
-  <button type="button" class="weekMenuBtn" data-menu-btn="${i}" aria-label="${day.label}の設定">▼</button>
-  <div class="weekLabel">${day.label}</div>
-</div>
+            <div class="weekDayLabel">
+              <button type="button" class="weekMenuBtn" data-menu-btn="${i}" aria-label="${day.label}の設定">▼</button>
+              <div class="weekLabel">${day.label}</div>
+            </div>
+
             <div class="weekMenu ${menuAlignClass} ${state.openMenuIndex===i ? "show":""}" data-menu="${i}">
               <button type="button" data-type="train" data-i="${i}" class="${day.type==="train" ? "active":""}">運動日</button>
               <button type="button" data-type="rest" data-i="${i}" class="${day.type==="rest" ? "active":""}">休息日</button>
@@ -1179,7 +1200,7 @@ body:not(.light){
   }
 
   document.addEventListener("click", (e)=>{
-    const menuBtn = e.target.closest("[data-menu-btn]");
+    const menuBtn = e.target.closest(".weekMenuBtn");
     const menuChoice = e.target.closest(".weekMenu button");
     const insideMenu = e.target.closest(".weekMenu");
 
