@@ -926,10 +926,9 @@ body:not(.light){
   };
 
   function shouldShowWeek(){
-    const mixVisible = !!(mixCard && getComputedStyle(mixCard).display !== "none");
-    const foodVisible = !!(foodSection && getComputedStyle(foodSection).display !== "none");
-    return mixVisible && foodVisible;
-  }
+  const mixVisible = !!(mixCard && getComputedStyle(mixCard).display !== "none");
+  return mixVisible;
+}
 
   function updateWeekVisibility(){
     const show = shouldShowWeek();
