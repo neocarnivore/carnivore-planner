@@ -390,7 +390,7 @@ body:not(.light){
     </div>
 
     <div class="small weekFormula" id="weekFormulaText">
-      BMI区分：普通(18.5–24.9)｜実効p≈2.40g/kg（f:p=7:3）｜目標E≈40.6kcal/kg｜日別補正×1.12｜目標補正×1.00
+      実効p（週平均）≈2.24g/kg｜F = {kcal - 4(P + C)} ÷ 9
     </div>
   </div>
 </section>
@@ -463,7 +463,7 @@ body:not(.light){
     border:1px solid var(--border);
     background:#fff;
     border-radius:16px;
-    padding:12px 8px 12px;
+    padding:10px 8px 12px;
     overflow:hidden;
     -webkit-tap-highlight-color:transparent;
     touch-action:manipulation;
@@ -483,7 +483,7 @@ body:not(.light){
     position:absolute;
     left:8px;
     right:8px;
-    top:52px;
+    top:36px;
     width:calc(100% - 16px);
     height:86px;
     pointer-events:none;
@@ -528,7 +528,7 @@ body:not(.light){
   }
 
   .weekTopArea{
-    height:42px;
+    height:36px;
     display:flex;
     align-items:flex-end;
     justify-content:center;
@@ -536,35 +536,49 @@ body:not(.light){
     position:relative;
     z-index:6;
     pointer-events:none;
-    margin-bottom:4px;
+    margin-bottom:2px;
   }
 
   .weekKcalTop{
-    font-size:11px;
-    font-weight:800;
-    line-height:1.02;
+    width:38px;
+    height:38px;
+    border-radius:999px;
+    border:1.5px solid rgba(160,168,178,.42);
+    background:rgba(255,255,255,.96);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
     white-space:nowrap;
     text-align:center;
     color:#111;
     letter-spacing:.01em;
     pointer-events:none;
+    box-sizing:border-box;
   }
-  .weekKcalTop span{
-    display:block;
+  body:not(.light) .weekKcalTop{
+    background:rgba(19,23,29,.92);
+    border-color:rgba(255,255,255,.22);
+    color:#fff;
   }
   .weekKcalTop .num{
-    font-size:12px;
+    font-size:9px;
     font-weight:800;
+    line-height:1;
   }
   .weekKcalTop .unit{
-    font-size:10px;
+    font-size:7px;
     font-weight:700;
-    color:#666;
-    margin-top:2px;
+    color:#7a8088;
+    margin-top:1px;
+  }
+  body:not(.light) .weekKcalTop .unit{
+    color:rgba(255,255,255,.68);
   }
 
   .weekBarZone{
-    height:208px;
+    height:212px;
     width:100%;
     display:flex;
     align-items:flex-end;
@@ -573,7 +587,7 @@ body:not(.light){
 
   .weekCol{
     width:100%;
-    max-width:34px;
+    max-width:28px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -590,7 +604,7 @@ body:not(.light){
     width:100%;
     height:var(--barH,150px);
     background:#fff;
-    border:1px solid var(--border);
+    border:2px solid rgba(182,188,196,.78);
     border-radius:12px 12px 3px 3px;
     overflow:hidden;
     display:flex;
@@ -600,6 +614,10 @@ body:not(.light){
     transition:height .24s ease, filter .18s ease;
     position:relative;
     transform:none !important;
+    box-sizing:border-box;
+  }
+  body:not(.light) .weekBar{
+    border-color:rgba(255,255,255,.22);
   }
 
   .weekDay.dragLift .weekBar{
@@ -607,17 +625,16 @@ body:not(.light){
     box-shadow:none !important;
   }
 
-  /* 今日のバー外周だけ極薄リング */
   .weekDay.isToday .weekBar::after{
     content:"";
     position:absolute;
-    inset:-3px;
-    border-radius:14px 14px 5px 5px;
+    inset:-4px;
+    border-radius:15px 15px 6px 6px;
     pointer-events:none;
-    box-shadow:0 0 0 1px rgba(120,128,140,.14);
+    box-shadow:0 0 0 1.5px rgba(120,128,140,.18);
   }
   body:not(.light) .weekDay.isToday .weekBar::after{
-    box-shadow:0 0 0 1px rgba(255,255,255,.16);
+    box-shadow:0 0 0 1.5px rgba(255,255,255,.22);
   }
 
   .weekSeg{
@@ -636,7 +653,6 @@ body:not(.light){
   .weekSeg.f{ background:var(--f); }
   .weekSeg.c{ background:var(--c); }
 
-  /* 各境界線に若干スペース */
   .weekSeg + .weekSeg::before{
     content:"";
     position:absolute;
@@ -678,7 +694,6 @@ body:not(.light){
     transition:none;
   }
 
-  /* 今日だけラベル背景を極薄ピル化 */
   .weekDay.isToday .weekDayLabel{
     background:rgba(120,128,140,.07);
   }
@@ -816,13 +831,19 @@ body:not(.light){
 
   @media (max-width:560px){
     .weekChart{ gap:4px; }
-    .weekCol{ max-width:30px; }
+    .weekCol{ max-width:24px; }
     .weekSegLabel{ font-size:9px; }
-    .weekMetaRow{
-      gap:10px;
+    .weekMetaRow{ gap:10px; }
+    .weekLegend{ gap:10px; }
+    .weekKcalTop{
+      width:34px;
+      height:34px;
     }
-    .weekLegend{
-      gap:10px;
+    .weekKcalTop .num{
+      font-size:8px;
+    }
+    .weekKcalTop .unit{
+      font-size:6.5px;
     }
   }
 </style>
@@ -881,7 +902,7 @@ body:not(.light){
     if(habit === "1.2")   return 0;
     if(habit === "1.375") return 2;
     if(habit === "1.55")  return 4;
-    if(habit === "1.725") return 5; /* 週5〜6日は運動日5 / 休息日2 */
+    if(habit === "1.725") return 5;
     if(habit === "1.9")   return 7;
     return 0;
   }
@@ -1037,30 +1058,10 @@ body:not(.light){
     `;
   }
 
-  function getBmiInfo(){
-    const h = parseFloat(document.getElementById("height")?.value || "0") || 0;
-    const w = parseFloat(document.getElementById("weight")?.value || "0") || 0;
-    if(!h || !w) return { label:"—", bmi:0 };
-
-    const m = h / 100;
-    const bmi = w / (m * m);
-
-    let label = "普通";
-    if(bmi < 18.5) label = "低体重";
-    else if(bmi < 25) label = "普通";
-    else if(bmi < 30) label = "肥満(1度)";
-    else if(bmi < 35) label = "肥満(2度)";
-    else if(bmi < 40) label = "肥満(3度)";
-    else label = "肥満(4度)";
-
-    return { label, bmi };
-  }
-
   function render(){
     if(!updateWeekVisibility()) return;
     if(!state.days.length) resetDaysFromHabit();
 
-    const ratioText = parseFPRatioText();
     const train = calcDay("on");
     const rest  = calcDay("off");
 
@@ -1077,20 +1078,8 @@ body:not(.light){
     const weight = parseFloat(document.getElementById("weight")?.value || "0") || 0;
     const effP = weight > 0 ? (avgPExact / weight) : 0;
 
-    const bmiInfo = getBmiInfo();
-    const goalNow = (typeof goal !== "undefined" && goal) ? goal : "maintain";
-    const gF = (typeof GOAL_FACTOR !== "undefined" && GOAL_FACTOR[goalNow]) ? GOAL_FACTOR[goalNow] : 1.0;
-
-    const avgKcalExact = dayData.reduce((s,d)=>s+d.kcal,0) / 7;
-    const goalE = weight > 0 ? (avgKcalExact / weight) : 0;
-
-    let dominantDayAdj = train.dayAdj;
-    const trainCount = state.days.filter(d => d.type === "train").length;
-    const restCount = 7 - trainCount;
-    if(restCount > trainCount) dominantDayAdj = rest.dayAdj;
-
-    formulaEl.innerHTML =
-      `BMI区分：${bmiInfo.label}(18.5–24.9)｜実効p≈${effP.toFixed(2)}g/kg（f:p=${ratioText}）｜目標E≈${goalE.toFixed(1)}kcal/kg｜日別補正×${Number(dominantDayAdj).toFixed(2)}｜目標補正×${Number(gF).toFixed(2)}`;
+    formulaEl.textContent =
+      `実効p（週平均）≈${effP.toFixed(2)}g/kg｜F = {kcal - 4(P + C)} ÷ 9`;
 
     const todayIndex = getLocalTodayIndexMondayFirst();
 
@@ -1215,7 +1204,6 @@ body:not(.light){
     if(updateWeekVisibility()) render();
   });
 
-  /* ページ全体のダブルタップズーム抑制 */
   let lastTouchEnd = 0;
   document.addEventListener("touchend", function(e){
     const now = Date.now();
