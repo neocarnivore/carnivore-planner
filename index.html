@@ -2317,13 +2317,14 @@ $("bmiClassTxt").textContent =
   `BMI区分：${classText(bmi)}${effNote}｜目標E≈${Ekg.toFixed(1)}kcal/kg｜日別補正×${dayF.toFixed(2)}｜目標補正×${gF.toFixed(2)}`;
   
   $("dietLabel").textContent =
-diet==="Carnivore" ? "カーニボア" :
-diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
-diet==="BBBE" ? "BBBE" :
-diet==="FruitCarnivore" ? "フルーツカーニボア" : "—";
-diet==="Lion" ? "ライオンダイエット" :
-diet==="Ketovore" ? "ケトボア" :
-diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(kcal).toLocaleString();
+  diet==="Carnivore" ? "カーニボア" :
+  diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
+  diet==="Ketovore" ? "ケトボア" :
+  diet==="TKD" ? "肉食寄りのTKD" :
+  diet==="BBBE" ? "BBBE" :
+  diet==="Lion" ? "ライオンダイエット" :
+  diet==="FruitCarnivore" ? "フルーツカーニボア" :
+  "";
   $("p").textContent=Math.round(protein_g);
   $("f").textContent=Math.round(fat_g);
   $("c").textContent=Math.round(carb_g);
