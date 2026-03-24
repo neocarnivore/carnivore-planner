@@ -247,11 +247,12 @@ body:not(.light){
         <div>
           <label>食事法</label>
           <select id="diet">
-            <option value="" selected disabled>選択してください</option>
-            <option value="Carnivore">カーニボア</option>
-            <option value="Ketovore">ケトボア</option>
-            <option value="TKD">肉食寄りのTKD</option>
-          </select>
+  <option value="" selected disabled>選択してください</option>
+  <option value="Carnivore">カーニボア</option>
+  <option value="CarnivoreNoDairy">カーニボア（乳製品なし）</option>
+  <option value="Ketovore">ケトボア</option>
+  <option value="TKD">肉食寄りのTKD</option>
+</select>
         </div>
       </div>
 
@@ -1846,6 +1847,8 @@ function dailyAdjustment(habit, fitnessType, onoff){
 }
 function carbsBy(diet, carbSel, onoff){
   if(diet==="Carnivore") return 5;
+  if(diet==="CarnivoreNoDairy") return 2;
+
   const base = Number.isFinite(+carbSel) ? +carbSel : 30;
   if(diet==="TKD"){
     if(onoff==="off") return Math.min(15, Math.round(base*0.5));
@@ -1872,6 +1875,9 @@ function splits6By(diet, carbSel, fitnessType, onoff){
 
   if(diet==="Carnivore"){
     s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
+  }
+  else if(diet==="CarnivoreNoDairy"){
+    s = { meat:0.72, fish:0.084, eggs:0.196, dairy:0.00, veg:0.00, fruit:0.00 };
   }
   else if(diet==="Ketovore"){
     if(level===20) s = { meat:0.60, fish:0.077, eggs:0.194, dairy:0.049, veg:0.021, fruit:0.059 };
@@ -2176,6 +2182,7 @@ $("bmiClassTxt").textContent =
   
   $("dietLabel").textContent =
 diet==="Carnivore" ? "カーニボア" :
+diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
 diet==="Ketovore" ? "ケトボア" :
 diet==="TKD" ? "肉食寄りのTKD" : "—";
   $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -2194,8 +2201,11 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
   $("macroNote").textContent=
-    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${diet==="Carnivore"?"5g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
-
+  `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${
+    diet==="Carnivore" ? "5g" :
+    diet==="CarnivoreNoDairy" ? "2g" :
+    (Math.round(carb_g))+"g"
+  }｜活動係数AF×日別補正＝TDEE（±12%内）`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
   $("baseCard").style.display="block";
@@ -2207,25 +2217,25 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=20)?20:(sel<=30)?30:40;
   const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60 };
-  const carbKcalTotal = (diet==="Carnivore") ? 0 : ck;
-  const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
-  const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
-  let vegRatio = 0, fruitRatio = 0;
-  if(diet==="Ketovore" || diet==="TKD"){ vegRatio = 0.3; fruitRatio = 0.7; }
-  else { vegRatio = 1; fruitRatio = 0; }
-  let kVeg   = (diet==="Carnivore")?0: (vegFruitKcal * vegRatio);
-  let kFruit = (diet==="Carnivore")?0: (vegFruitKcal * fruitRatio);
-  const dairyLactoseKcal = Math.max(0, ck - vegFruitKcal);
-  const MEAT_BIAS = 0.08;
-  let meatShare=(sp.meat||0)+MEAT_BIAS, fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
-  const sumAnimal = Math.max(meatShare+fishShare+eggsShare+dairyShare, 0.0001);
-  meatShare/=sumAnimal; fishShare/=sumAnimal; eggsShare/=sumAnimal; dairyShare/=sumAnimal;
-  const fixedKcal = (kVeg + kFruit + dairyLactoseKcal);
-  const remainKcal = Math.max(0, kcal - fixedKcal);
-  const kMeat  = remainKcal * meatShare;
-  const kFish  = remainKcal * fishShare;
-  const kEggs  = remainKcal * eggsShare;
-  const kDairy = dairyLactoseKcal + (remainKcal * dairyShare);
+  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy");
+const carbKcalTotal = isStrictCarnivore ? 0 : ck;
+const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
+const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
+let vegRatio = 0, fruitRatio = 0;
+if(diet==="Ketovore" || diet==="TKD"){ vegRatio = 0.3; fruitRatio = 0.7; }
+else { vegRatio = 1; fruitRatio = 0; }
+let kVeg   = isStrictCarnivore ? 0 : (vegFruitKcal * vegRatio);
+let kFruit = isStrictCarnivore ? 0 : (vegFruitKcal * fruitRatio);  const dairyLactoseKcal = (diet==="CarnivoreNoDairy") ? 0 : Math.max(0, ck - vegFruitKcal);
+const MEAT_BIAS = 0.08;
+let meatShare=(sp.meat||0)+MEAT_BIAS, fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
+const sumAnimal = Math.max(meatShare+fishShare+eggsShare+dairyShare, 0.0001);
+meatShare/=sumAnimal; fishShare/=sumAnimal; eggsShare/=sumAnimal; dairyShare/=sumAnimal;
+const fixedKcal = (kVeg + kFruit + dairyLactoseKcal);
+const remainKcal = Math.max(0, kcal - fixedKcal);
+const kMeat  = remainKcal * meatShare;
+const kFish  = remainKcal * fishShare;
+const kEggs  = remainKcal * eggsShare;
+const kDairy = (diet==="CarnivoreNoDairy") ? 0 : (dairyLactoseKcal + (remainKcal * dairyShare));
 
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
   $("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
