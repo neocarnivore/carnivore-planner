@@ -252,6 +252,7 @@ body:not(.light){
   <option value="CarnivoreNoDairy">カーニボア（乳製品なし）</option>
   <option value="Ketovore">ケトボア</option>
   <option value="TKD">肉食寄りのTKD</option>
+  <option value="BBBE">BBBE</option>
 </select>
         </div>
       </div>
@@ -355,13 +356,12 @@ body:not(.light){
     <section id="foodSection" class="section" style="display:block">
       <h3>食材別の目安摂取量</h3>
       <div class="row6">
-        <div class="kpi"><span class="small">肉</span><b id="gMeat">–</b><span class="small">g</span><div class="small">≈ <b id="kMeat">–</b> kcal</div><div class="bar p"><span id="meatbar"></span></div></div>
-        <div class="kpi"><span class="small">魚介類</span><b id="gFish">–</b><span class="small">g</span><div class="small">≈ <b id="kFish">–</b> kcal</div><div class="bar p"><span id="fishbar"></span></div></div>
-        <div class="kpi"><span class="small">卵</span><b id="gEggs">–</b><span class="small">個</span><div class="small">≈ <b id="kEggs">–</b> kcal</div><div class="bar f"><span id="eggsbar"></span></div></div>
-        <div class="kpi"><span class="small">乳製品</span><b id="gDairy">–</b><span class="small">g</span><div class="small">≈ <b id="kDairy">–</b> kcal</div><div class="bar f"><span id="dairybar"></span></div></div>
-        <div class="kpi"><span class="small">野菜</span><b id="gVeg">–</b><span class="small">g</span><div class="small">≈ <b id="kVeg">–</b> kcal</div><div class="bar c"><span id="vegbar"></span></div></div>
-        <div class="kpi"><span class="small">果物</span><b id="gFruit">–</b><span class="small">g</span><div class="small">≈ <b id="kFruit">–</b> kcal</div><div class="bar c"><span id="fruitbar"></span></div></div>
-      </div>
+        <div class="kpi"><span class="small" id="labelMeat">肉</span><b id="gMeat">–</b><span class="small">g</span>...</div>
+<div class="kpi"><span class="small" id="labelFish">魚介類</span><b id="gFish">–</b><span class="small">g</span>...</div>
+<div class="kpi"><span class="small" id="labelEggs">卵</span><b id="gEggs">–</b><span class="small">個</span>...</div>
+<div class="kpi"><span class="small" id="labelDairy">乳製品</span><b id="gDairy">–</b><span class="small">g</span>...</div>
+<div class="kpi"><span class="small" id="labelVeg">野菜</span><b id="gVeg">–</b><span class="small">g</span>...</div>
+<div class="kpi"><span class="small" id="labelFruit">果物</span><b id="gFruit">–</b><span class="small">g</span>...</div>     </div>
       <div class="small" style="margin-top:8px;opacity:.95">
         100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
       </div>
@@ -1848,6 +1848,7 @@ function dailyAdjustment(habit, fitnessType, onoff){
 function carbsBy(diet, carbSel, onoff){
   if(diet==="Carnivore") return 5;
   if(diet==="CarnivoreNoDairy") return 2;
+  if(diet==="BBBE") return 2;
 
   const base = Number.isFinite(+carbSel) ? +carbSel : 30;
   if(diet==="TKD"){
@@ -1874,12 +1875,15 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   let s = { meat:0.62, fish:0.07, eggs:0.201, dairy:0.049, veg:0.014, fruit:0.046 };
 
   if(diet==="Carnivore"){
-    s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
-  }
-  else if(diet==="CarnivoreNoDairy"){
-    s = { meat:0.72, fish:0.084, eggs:0.196, dairy:0.00, veg:0.00, fruit:0.00 };
-  }
-  else if(diet==="Ketovore"){
+  s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
+}
+else if(diet==="CarnivoreNoDairy"){
+  s = { meat:0.72, fish:0.084, eggs:0.196, dairy:0.00, veg:0.00, fruit:0.00 };
+}
+else if(diet==="BBBE"){
+  s = { meat:0.58, fish:0.18, eggs:0.14, dairy:0.10, veg:0.00, fruit:0.00 };
+}
+else if(diet==="Ketovore"){
     if(level===20) s = { meat:0.60, fish:0.077, eggs:0.194, dairy:0.049, veg:0.021, fruit:0.059 };
     if(level===30) s = { meat:0.56, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.092 };
     if(level===40) s = { meat:0.52, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.135 };
@@ -2183,9 +2187,9 @@ $("bmiClassTxt").textContent =
   $("dietLabel").textContent =
 diet==="Carnivore" ? "カーニボア" :
 diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
+diet==="BBBE" ? "BBBE" :
 diet==="Ketovore" ? "ケトボア" :
-diet==="TKD" ? "肉食寄りのTKD" : "—";
-  $("kcal").textContent=Math.round(kcal).toLocaleString();
+diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(kcal).toLocaleString();
   $("p").textContent=Math.round(protein_g);
   $("f").textContent=Math.round(fat_g);
   $("c").textContent=Math.round(carb_g);
@@ -2204,6 +2208,7 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${
     diet==="Carnivore" ? "5g" :
     diet==="CarnivoreNoDairy" ? "2g" :
+    diet==="BBBE" ? "2g" :
     (Math.round(carb_g))+"g"
   }｜活動係数AF×日別補正＝TDEE（±12%内）`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
@@ -2217,7 +2222,7 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=20)?20:(sel<=30)?30:40;
   const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60 };
-  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy");
+  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE");
 const carbKcalTotal = isStrictCarnivore ? 0 : ck;
 const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
@@ -2236,6 +2241,22 @@ const kMeat  = remainKcal * meatShare;
 const kFish  = remainKcal * fishShare;
 const kEggs  = remainKcal * eggsShare;
 const kDairy = (diet==="CarnivoreNoDairy") ? 0 : (dairyLactoseKcal + (remainKcal * dairyShare));
+
+if(diet==="BBBE"){
+  $("labelMeat").textContent = "牛肉";
+  $("labelFish").textContent = "ベーコン";
+  $("labelEggs").textContent = "卵";
+  $("labelDairy").textContent = "バター";
+  $("labelVeg").textContent = "野菜";
+  $("labelFruit").textContent = "果物";
+} else {
+  $("labelMeat").textContent = "肉";
+  $("labelFish").textContent = "魚介類";
+  $("labelEggs").textContent = "卵";
+  $("labelDairy").textContent = "乳製品";
+  $("labelVeg").textContent = "野菜";
+  $("labelFruit").textContent = "果物";
+}
 
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
   $("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
