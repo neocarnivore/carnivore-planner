@@ -2040,15 +2040,49 @@ function splits6By(diet, carbSel, fitnessType, onoff){
 }
 
 /* 電解質 */
-function estimateElectrolytes(habit, fitnessType, currentCarb, w, age){
-  const af = parseFloat(habit)||1.2;
+function estimateElectrolytes(habit, fitnessType, currentCarb, w, age, diet){
+  const af = parseFloat(habit) || 1.2;
   const scaleAF = clamp((af - 1.2) / (1.9 - 1.2), 0, 1);
   const isCardio = ["run","cycle","aerobic","club"].includes(fitnessType);
   const isPower  = ["strength","anaerobic","martial"].includes(fitnessType);
-  let na = 4000; if(currentCarb <= 130) na += 600; na += Math.round(300 * scaleAF); na += isCardio ? 60 : isPower ? 30 : 0; na += Math.round(clamp(w - 60, -20, 40) * 3);
-  let k  = 3500; k += Math.round(220 * scaleAF); k += isCardio ? 120 : isPower ? 80 : 0; k += Math.round((w - 60) * 10); if(age >= 50) k += Math.round((age - 50) * 2);
-  let mg = 400; if(af >= 1.55) mg += 50; mg += Math.round(20 * scaleAF); mg += isCardio ? 8 : isPower ? 12 : 0;
-  return { k: Math.max(0, Math.round(k)), na: Math.max(0, Math.round(na)), mg: Math.max(0, Math.round(mg)) };
+
+  let na = 4000;
+  if(currentCarb <= 130) na += 600;
+  na += Math.round(300 * scaleAF);
+  na += isCardio ? 60 : isPower ? 30 : 0;
+  na += Math.round(clamp(w - 60, -20, 40) * 3);
+
+  let k = 3500;
+  k += Math.round(220 * scaleAF);
+  k += isCardio ? 120 : isPower ? 80 : 0;
+  k += Math.round((w - 60) * 10);
+  if(age >= 50) k += Math.round((age - 50) * 2);
+
+  let mg = 400;
+  if(af >= 1.55) mg += 50;
+  mg += Math.round(20 * scaleAF);
+  mg += isCardio ? 8 : isPower ? 12 : 0;
+
+  // 食事法による微調整
+  if(diet === "Lion"){
+    na += 200;
+    k  += 150;
+    mg += 30;
+  }else if(diet === "CarnivoreNoDairy"){
+    na += 100;
+    mg += 20;
+  }else if(diet === "Carnivore" || diet === "BBBE"){
+    na += 100;
+  }else if(diet === "FruitCarnivore"){
+    na -= 150;
+    k  -= 100;
+  }
+
+  return {
+    k: Math.max(0, Math.round(k)),
+    na: Math.max(0, Math.round(na)),
+    mg: Math.max(0, Math.round(mg))
+  };
 }
 
 /* グラフ */
@@ -2329,7 +2363,7 @@ $("pkcal").textContent = Math.round(pk).toLocaleString();
 $("fkcal").textContent = Math.round(fk).toLocaleString();
 $("ckcal").textContent = Math.round(ck).toLocaleString();
 
-  const elec = estimateElectrolytes($("habit").value, fitnessType, carb_g, w, age);
+  const elec = estimateElectrolytes($("habit").value, fitnessType, carb_g, w, age, diet);
   $("k").textContent  = elec.k.toLocaleString();
   $("na").textContent = elec.na.toLocaleString();
   $("mg").textContent = elec.mg.toLocaleString();
