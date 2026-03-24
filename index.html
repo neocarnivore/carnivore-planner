@@ -1868,19 +1868,19 @@ function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=20)?20:(sel<=30)?30:40;
 
-  let s = { meat:0.62, fish:0.10, eggs:0.15, dairy:0.07, veg:0.02, fruit:0.04 };
+  let s = { meat:0.62, fish:0.07, eggs:0.201, dairy:0.049, veg:0.014, fruit:0.046 };
 
   if(diet==="Carnivore"){
-    s = { meat:0.66, fish:0.12, eggs:0.17, dairy:0.05, veg:0.00, fruit:0.00 };
+    s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
   }
   else if(diet==="Ketovore"){
-    if(level===20) s = { meat:0.60, fish:0.11, eggs:0.14, dairy:0.07, veg:0.03, fruit:0.05 };
-    if(level===30) s = { meat:0.56, fish:0.11, eggs:0.14, dairy:0.07, veg:0.04, fruit:0.08 };
-    if(level===40) s = { meat:0.52, fish:0.11, eggs:0.13, dairy:0.07, veg:0.05, fruit:0.12 };
+    if(level===20) s = { meat:0.60, fish:0.077, eggs:0.194, dairy:0.049, veg:0.021, fruit:0.059 };
+    if(level===30) s = { meat:0.56, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.092 };
+    if(level===40) s = { meat:0.52, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.135 };
   } else {
-    if(level===20) s = { meat:0.58, fish:0.11, eggs:0.14, dairy:0.07, veg:0.04, fruit:0.06 };
-    if(level===30) s = { meat:0.54, fish:0.11, eggs:0.13, dairy:0.07, veg:0.05, fruit:0.10 };
-    if(level===40) s = { meat:0.50, fish:0.11, eggs:0.13, dairy:0.07, veg:0.06, fruit:0.13 };
+    if(level===20) s = { meat:0.58, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.072 };
+    if(level===30) s = { meat:0.54, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.115 };
+    if(level===40) s = { meat:0.50, fish:0.077, eggs:0.184, dairy:0.049, veg:0.042, fruit:0.148 };
   }
 
   if(onoff==="on"){
