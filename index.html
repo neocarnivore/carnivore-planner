@@ -356,15 +356,52 @@ body:not(.light){
     <section id="foodSection" class="section" style="display:block">
       <h3>食材別の目安摂取量</h3>
       <div class="row6">
-        <div class="kpi"><span class="small" id="labelMeat">肉</span><b id="gMeat">–</b><span class="small">g</span>...</div>
-<div class="kpi"><span class="small" id="labelFish">魚介類</span><b id="gFish">–</b><span class="small">g</span>...</div>
-<div class="kpi"><span class="small" id="labelEggs">卵</span><b id="gEggs">–</b><span class="small">個</span>...</div>
-<div class="kpi"><span class="small" id="labelDairy">乳製品</span><b id="gDairy">–</b><span class="small">g</span>...</div>
-<div class="kpi"><span class="small" id="labelVeg">野菜</span><b id="gVeg">–</b><span class="small">g</span>...</div>
-<div class="kpi"><span class="small" id="labelFruit">果物</span><b id="gFruit">–</b><span class="small">g</span>...</div>     </div>
-      <div class="small" style="margin-top:8px;opacity:.95">
-        100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
-      </div>
+  <div class="kpi">
+    <span class="small" id="labelMeat">肉</span>
+    <b id="gMeat">–</b><span class="small">g</span>
+    <div class="small">≈ <b id="kMeat">–</b> kcal</div>
+    <div class="bar p"><span id="meatbar"></span></div>
+  </div>
+
+  <div class="kpi">
+    <span class="small" id="labelFish">魚介類</span>
+    <b id="gFish">–</b><span class="small">g</span>
+    <div class="small">≈ <b id="kFish">–</b> kcal</div>
+    <div class="bar p"><span id="fishbar"></span></div>
+  </div>
+
+  <div class="kpi">
+    <span class="small" id="labelEggs">卵</span>
+    <b id="gEggs">–</b><span class="small">個</span>
+    <div class="small">≈ <b id="kEggs">–</b> kcal</div>
+    <div class="bar f"><span id="eggsbar"></span></div>
+  </div>
+
+  <div class="kpi">
+    <span class="small" id="labelDairy">乳製品</span>
+    <b id="gDairy">–</b><span class="small">g</span>
+    <div class="small">≈ <b id="kDairy">–</b> kcal</div>
+    <div class="bar f"><span id="dairybar"></span></div>
+  </div>
+
+  <div class="kpi">
+    <span class="small" id="labelVeg">野菜</span>
+    <b id="gVeg">–</b><span class="small">g</span>
+    <div class="small">≈ <b id="kVeg">–</b> kcal</div>
+    <div class="bar c"><span id="vegbar"></span></div>
+  </div>
+
+  <div class="kpi">
+    <span class="small" id="labelFruit">果物</span>
+    <b id="gFruit">–</b><span class="small">g</span>
+    <div class="small">≈ <b id="kFruit">–</b> kcal</div>
+    <div class="bar c"><span id="fruitbar"></span></div>
+  </div>
+</div>
+
+<div class="small" style="margin-top:8px;opacity:.95">
+  100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
+</div>
     </section>
 
     <section id="chartSection" class="section" style="display:none">
@@ -2262,9 +2299,8 @@ if(diet==="BBBE"){
   $("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
   $("gEggs").textContent  = ((kEggs / 75) || 0).toFixed(1);  $("kEggs").textContent  = Math.round(kEggs);
   $("gDairy").textContent = Math.round((kDairy/KCAL_PER_100G.dairy*100)/10)*10;  $("kDairy").textContent = Math.round(kDairy);
-  $("gVeg").textContent   = (diet==="Carnivore"?0:Math.round((kVeg  /KCAL_PER_100G.veg  *100)/10)*10); $("kVeg").textContent   = Math.round(kVeg);
-  $("gFruit").textContent = (diet==="Carnivore"?0:Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruit);
-
+  $("gVeg").textContent   = (isStrictCarnivore ? 0 : Math.round((kVeg  /KCAL_PER_100G.veg  *100)/10)*10);
+$("gFruit").textContent = (isStrictCarnivore ? 0 : Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10);
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
   updateBars(pk, fk, ck, kcal);
 
