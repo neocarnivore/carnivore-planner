@@ -2346,6 +2346,13 @@ if(diet==="BBBE"){
   $("gDairy").textContent = Math.round((kDairy/KCAL_PER_100G.dairy*100)/10)*10;  $("kDairy").textContent = Math.round(kDairy);
 $("gVeg").textContent   = (isStrictCarnivore ? 0 : Math.round((kVeg  /KCAL_PER_100G.veg  *100)/10)*10);  $("kVeg").textContent   = Math.round(kVeg);
 $("gFruit").textContent = (isStrictCarnivore ? 0 : Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruit);
+if(diet==="Lion"){
+  $("gFish").textContent = 0;  $("kFish").textContent = 0;
+  $("gEggs").textContent = 0;  $("kEggs").textContent = 0;
+  $("gDairy").textContent = 0; $("kDairy").textContent = 0;
+  $("gVeg").textContent = 0;   $("kVeg").textContent = 0;
+  $("gFruit").textContent = 0; $("kFruit").textContent = 0;
+}
   updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
   updateBars(pk, fk, ck, kcal);
 
