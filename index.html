@@ -1867,22 +1867,44 @@ const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:6
 function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=20)?20:(sel<=30)?30:40;
+
   let s = { meat:0.62, fish:0.10, eggs:0.15, dairy:0.07, veg:0.02, fruit:0.04 };
-  if(diet==="Carnivore"){ s = { meat:0.66, fish:0.12, eggs:0.14, dairy:0.08, veg:0.00, fruit:0.00 }; }
+
+  if(diet==="Carnivore"){
+    s = { meat:0.66, fish:0.12, eggs:0.17, dairy:0.05, veg:0.00, fruit:0.00 };
+  }
   else if(diet==="Ketovore"){
-  if(level===20) s = { meat:0.60, fish:0.11, eggs:0.11, dairy:0.10, veg:0.06, fruit:0.02 };
-  if(level===30) s = { meat:0.56, fish:0.11, eggs:0.11, dairy:0.10, veg:0.10, fruit:0.02 };
-  if(level===40) s = { meat:0.52, fish:0.11, eggs:0.10, dairy:0.10, veg:0.13, fruit:0.04 };
-} else {
-  if(level===20) s = { meat:0.58, fish:0.11, eggs:0.11, dairy:0.10, veg:0.08, fruit:0.02 };
-  if(level===30) s = { meat:0.54, fish:0.11, eggs:0.10, dairy:0.10, veg:0.12, fruit:0.03 };
-  if(level===40) s = { meat:0.50, fish:0.11, eggs:0.10, dairy:0.10, veg:0.15, fruit:0.04 };
-}
+    if(level===20) s = { meat:0.60, fish:0.11, eggs:0.14, dairy:0.07, veg:0.03, fruit:0.05 };
+    if(level===30) s = { meat:0.56, fish:0.11, eggs:0.14, dairy:0.07, veg:0.04, fruit:0.08 };
+    if(level===40) s = { meat:0.52, fish:0.11, eggs:0.13, dairy:0.07, veg:0.05, fruit:0.12 };
+  } else {
+    if(level===20) s = { meat:0.58, fish:0.11, eggs:0.14, dairy:0.07, veg:0.04, fruit:0.06 };
+    if(level===30) s = { meat:0.54, fish:0.11, eggs:0.13, dairy:0.07, veg:0.05, fruit:0.10 };
+    if(level===40) s = { meat:0.50, fish:0.11, eggs:0.13, dairy:0.07, veg:0.06, fruit:0.13 };
+  }
+
   if(onoff==="on"){
-    if(["run","cycle","aerobic","club"].includes(fitnessType)){ s.fish+=0.02; s.veg+=0.02; s.fruit+=0.02; s.meat-=0.04; }
-    else if(["strength","anaerobic","martial"].includes(fitnessType)){ s.meat+=0.03; s.eggs+=0.02; s.dairy+=0.01; s.veg-=0.03; s.fruit-=0.02; }
-  } else if(onoff==="off"){ s.dairy+=0.02; s.meat-=0.02; }
-  const sum = Object.values(s).reduce((a,b)=>a+b,0)||1; for(const k in s){ s[k]=Math.max(0,s[k]/sum); } return s;
+    if(["run","cycle","aerobic","club"].includes(fitnessType)){
+      s.fish += 0.02;
+      s.fruit += 0.02;
+      s.meat -= 0.04;
+    }else if(["strength","anaerobic","martial"].includes(fitnessType)){
+      s.meat += 0.03;
+      s.eggs += 0.02;
+      s.dairy += 0.01;
+      s.veg -= 0.03;
+      s.fruit -= 0.02;
+    }
+  } else if(onoff==="off"){
+    s.eggs += 0.02;
+    s.dairy -= 0.02;
+  }
+
+  const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
+  for(const k in s){
+    s[k] = Math.max(0, s[k] / sum);
+  }
+  return s;
 }
 
 /* 電解質 */
