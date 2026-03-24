@@ -2313,19 +2313,21 @@ $("bmiClassTxt").textContent =
   
   $("dietLabel").textContent =
   diet==="Carnivore" ? "カーニボア" :
-  diet==="CarnivoreNoDairy" ? "カーニボア/乳製品なし" :
+  diet==="CarnivoreNoDairy" ? "カーニボア / 乳製品なし" :
   diet==="Ketovore" ? "ケトボア" :
   diet==="TKD" ? "肉食寄りのTKD" :
   diet==="BBBE" ? "BBBE" :
   diet==="Lion" ? "ライオンダイエット" :
   diet==="FruitCarnivore" ? "フルーツカーニボア" :
-  "";
-  $("p").textContent=Math.round(protein_g);
-  $("f").textContent=Math.round(fat_g);
-  $("c").textContent=Math.round(carb_g);
-  $("pkcal").textContent=Math.round(pk).toLocaleString();
-  $("fkcal").textContent=Math.round(fk).toLocaleString();
-  $("ckcal").textContent=Math.round(ck).toLocaleString();
+  "—";
+
+$("kcal").textContent = Math.round(kcal).toLocaleString();
+$("p").textContent = Math.round(protein_g);
+$("f").textContent = Math.round(fat_g);
+$("c").textContent = Math.round(carb_g);
+$("pkcal").textContent = Math.round(pk).toLocaleString();
+$("fkcal").textContent = Math.round(fk).toLocaleString();
+$("ckcal").textContent = Math.round(ck).toLocaleString();
 
   const elec = estimateElectrolytes($("habit").value, fitnessType, carb_g, w, age);
   $("k").textContent  = elec.k.toLocaleString();
