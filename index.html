@@ -253,6 +253,7 @@ body:not(.light){
   <option value="Ketovore">ケトボア</option>
   <option value="TKD">肉食寄りのTKD</option>
   <option value="BBBE">BBBE</option>
+  <option value="Lion">ライオンダイエット</option>
 </select>
         </div>
       </div>
@@ -296,14 +297,21 @@ body:not(.light){
           </select>
         </div>
         <div id="carbCol" style="display:none">
-          <label>糖質量の上限（g/日）</label>
-<select id="carbIntake">
-  <option value="" selected disabled>選択してください</option>
-  <option value="20">20g</option>
-  <option value="30">30g</option>
-  <option value="40">40g</option>
-</select>
-        </div>
+  <label id="carbLabel">糖質量の上限（g/日）</label>
+
+  <select id="carbIntake">
+    <option value="" selected disabled>選択してください</option>
+    <option value="20">20g</option>
+    <option value="30">30g</option>
+    <option value="40">40g</option>
+  </select>
+
+  <select id="lionMeat" style="display:none">
+    <option value="" selected disabled>選択してください</option>
+    <option value="beef">牛肉</option>
+    <option value="lamb">羊肉</option>
+  </select>
+</div>
       </div>
     </div>
 
@@ -1344,6 +1352,7 @@ function getCurrentFormData(){
     pTier,
     fitnessType:$("fitnessType").value,
     onoff:$("onoff").value,
+    lionMeat:$("lionMeat") ? $("lionMeat").value : "",
     goal,
     targetWeight:$("targetWeight").value,
     chartMonths
@@ -1363,6 +1372,7 @@ function isSamePresetData(a, b){
     (a.pTier ?? "") === (b.pTier ?? "") &&
     (a.fitnessType ?? "") === (b.fitnessType ?? "") &&
     (a.onoff ?? "") === (b.onoff ?? "") &&
+    (a.lionMeat ?? "") === (b.lionMeat ?? "") &&
     (a.goal ?? "") === (b.goal ?? "") &&
     (a.targetWeight ?? "") === (b.targetWeight ?? "") &&
     String(a.chartMonths ?? "") === String(b.chartMonths ?? "")
@@ -1379,6 +1389,7 @@ function applyFormData(d){
   if(d.habit != null) $("habit").value = d.habit;
   if(d.fitnessType != null) $("fitnessType").value = d.fitnessType;
   if(d.onoff != null) $("onoff").value = d.onoff;
+  if(d.lionMeat != null && $("lionMeat")) $("lionMeat").value = d.lionMeat;
   if(d.carb != null && $("carbIntake")) $("carbIntake").value = d.carb;
   if(d.targetWeight != null) $("targetWeight").value = d.targetWeight;
   if(d.chartMonths != null) chartMonths = +d.chartMonths || 1;
@@ -1544,7 +1555,7 @@ function resetFormAll(){
   closePresetMenu();
   localStorage.removeItem(LAST_PRESET_KEY);
   
-  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
+  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","lionMeat","targetWeight"];
   ids.forEach(id=>{
     const el = $(id);
     if(!el) return;
@@ -1702,9 +1713,27 @@ attachClamp('targetWeight', 30, 250);
 /* 糖質欄の表示 */
 function toggleCarb(){
   const diet = $("diet").value;
-  const show = (diet==="Ketovore" || diet==="TKD");
-  $("carbCol").style.display = show ? "block" : "none";
-  if(!show){ $("carbIntake").value = ""; }
+
+  const isKeto = (diet==="Ketovore" || diet==="TKD");
+  const isLion = (diet==="Lion");
+
+  $("carbCol").style.display = (isKeto || isLion) ? "block" : "none";
+
+  if(isKeto){
+    $("carbLabel").textContent = "糖質量の上限（g/日）";
+    $("carbIntake").style.display = "block";
+    $("lionMeat").style.display = "none";
+  } else if(isLion){
+    $("carbLabel").textContent = "主軸となる肉";
+    $("carbIntake").style.display = "none";
+    $("lionMeat").style.display = "block";
+  } else {
+    $("carbIntake").value = "";
+    $("lionMeat").value = "";
+    $("carbIntake").style.display = "block";
+    $("lionMeat").style.display = "none";
+    $("carbLabel").textContent = "糖質量の上限（g/日）";
+  }
 }
 $("diet").addEventListener("change", toggleCarb);
 
@@ -1886,6 +1915,7 @@ function carbsBy(diet, carbSel, onoff){
   if(diet==="Carnivore") return 5;
   if(diet==="CarnivoreNoDairy") return 2;
   if(diet==="BBBE") return 2;
+  if(diet==="Lion") return 0;
 
   const base = Number.isFinite(+carbSel) ? +carbSel : 30;
   if(diet==="TKD"){
@@ -1919,6 +1949,9 @@ else if(diet==="CarnivoreNoDairy"){
 }
 else if(diet==="BBBE"){
   s = { meat:0.613, fish:0.18, eggs:0.172, dairy:0.035, veg:0.00, fruit:0.00 };
+}
+else if(diet==="Lion"){
+  s = { meat:1.00, fish:0.00, eggs:0.00, dairy:0.00, veg:0.00, fruit:0.00 };
 }
 else if(diet==="Ketovore"){
     if(level===20) s = { meat:0.60, fish:0.077, eggs:0.194, dairy:0.049, veg:0.021, fruit:0.059 };
@@ -2102,6 +2135,9 @@ function requireFilled(){
   if(!$("diet").value) miss.push("食事法");
   if(!$("habit").value) miss.push("運動習慣");
   const diet = $("diet").value;
+  if(diet==="Lion" && !$("lionMeat").value){
+  miss.push("主軸となる肉");
+}
   if((diet==="Ketovore" || diet==="TKD") && !$("carbIntake").value){ miss.push("糖質量の上限（g/日）"); }
   if($("habit").value && $("habit").value!=="1.2"){
     if(!$("fitnessType").value) miss.push("フィットネス");
@@ -2225,6 +2261,7 @@ $("bmiClassTxt").textContent =
 diet==="Carnivore" ? "カーニボア" :
 diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
 diet==="BBBE" ? "BBBE" :
+diet==="Lion" ? "ライオンダイエット" :
 diet==="Ketovore" ? "ケトボア" :
 diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(kcal).toLocaleString();
   $("p").textContent=Math.round(protein_g);
@@ -2245,8 +2282,9 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(k
   `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${
     diet==="Carnivore" ? "5g" :
     diet==="CarnivoreNoDairy" ? "2g" :
-    diet==="BBBE" ? "2g" :
-    (Math.round(carb_g))+"g"
+diet==="BBBE" ? "2g" :
+diet==="Lion" ? "0g" :
+(Math.round(carb_g))+"g"
   }｜活動係数AF×日別補正＝TDEE（±12%内）`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
@@ -2259,7 +2297,7 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(k
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
   const level = (sel<=20)?20:(sel<=30)?30:40;
   const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60 };
-  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE");
+  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE" || diet==="Lion");
 const carbKcalTotal = isStrictCarnivore ? 0 : ck;
 const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
@@ -2284,6 +2322,13 @@ if(diet==="BBBE"){
   $("labelFish").textContent = "ベーコン";
   $("labelEggs").textContent = "卵";
   $("labelDairy").textContent = "バター";
+  $("labelVeg").textContent = "野菜";
+  $("labelFruit").textContent = "果物";
+} else if(diet==="Lion"){
+  $("labelMeat").textContent = $("lionMeat").value==="lamb" ? "羊肉" : "牛肉";
+  $("labelFish").textContent = "魚介類";
+  $("labelEggs").textContent = "卵";
+  $("labelDairy").textContent = "乳製品";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
 } else {
@@ -2313,7 +2358,7 @@ function saveFormToSession(){
   const data = {
     sex:$("sex").value, age:$("age").value, height:$("height").value, weight:$("weight").value,
     habit:$("habit").value, diet:$("diet").value, carb:$("carbIntake").value,
-    pFactor:$("pFactor").value, pTier, fitnessType:$("fitnessType").value, onoff:$("onoff").value,
+    pFactor:$("pFactor").value, pTier, fitnessType:$("fitnessType").value, onoff:$("onoff").value,lionMeat:$("lionMeat").value,
     goal, targetWeight:$("targetWeight").value, chartMonths
   };
   sessionStorage.setItem("plannerAutoForm", JSON.stringify(data));
@@ -2332,6 +2377,7 @@ function restoreFromSessionAndAutoCalc(){
     if(d.habit) $("habit").value=d.habit;
     if(d.fitnessType) $("fitnessType").value=d.fitnessType;
     if(d.onoff) $("onoff").value=d.onoff;
+    if(d.lionMeat) $("lionMeat").value=d.lionMeat;
     if(d.carb!=null){ $("carbIntake").value=d.carb; }
     pTier = d.pTier || 'std';
     goal = d.goal || "maintain";
@@ -2356,7 +2402,7 @@ function restoreFromSessionAndAutoCalc(){
 
 /* 初期化 */
 function restoreFormFresh(){
-  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","targetWeight"];
+  const ids = ["sex","age","height","weight","pFactor","diet","habit","fitnessType","onoff","carbIntake","lionMeat","targetWeight"];
   ids.forEach(id=>{
     const el = $(id);
     if(!el) return;
