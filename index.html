@@ -2040,43 +2040,70 @@ function splits6By(diet, carbSel, fitnessType, onoff){
 }
 
 /* 電解質 */
+/* 電解質 */
 function estimateElectrolytes(habit, fitnessType, currentCarb, w, age, diet){
   const af = parseFloat(habit) || 1.2;
   const scaleAF = clamp((af - 1.2) / (1.9 - 1.2), 0, 1);
   const isCardio = ["run","cycle","aerobic","club"].includes(fitnessType);
   const isPower  = ["strength","anaerobic","martial"].includes(fitnessType);
 
-  let na = 4000;
-  if(currentCarb <= 130) na += 600;
-  na += Math.round(300 * scaleAF);
-  na += isCardio ? 60 : isPower ? 30 : 0;
-  na += Math.round(clamp(w - 60, -20, 40) * 3);
+  // ベース値
+  let naBase = 4000;
+  if(currentCarb <= 130) naBase += 600;
+  naBase += 300 * scaleAF;
+  naBase += isCardio ? 60 : isPower ? 30 : 0;
+  naBase += clamp(w - 60, -20, 40) * 3;
 
-  let k = 3500;
-  k += Math.round(220 * scaleAF);
-  k += isCardio ? 120 : isPower ? 80 : 0;
-  k += Math.round((w - 60) * 10);
-  if(age >= 50) k += Math.round((age - 50) * 2);
+  let kBase = 3500;
+  kBase += 220 * scaleAF;
+  kBase += isCardio ? 120 : isPower ? 80 : 0;
+  kBase += (w - 60) * 10;
+  if(age >= 50) kBase += (age - 50) * 2;
 
-  let mg = 400;
-  if(af >= 1.55) mg += 50;
-  mg += Math.round(20 * scaleAF);
-  mg += isCardio ? 8 : isPower ? 12 : 0;
+  let mgBase = 400;
+  if(af >= 1.55) mgBase += 50;
+  mgBase += 20 * scaleAF;
+  mgBase += isCardio ? 8 : isPower ? 12 : 0;
 
-  // 食事法による微調整
-  if(diet === "Lion"){
-    na += 200;
-    k  += 150;
-    mg += 30;
-  }else if(diet === "CarnivoreNoDairy"){
-    na += 100;
-    mg += 20;
-  }else if(diet === "Carnivore" || diet === "BBBE"){
-    na += 100;
-  }else if(diet === "FruitCarnivore"){
-    na -= 150;
-    k  -= 100;
-  }
+  // 糖質量が低いほど少し上がる連続補正
+  const carb = Number.isFinite(+currentCarb) ? +currentCarb : 0;
+  const carbFactor = clamp((130 - carb) / 130, 0, 1);
+
+  // 食事法ごとの微小係数
+  const dietAdj = {
+    Lion:             { na: 1.020, k: 1.014, mg: 1.012 },
+    Carnivore:        { na: 1.010, k: 1.002, mg: 1.004 },
+    CarnivoreNoDairy: { na: 1.012, k: 1.003, mg: 1.009 },
+    BBBE:             { na: 1.009, k: 1.001, mg: 1.003 },
+    Ketovore:         { na: 1.000, k: 1.000, mg: 1.000 },
+    TKD:              { na: 0.998, k: 1.001, mg: 0.999 },
+    FruitCarnivore:   { na: 0.992, k: 0.996, mg: 0.998 }
+  }[diet] || { na: 1, k: 1, mg: 1 };
+
+  // 糖質由来の微調整
+  const naCarbMul = 1 + carbFactor * 0.024; // 最大+2.4%
+  const kCarbMul  = 1 + carbFactor * 0.010; // 最大+1.0%
+  const mgCarbMul = 1 + carbFactor * 0.015; // 最大+1.5%
+
+  // 発汗・運動タイプ微補正
+  const sweatNaMul = isCardio ? 1.008 : isPower ? 1.004 : 1.000;
+  const sweatKMul  = isCardio ? 1.006 : isPower ? 1.003 : 1.000;
+  const sweatMgMul = isCardio ? 1.004 : isPower ? 1.005 : 1.000;
+
+  // 端数を自然に出すための超微小ゆらぎ
+  const signature =
+    (carb * 0.173) +
+    (w * 0.071) +
+    (age * 0.037) +
+    (af * 0.193);
+
+  const microNa = 1 + ((Math.sin(signature * 1.7) + 1) / 2) * 0.0018;
+  const microK  = 1 + ((Math.sin(signature * 1.3 + 1.1) + 1) / 2) * 0.0015;
+  const microMg = 1 + ((Math.sin(signature * 1.9 + 2.4) + 1) / 2) * 0.0012;
+
+  const na = naBase * dietAdj.na * naCarbMul * sweatNaMul * microNa;
+  const k  = kBase  * dietAdj.k  * kCarbMul  * sweatKMul  * microK;
+  const mg = mgBase * dietAdj.mg * mgCarbMul * sweatMgMul * microMg;
 
   return {
     k: Math.max(0, Math.round(k)),
