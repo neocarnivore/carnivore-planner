@@ -1963,6 +1963,7 @@ else if(diet==="Ketovore"){
     if(level===40) s = { meat:0.50, fish:0.077, eggs:0.184, dairy:0.049, veg:0.042, fruit:0.148 };
   }
 
+if(diet!=="Lion"){
   if(onoff==="on"){
     if(["run","cycle","aerobic","club"].includes(fitnessType)){
       s.fish += 0.02;
