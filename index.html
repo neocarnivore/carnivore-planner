@@ -295,12 +295,12 @@ body:not(.light){
         </div>
         <div id="carbCol" style="display:none">
           <label>糖質量の上限（g/日）</label>
-          <select id="carbIntake">
-            <option value="" selected disabled>選択してください</option>
-            <option value="30">30g</option>
-            <option value="50">50g</option>
-            <option value="70">70g</option>
-          </select>
+<select id="carbIntake">
+  <option value="" selected disabled>選択してください</option>
+  <option value="20">20g</option>
+  <option value="30">30g</option>
+  <option value="40">40g</option>
+</select>
         </div>
       </div>
     </div>
@@ -1845,10 +1845,10 @@ function dailyAdjustment(habit, fitnessType, onoff){
   return clamp(raw, 0.88, 1.12);
 }
 function carbsBy(diet, carbSel, onoff){
-  if(diet==="Carnivore") return 8;
+  if(diet==="Carnivore") return 5;
   const base = Number.isFinite(+carbSel) ? +carbSel : 30;
   if(diet==="TKD"){
-    if(onoff==="off") return Math.min(20, Math.round(base*0.4));
+    if(onoff==="off") return Math.min(15, Math.round(base*0.5));
     return base;
   }
   return base;
@@ -1866,18 +1866,18 @@ const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:6
 /* NaN安全配分 */
 function splits6By(diet, carbSel, fitnessType, onoff){
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
-  const level = (sel<=30)?30:(sel<=50)?50:70;
+  const level = (sel<=20)?20:(sel<=30)?30:40;
   let s = { meat:0.62, fish:0.10, eggs:0.15, dairy:0.07, veg:0.02, fruit:0.04 };
   if(diet==="Carnivore"){ s = { meat:0.66, fish:0.12, eggs:0.14, dairy:0.08, veg:0.00, fruit:0.00 }; }
   else if(diet==="Ketovore"){
-    if(level===30) s = { meat:0.60, fish:0.11, eggs:0.11, dairy:0.10, veg:0.06, fruit:0.02 };
-    if(level===50) s = { meat:0.56, fish:0.11, eggs:0.11, dairy:0.10, veg:0.10, fruit:0.02 };
-    if(level===70) s = { meat:0.52, fish:0.11, eggs:0.10, dairy:0.10, veg:0.13, fruit:0.04 };
-  } else {
-    if(level===30) s = { meat:0.58, fish:0.11, eggs:0.11, dairy:0.10, veg:0.08, fruit:0.02 };
-    if(level===50) s = { meat:0.54, fish:0.11, eggs:0.10, dairy:0.10, veg:0.12, fruit:0.03 };
-    if(level===70) s = { meat:0.50, fish:0.11, eggs:0.10, dairy:0.10, veg:0.15, fruit:0.04 };
-  }
+  if(level===20) s = { meat:0.60, fish:0.11, eggs:0.11, dairy:0.10, veg:0.06, fruit:0.02 };
+  if(level===30) s = { meat:0.56, fish:0.11, eggs:0.11, dairy:0.10, veg:0.10, fruit:0.02 };
+  if(level===40) s = { meat:0.52, fish:0.11, eggs:0.10, dairy:0.10, veg:0.13, fruit:0.04 };
+} else {
+  if(level===20) s = { meat:0.58, fish:0.11, eggs:0.11, dairy:0.10, veg:0.08, fruit:0.02 };
+  if(level===30) s = { meat:0.54, fish:0.11, eggs:0.10, dairy:0.10, veg:0.12, fruit:0.03 };
+  if(level===40) s = { meat:0.50, fish:0.11, eggs:0.10, dairy:0.10, veg:0.15, fruit:0.04 };
+}
   if(onoff==="on"){
     if(["run","cycle","aerobic","club"].includes(fitnessType)){ s.fish+=0.02; s.veg+=0.02; s.fruit+=0.02; s.meat-=0.04; }
     else if(["strength","anaerobic","martial"].includes(fitnessType)){ s.meat+=0.03; s.eggs+=0.02; s.dairy+=0.01; s.veg-=0.03; s.fruit-=0.02; }
@@ -2172,7 +2172,7 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   const fitnessLabelMap={none:"該当なし",strength:"筋トレ",run:"ランニング",cycle:"サイクリング",club:"部活動",martial:"格闘技",aerobic:"その他（有酸素運動）",anaerobic:"その他（無酸素運動）"};
   const onoffTxt = (onoff==="none")?"該当なし":(onoff==="on"?"運動日":"休息日");
   $("macroNote").textContent=
-    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${diet==="Carnivore"?"8g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
+    `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${diet==="Carnivore"?"5g":(Math.round(carb_g))+"g"}｜活動係数AF×日別補正＝TDEE（±12%内）`;
 
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
 
@@ -2183,8 +2183,8 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";
   /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
   const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
-  const level = (sel<=30)?30:(sel<=50)?50:70;
-  const VEG_FRUIT_KCAL_CAP = { 30: 45, 50: 75, 70: 105 };
+  const level = (sel<=20)?20:(sel<=30)?30:40;
+  const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60 };
   const carbKcalTotal = (diet==="Carnivore") ? 0 : ck;
   const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
   const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
