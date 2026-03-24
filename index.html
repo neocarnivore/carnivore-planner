@@ -254,6 +254,7 @@ body:not(.light){
   <option value="TKD">肉食寄りのTKD</option>
   <option value="BBBE">BBBE</option>
   <option value="Lion">ライオンダイエット</option>
+  <option value="FruitCarnivore">フルーツカーニボア</option>
 </select>
         </div>
       </div>
@@ -1711,22 +1712,54 @@ attachClamp('weight', 30, 250);
 attachClamp('targetWeight', 30, 250);
 
 /* 糖質欄の表示 */
+function setCarbOptions(diet){
+  const carb = $("carbIntake");
+  if(!carb) return;
+
+  const prev = carb.value;
+
+  let options = [];
+  if(diet==="Ketovore"){
+    options = ["20","30","40"];
+  }else if(diet==="TKD"){
+    options = ["20","30","40"];
+  }else if(diet==="FruitCarnivore"){
+    options = ["40","55","70"];
+  }
+
+  carb.innerHTML = `<option value="" selected disabled>選択してください</option>`;
+  options.forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = `${v}g`;
+    carb.appendChild(opt);
+  });
+
+  if(options.includes(prev)){
+    carb.value = prev;
+  }
+}
+
 function toggleCarb(){
   const diet = $("diet").value;
 
   const isKeto = (diet==="Ketovore" || diet==="TKD");
+  const isFruit = (diet==="FruitCarnivore");
   const isLion = (diet==="Lion");
 
-  $("carbCol").style.display = (isKeto || isLion) ? "block" : "none";
+  $("carbCol").style.display = (isKeto || isFruit || isLion) ? "block" : "none";
 
-  if(isKeto){
+  if(isKeto || isFruit){
     $("carbLabel").textContent = "糖質量の上限（g/日）";
     $("carbIntake").style.display = "block";
     $("lionMeat").style.display = "none";
+    $("lionMeat").value = "";
+    setCarbOptions(diet);
   } else if(isLion){
     $("carbLabel").textContent = "主軸となる肉";
     $("carbIntake").style.display = "none";
     $("lionMeat").style.display = "block";
+    $("carbIntake").value = "";
   } else {
     $("carbIntake").value = "";
     $("lionMeat").value = "";
@@ -1917,11 +1950,17 @@ function carbsBy(diet, carbSel, onoff){
   if(diet==="BBBE") return 2;
   if(diet==="Lion") return 0;
 
-  const base = Number.isFinite(+carbSel) ? +carbSel : 30;
+  const base = Number.isFinite(+carbSel) ? +carbSel : (diet==="FruitCarnivore" ? 55 : 30);
+
   if(diet==="TKD"){
     if(onoff==="off") return Math.min(15, Math.round(base*0.5));
     return base;
   }
+
+  if(diet==="FruitCarnivore"){
+    return base;
+  }
+
   return base;
 }
 function classText(bmi){
@@ -1936,54 +1975,72 @@ const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:6
 
 /* NaN安全配分 */
 function splits6By(diet, carbSel, fitnessType, onoff){
-  const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
-  const level = (sel<=20)?20:(sel<=30)?30:40;
+  const sel = Number.isFinite(+carbSel) ? +carbSel : (diet==="FruitCarnivore" ? 55 : 30);
+  const level =
+    sel <= 20 ? 20 :
+    sel <= 30 ? 30 :
+    sel <= 40 ? 40 :
+    sel <= 55 ? 55 : 70;
 
   let s = { meat:0.62, fish:0.07, eggs:0.201, dairy:0.049, veg:0.014, fruit:0.046 };
 
   if(diet==="Carnivore"){
-  s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
-}
-else if(diet==="CarnivoreNoDairy"){
-  s = { meat:0.72, fish:0.084, eggs:0.196, dairy:0.00, veg:0.00, fruit:0.00 };
-}
-else if(diet==="BBBE"){
-  s = { meat:0.613, fish:0.18, eggs:0.172, dairy:0.035, veg:0.00, fruit:0.00 };
-}
-else if(diet==="Lion"){
-  s = { meat:1.00, fish:0.00, eggs:0.00, dairy:0.00, veg:0.00, fruit:0.00 };
-}
-else if(diet==="Ketovore"){
+    s = { meat:0.66, fish:0.084, eggs:0.221, dairy:0.035, veg:0.00, fruit:0.00 };
+  }
+  else if(diet==="CarnivoreNoDairy"){
+    s = { meat:0.72, fish:0.084, eggs:0.196, dairy:0.00, veg:0.00, fruit:0.00 };
+  }
+  else if(diet==="BBBE"){
+    s = { meat:0.613, fish:0.18, eggs:0.172, dairy:0.035, veg:0.00, fruit:0.00 };
+  }
+  else if(diet==="Lion"){
+    s = { meat:1.00, fish:0.00, eggs:0.00, dairy:0.00, veg:0.00, fruit:0.00 };
+  }
+  else if(diet==="Ketovore"){
     if(level===20) s = { meat:0.60, fish:0.077, eggs:0.194, dairy:0.049, veg:0.021, fruit:0.059 };
     if(level===30) s = { meat:0.56, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.092 };
     if(level===40) s = { meat:0.52, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.135 };
-  } else {
+  }
+  else if(diet==="FruitCarnivore"){
+    if(level===40) s = { meat:0.53, fish:0.077, eggs:0.184, dairy:0.049, veg:0.00, fruit:0.160 };
+    if(level===55) s = { meat:0.48, fish:0.077, eggs:0.174, dairy:0.049, veg:0.00, fruit:0.220 };
+    if(level===70) s = { meat:0.43, fish:0.077, eggs:0.164, dairy:0.049, veg:0.00, fruit:0.280 };
+  }
+  else {
     if(level===20) s = { meat:0.58, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.072 };
     if(level===30) s = { meat:0.54, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.115 };
     if(level===40) s = { meat:0.50, fish:0.077, eggs:0.184, dairy:0.049, veg:0.042, fruit:0.148 };
   }
 
-  if(onoff==="on"){
-    if(["run","cycle","aerobic","club"].includes(fitnessType)){
-      s.fish += 0.02;
-      s.fruit += 0.02;
-      s.meat -= 0.04;
-    }else if(["strength","anaerobic","martial"].includes(fitnessType)){
-      s.meat += 0.03;
+  if(diet!=="Lion"){
+    if(onoff==="on"){
+      if(["run","cycle","aerobic","club"].includes(fitnessType)){
+        s.fish += 0.02;
+        s.fruit += 0.02;
+        s.meat -= 0.04;
+      }else if(["strength","anaerobic","martial"].includes(fitnessType)){
+        s.meat += 0.03;
+        s.eggs += 0.02;
+        s.dairy += 0.01;
+        if(diet!=="FruitCarnivore"){
+          s.veg -= 0.03;
+          s.fruit -= 0.02;
+        }else{
+          s.fruit -= 0.05;
+        }
+      }
+    } else if(onoff==="off"){
       s.eggs += 0.02;
-      s.dairy += 0.01;
-      s.veg -= 0.03;
-      s.fruit -= 0.02;
+      s.dairy -= 0.02;
     }
-  } else if(onoff==="off"){
-    s.eggs += 0.02;
-    s.dairy -= 0.02;
+
+    const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
+    for(const k in s){
+      s[k] = Math.max(0, s[k] / sum);
+    }
+    return s;
   }
 
-  const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
-  for(const k in s){
-    s[k] = Math.max(0, s[k] / sum);
-  }
   return s;
 }
 
@@ -2138,7 +2195,9 @@ function requireFilled(){
   if(diet==="Lion" && !$("lionMeat").value){
   miss.push("主軸となる肉");
 }
-  if((diet==="Ketovore" || diet==="TKD") && !$("carbIntake").value){ miss.push("糖質量の上限（g/日）"); }
+  if((diet==="Ketovore" || diet==="TKD" || diet==="FruitCarnivore") && !$("carbIntake").value){
+  miss.push("糖質量の上限（g/日）");
+}
   if($("habit").value && $("habit").value!=="1.2"){
     if(!$("fitnessType").value) miss.push("フィットネス");
     if(!$("onoff").value) miss.push("オン/オフ");
@@ -2261,6 +2320,7 @@ $("bmiClassTxt").textContent =
 diet==="Carnivore" ? "カーニボア" :
 diet==="CarnivoreNoDairy" ? "カーニボア（乳製品なし）" :
 diet==="BBBE" ? "BBBE" :
+diet==="FruitCarnivore" ? "フルーツカーニボア" : "—";
 diet==="Lion" ? "ライオンダイエット" :
 diet==="Ketovore" ? "ケトボア" :
 diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(kcal).toLocaleString();
@@ -2282,34 +2342,57 @@ diet==="TKD" ? "肉食寄りのTKD" : "—";  $("kcal").textContent=Math.round(k
   `フィットネス：${fitnessLabelMap[fitnessType]}｜オン/オフ：${onoffTxt}｜糖質量の上限（g/日）：${
     diet==="Carnivore" ? "5g" :
     diet==="CarnivoreNoDairy" ? "2g" :
-diet==="BBBE" ? "2g" :
-diet==="Lion" ? "0g" :
-(Math.round(carb_g))+"g"
+    diet==="BBBE" ? "2g" :
+    diet==="Lion" ? "0g" :
+    diet==="FruitCarnivore" ? `${Math.round(carb_g)}g` :
+    (Math.round(carb_g))+"g"
   }｜活動係数AF×日別補正＝TDEE（±12%内）`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
-
   $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
 
   /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
-  const sel = Number.isFinite(+carbSel) ? +carbSel : 30;
-  const level = (sel<=20)?20:(sel<=30)?30:40;
-  const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60 };
-  const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE" || diet==="Lion");
+
+const sel = Number.isFinite(+carbSel) ? +carbSel : (diet==="FruitCarnivore" ? 55 : 30);
+const level =
+  sel <= 20 ? 20 :
+  sel <= 30 ? 30 :
+  sel <= 40 ? 40 :
+  sel <= 55 ? 55 : 70;
+
+const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60, 55: 82.5, 70: 105 };
+
+const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE" || diet==="Lion");
 const carbKcalTotal = isStrictCarnivore ? 0 : ck;
 const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
+
 let vegRatio = 0, fruitRatio = 0;
-if(diet==="Ketovore" || diet==="TKD"){ vegRatio = 0.3; fruitRatio = 0.7; }
-else { vegRatio = 1; fruitRatio = 0; }
-let kVeg   = isStrictCarnivore ? 0 : (vegFruitKcal * vegRatio);
-let kFruit = isStrictCarnivore ? 0 : (vegFruitKcal * fruitRatio);  const dairyLactoseKcal = (diet==="CarnivoreNoDairy") ? 0 : Math.max(0, ck - vegFruitKcal);
+if(diet==="Ketovore" || diet==="TKD"){
+  vegRatio = 0.3;
+  fruitRatio = 0.7;
+}else if(diet==="FruitCarnivore"){
+  vegRatio = 0;
+  fruitRatio = 1;
+}else{
+  vegRatio = 1;
+  fruitRatio = 0;
+}
+
+let kVeg = isStrictCarnivore ? 0 : (vegFruitKcal * vegRatio);
+let kFruit = isStrictCarnivore ? 0 : (vegFruitKcal * fruitRatio);
+const dairyLactoseKcal = (diet==="CarnivoreNoDairy") ? 0 : Math.max(0, ck - vegFruitKcal);
+
 const MEAT_BIAS = 0.08;
 let meatShare=(sp.meat||0)+MEAT_BIAS, fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
 const sumAnimal = Math.max(meatShare+fishShare+eggsShare+dairyShare, 0.0001);
-meatShare/=sumAnimal; fishShare/=sumAnimal; eggsShare/=sumAnimal; dairyShare/=sumAnimal;
+meatShare/=sumAnimal;
+fishShare/=sumAnimal;
+eggsShare/=sumAnimal;
+dairyShare/=sumAnimal;
+
 const fixedKcal = (kVeg + kFruit + dairyLactoseKcal);
 const remainKcal = Math.max(0, kcal - fixedKcal);
 const kMeat  = remainKcal * meatShare;
