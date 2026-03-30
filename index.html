@@ -95,7 +95,7 @@ body:not(.light){
 .foodListItem{
   background:#ffffff;
   border:1.5px solid rgba(232,87,69,.14);
-  border-radius:38px;
+  border-radius:18px;
   box-shadow:none;
   overflow:hidden;
 }
@@ -137,11 +137,16 @@ body:not(.light){
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .14s ease, filter .18s ease, background-color .18s ease;
+  transition:
+    transform .20s ease,
+    filter .28s ease,
+    background-color .28s ease,
+    border-color .28s ease;
 }
 
 body:not(.light) .foodSubBtn{
-  background:#0a0a0a;
+  background:rgba(255,255,255,.04);
+  color:#fff;
 }
 
 .foodListLabel{
@@ -174,16 +179,17 @@ body:not(.light) .foodSubBtn{
   padding:0 11px;
   border-radius:999px;
   background:#fff !important;
-  color:var(--text);
+  color:#151515;
   font-size:12px;
   font-weight:800;
   line-height:1.2;
   box-shadow:none;
+  border:1.5px solid transparent;
 }
 
 body:not(.light) .foodSubLabel{
-  background:#0a0a0a !important;
-  color:#fff;
+  background:#fff !important;
+  color:#151515;
 }
 
 .foodListItem:has(.foodListBtn[data-tone="p"]){
@@ -202,10 +208,14 @@ body:not(.light) .foodSubLabel{
   border:none;
 }
 
-.foodSubBtn[data-tone="p"] .foodSubLabel,
-.foodSubBtn[data-tone="f"] .foodSubLabel,
+.foodSubBtn[data-tone="p"] .foodSubLabel{
+  border-color:var(--p);
+}
+.foodSubBtn[data-tone="f"] .foodSubLabel{
+  border-color:var(--f);
+}
 .foodSubBtn[data-tone="c"] .foodSubLabel{
-  border:none;
+  border-color:var(--c);
 }
 
 .foodListArrow{
@@ -339,7 +349,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transition:max-height .82s cubic-bezier(.22,1,.36,1), opacity .42s ease;
+  transition:max-height 1.02s cubic-bezier(.22,1,.36,1), opacity .58s ease;
   will-change:max-height;
 }
 
@@ -412,7 +422,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 
 @media (max-width:749px){
   .foodListItem{
-  border-radius:28px;
+  border-radius:18px;
 }
 
 .foodListBtn{
@@ -2606,6 +2616,12 @@ function splits6By(diet, carbSel, fitnessType, onoff){
       s.eggs += 0.02;
       s.dairy -= 0.02;
     }
+    if(diet==="TKD" && onoff==="off"){
+  s.meat += 0.07;
+  s.eggs += 0.05;
+  s.veg = 0;
+  s.fruit = 0;
+}
 
     const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
     for(const k in s){
@@ -3009,7 +3025,10 @@ const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
 
 let vegRatio = 0, fruitRatio = 0;
-if(diet==="Ketovore" || diet==="TKD"){
+if(diet==="TKD" && onoff==="off"){
+  vegRatio = 0;
+  fruitRatio = 0;
+}else if(diet==="Ketovore" || diet==="TKD"){
   vegRatio = 0.3;
   fruitRatio = 0.7;
 }else if(diet==="FruitCarnivore"){
@@ -3296,6 +3315,10 @@ function setFoodListAvailability(){
   });
 
   if(diet === "Carnivore"){
+    disableItem(topByName["野菜"]);
+    disableItem(topByName["果物"]);
+  }
+    if(diet === "TKD" && $("onoff").value === "off"){
     disableItem(topByName["野菜"]);
     disableItem(topByName["果物"]);
   }
