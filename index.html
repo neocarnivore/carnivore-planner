@@ -366,15 +366,15 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 
 .foodListContent,
 .foodSubContent{
-  max-height:0;
+  height:0;
   overflow:hidden;
   opacity:0;
   transform:translateY(-10px);
   transition:
-    max-height .78s cubic-bezier(.22,1,.36,1),
+    height .52s cubic-bezier(.22,.61,.36,1),
     opacity .42s ease,
-    transform .56s cubic-bezier(.22,1,.36,1);
-  will-change:max-height, transform, opacity;
+    transform .52s cubic-bezier(.22,.61,.36,1);
+  will-change:height, transform, opacity;
 }
 
 .foodListItem.is-opening > .foodListContent,
@@ -3236,10 +3236,10 @@ document.addEventListener("click", (e)=>{
   const syncOpenFoodHeights = () => {
   requestAnimationFrame(() => {
     document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
-      el.style.maxHeight = (el.scrollHeight + 80) + "px";
+      if(el.style.height !== "0px") el.style.height = el.scrollHeight + "px";
     });
     document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
-      el.style.maxHeight = (el.scrollHeight + 120) + "px";
+      if(el.style.height !== "0px") el.style.height = el.scrollHeight + "px";
     });
   });
 };
@@ -3257,21 +3257,27 @@ document.addEventListener("click", (e)=>{
   const isOpen = item.classList.contains("is-open");
 
   if(!isOpen){
-    item.classList.add("is-opening");
-    item.classList.add("is-open");
-    content.style.maxHeight = "0px";
-    requestAnimationFrame(()=>{
-      content.style.maxHeight = (content.scrollHeight + 120) + "px";
-    });
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);
-  }else{
+  item.classList.add("is-opening");
+  item.classList.add("is-open");
+  content.style.height = "0px";
+
+  requestAnimationFrame(()=>{
+    content.style.height = content.scrollHeight + "px";
+  });
+
+  setTimeout(()=>{
     item.classList.remove("is-opening");
-    content.style.maxHeight = content.scrollHeight + "px";
-    requestAnimationFrame(()=>{
-      item.classList.remove("is-open");
-      content.style.maxHeight = "0px";
-    });
-  }
+    content.style.height = "auto";
+  }, 520);
+}else{
+  item.classList.remove("is-opening");
+  content.style.height = content.scrollHeight + "px";
+
+  requestAnimationFrame(()=>{
+    content.style.height = "0px";
+    item.classList.remove("is-open");
+  });
+}
 
   syncOpenFoodHeights();
   return;
@@ -3290,21 +3296,27 @@ document.addEventListener("click", (e)=>{
   const isOpen = item.classList.contains("is-open");
 
   if(!isOpen){
-    item.classList.add("is-opening");
-    item.classList.add("is-open");
-    content.style.maxHeight = "0px";
-    requestAnimationFrame(()=>{
-      content.style.maxHeight = (content.scrollHeight + 80) + "px";
-    });
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);
-  }else{
+  item.classList.add("is-opening");
+  item.classList.add("is-open");
+  content.style.height = "0px";
+
+  requestAnimationFrame(()=>{
+    content.style.height = content.scrollHeight + "px";
+  });
+
+  setTimeout(()=>{
     item.classList.remove("is-opening");
-    content.style.maxHeight = content.scrollHeight + "px";
-    requestAnimationFrame(()=>{
-      item.classList.remove("is-open");
-      content.style.maxHeight = "0px";
-    });
-  }
+    content.style.height = "auto";
+  }, 520);
+}else{
+  item.classList.remove("is-opening");
+  content.style.height = content.scrollHeight + "px";
+
+  requestAnimationFrame(()=>{
+    content.style.height = "0px";
+    item.classList.remove("is-open");
+  });
+}
 
   syncOpenFoodHeights();
 }
@@ -3455,20 +3467,20 @@ function setFoodListAvailability(){
 
   requestAnimationFrame(()=>{
   document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
-    el.style.maxHeight = (el.scrollHeight + 80) + "px";
-  });
-  document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
-    el.style.maxHeight = (el.scrollHeight + 120) + "px";
-  });
+  el.style.height = el.scrollHeight + "px";
+});
+document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
+  el.style.height = el.scrollHeight + "px";
+});
 });
 }
 
 window.addEventListener("resize", ()=>{
   document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
-    el.style.maxHeight = (el.scrollHeight + 80) + "px";
-  });
-  document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
-    el.style.maxHeight = (el.scrollHeight + 120) + "px";
-  });
+  el.style.height = el.scrollHeight + "px";
+});
+document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
+  el.style.height = el.scrollHeight + "px";
+});
 });
 </script>
