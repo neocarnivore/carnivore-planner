@@ -94,38 +94,10 @@ body:not(.light){
 
 .foodListItem{
   background:#ffffff;
-  border:1.5px solid transparent;
+  border:1.5px solid rgba(232,87,69,.14);
   border-radius:38px;
   box-shadow:none;
   overflow:hidden;
-  padding:1.5px;
-}
-
-.foodListItem:has(.foodListBtn[data-tone="p"]){
-  border-color:var(--p);
-  background:var(--p);
-}
-.foodListItem:has(.foodListBtn[data-tone="f"]){
-  border-color:var(--f);
-  background:var(--f);
-}
-.foodListItem:has(.foodListBtn[data-tone="c"]){
-  border-color:var(--c);
-  background:var(--c);
-}
-
-/* 開けないタブは今まで通り薄いまま */
-.foodListItem:has(.foodListBtn.is-disabled[data-tone="p"]){
-  border-color:rgba(42,161,255,.16);
-  background:rgba(42,161,255,.10);
-}
-.foodListItem:has(.foodListBtn.is-disabled[data-tone="f"]){
-  border-color:rgba(255,180,84,.18);
-  background:rgba(255,180,84,.10);
-}
-.foodListItem:has(.foodListBtn.is-disabled[data-tone="c"]){
-  border-color:rgba(72,209,181,.18);
-  background:rgba(72,209,181,.10);
 }
 
 .foodSubItem{
@@ -149,11 +121,7 @@ body:not(.light){
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .20s ease,
-    filter .26s ease,
-    background-color .26s ease,
-    border-radius .42s ease;
+  transition:transform .14s ease, filter .18s ease, background-color .18s ease;
 }
 
 .foodSubBtn{
@@ -163,32 +131,23 @@ body:not(.light){
   justify-content:space-between;
   gap:8px;
   padding:9px 12px 8px;
-  border:0;
+  border:1.5px solid #e6edf5;
   background:#fff;
-  color:var(--text);
+  color:#151515;
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
   transition:
     transform .18s ease,
-    filter .24s ease,
-    background-color .24s ease;
+    filter .26s ease,
+    background-color .26s ease,
+    border-color .26s ease,
+    box-shadow .32s ease;
 }
 
 body:not(.light) .foodSubBtn{
   background:#fff;
   color:#151515;
-}
-
-.foodListItem.is-open > .foodListBtn{
-  border-bottom-left-radius:0;
-  border-bottom-right-radius:0;
-}
-
-.foodListContent{
-  background:#fff;
-  border-bottom-left-radius:36px;
-  border-bottom-right-radius:36px;
 }
 
 .foodListLabel{
@@ -204,36 +163,59 @@ body:not(.light) .foodSubBtn{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
 }
 
-.foodListBtn[data-tone="p"] .foodListLabel{ background:var(--p); }
-.foodListBtn[data-tone="f"] .foodListLabel{ background:var(--f); }
-.foodListBtn[data-tone="c"] .foodListLabel{ background:var(--c); }
+.foodListBtn[data-tone="p"] .foodListLabel{
+  background:var(--p);
+}
+.foodListBtn[data-tone="f"] .foodListLabel{
+  background:var(--f);
+}
+.foodListBtn[data-tone="c"] .foodListLabel{
+  background:var(--c);
+}
 
 .foodSubLabel{
   display:inline-flex;
   align-items:center;
   min-height:26px;
-  padding:4px 11px;
+  padding:0 11px;
   border-radius:999px;
   background:#fff !important;
   color:#151515;
   font-size:12px;
   font-weight:800;
-  line-height:1.35;
-  white-space:normal;
-  text-align:left;
-  max-width:calc(100% - 40px);
+  line-height:1.2;
   box-shadow:none;
-  border:1.5px solid transparent;
 }
 
-.foodSubBtn[data-tone="p"] .foodSubLabel{
+body:not(.light) .foodSubLabel{
+  background:#fff !important;
+  color:#151515;
+}
+
+.foodListItem:has(.foodListBtn[data-tone="p"]){
+  border-color:rgba(42,161,255,.16);
+}
+.foodListItem:has(.foodListBtn[data-tone="f"]){
+  border-color:rgba(255,180,84,.18);
+}
+.foodListItem:has(.foodListBtn[data-tone="c"]){
+  border-color:rgba(72,209,181,.18);
+}
+
+.foodSubBtn[data-tone="p"]{
   border-color:var(--p);
 }
-.foodSubBtn[data-tone="f"] .foodSubLabel{
+.foodSubBtn[data-tone="f"]{
   border-color:var(--f);
 }
-.foodSubBtn[data-tone="c"] .foodSubLabel{
+.foodSubBtn[data-tone="c"]{
   border-color:var(--c);
+}
+
+.foodSubBtn[data-tone="p"] .foodSubLabel,
+.foodSubBtn[data-tone="f"] .foodSubLabel,
+.foodSubBtn[data-tone="c"] .foodSubLabel{
+  border:none;
 }
 
 .foodListArrow{
@@ -245,11 +227,37 @@ body:not(.light) .foodSubBtn{
   background:#ffffff;
   border:1.5px solid rgba(160,160,160,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:
-    transform .68s cubic-bezier(.22,1,.36,1),
-    box-shadow .40s ease,
-    background-color .40s ease,
-    border-color .40s ease;
+  transition:transform .52s cubic-bezier(.22,1,.36,1), box-shadow .32s ease, background-color .32s ease, border-color .32s ease;
+}
+
+/* ←ここに追加 */
+
+.foodListItem.is-open > .foodListBtn .foodListArrow{
+  background:#fffdfc;
+  box-shadow:0 10px 22px rgba(0,0,0,.08);
+}
+
+.foodListBtn[data-tone="p"] .foodListArrow{
+  border-color:rgba(42,161,255,.18);
+  box-shadow:0 8px 18px rgba(42,161,255,.10);
+}
+.foodListBtn[data-tone="f"] .foodListArrow{
+  border-color:rgba(255,180,84,.20);
+  box-shadow:0 8px 18px rgba(255,180,84,.10);
+}
+.foodListBtn[data-tone="c"] .foodListArrow{
+  border-color:rgba(72,209,181,.20);
+  box-shadow:0 8px 18px rgba(72,209,181,.10);
+}
+
+.foodListItem.is-open > .foodListBtn[data-tone="p"] .foodListArrow{
+  box-shadow:0 10px 22px rgba(42,161,255,.14);
+}
+.foodListItem.is-open > .foodListBtn[data-tone="f"] .foodListArrow{
+  box-shadow:0 10px 22px rgba(255,180,84,.14);
+}
+.foodListItem.is-open > .foodListBtn[data-tone="c"] .foodListArrow{
+  box-shadow:0 10px 22px rgba(72,209,181,.14);
 }
 
 .foodSubArrow{
@@ -261,16 +269,13 @@ body:not(.light) .foodSubBtn{
   background:#ffffff;
   border:1.5px solid rgba(140,140,140,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:
-    transform .46s cubic-bezier(.22,1,.36,1),
-    box-shadow .30s ease,
-    background-color .30s ease;
+  transition:transform .32s cubic-bezier(.22,1,.36,1), box-shadow .24s ease, background-color .24s ease;
 }
 
 body:not(.light) .foodListArrow,
 body:not(.light) .foodSubArrow{
-  background:#fff;
-  border-color:rgba(0,0,0,.10);
+  background:#000;
+  border-color:rgba(255,255,255,.16);
   box-shadow:none;
 }
 
@@ -345,9 +350,9 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   overflow:hidden;
   opacity:0;
   transition:
-    max-height 1.12s cubic-bezier(.22,1,.36,1),
-    opacity .62s ease;
-  will-change:max-height, opacity;
+    max-height 1.08s cubic-bezier(.22,1,.36,1),
+    opacity .58s ease;
+  will-change:max-height;
 }
 
 .foodListItem.is-open > .foodListContent,
@@ -1897,7 +1902,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
       </button>
       <div class="foodListContent">
         <div class="foodListContentInner">
-          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">ベリー類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">ブルーベリー、ラズベリー、ブラックベリー、クランベリー、いちご</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">ベリー類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">ブルーベリー、ラズベリー、ブラックベリー、クランベリー、苺</p></div></div></div>
           <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">柑橘類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">グレープフルーツ、レモン、ライム、ゆず</p></div></div></div>
           <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">その他（控えめ）</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">バナナ、りんご、梨、キウイ、パイナップル、ぶどう、マスカット、みかん、オレンジ、マンゴー、スイカ、メロン、プラム、さくらんぼ、桃、柿 etc.</p></div></div></div>
         </div>
@@ -2586,22 +2591,11 @@ function splits6By(diet, carbSel, fitnessType, onoff){
     if(level===55) s = { meat:0.48, fish:0.077, eggs:0.174, dairy:0.049, veg:0.00, fruit:0.220 };
     if(level===70) s = { meat:0.43, fish:0.077, eggs:0.164, dairy:0.049, veg:0.00, fruit:0.280 };
   }
-  else if(diet==="TKD"){
-  if(onoff==="off"){
-    if(level===20) s = { meat:0.66, fish:0.08, eggs:0.24, dairy:0.02, veg:0.00, fruit:0.00 };
-    if(level===30) s = { meat:0.62, fish:0.08, eggs:0.27, dairy:0.03, veg:0.00, fruit:0.00 };
-    if(level===40) s = { meat:0.58, fish:0.08, eggs:0.30, dairy:0.04, veg:0.00, fruit:0.00 };
-  }else{
+  else {
     if(level===20) s = { meat:0.58, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.072 };
     if(level===30) s = { meat:0.54, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.115 };
     if(level===40) s = { meat:0.50, fish:0.077, eggs:0.184, dairy:0.049, veg:0.042, fruit:0.148 };
   }
-}
-else {
-  if(level===20) s = { meat:0.58, fish:0.077, eggs:0.194, dairy:0.049, veg:0.028, fruit:0.072 };
-  if(level===30) s = { meat:0.54, fish:0.077, eggs:0.184, dairy:0.049, veg:0.035, fruit:0.115 };
-  if(level===40) s = { meat:0.50, fish:0.077, eggs:0.184, dairy:0.049, veg:0.042, fruit:0.148 };
-}
 
   if(diet!=="Lion"){
     if(onoff==="on"){
@@ -2620,9 +2614,17 @@ else {
     s.fruit -= 0.05;
   }
 }
-    } else if(onoff==="off"){
+        } else if(onoff==="off"){
       s.eggs += 0.02;
       s.dairy -= 0.02;
+    }
+
+    if(diet==="TKD" && onoff==="off"){
+      const moved = (s.veg || 0) + (s.fruit || 0);
+      s.veg = 0;
+      s.fruit = 0;
+      s.meat += moved * 0.65;
+      s.eggs += moved * 0.35;
     }
 
     const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
@@ -2630,7 +2632,6 @@ else {
       s[k] = Math.max(0, s[k] / sum);
     }
     return s;
-  }
 
   return s;
 }
@@ -3040,17 +3041,8 @@ if(diet==="Ketovore" || diet==="TKD"){
 
 let kVeg = isStrictCarnivore ? 0 : (vegFruitKcal * vegRatio);
 let kFruit = isStrictCarnivore ? 0 : (vegFruitKcal * fruitRatio);
+const dairyLactoseKcal = (diet==="CarnivoreNoDairy") ? 0 : Math.max(0, ck - vegFruitKcal);
 
-if(diet==="TKD" && onoff==="off"){
-  kVeg = 0;
-  kFruit = 0;
-}
-
-const dairyLactoseKcal =
-  (diet==="CarnivoreNoDairy") ? 0 :
-  (diet==="TKD" && onoff==="off") ? 0 :
-  Math.max(0, ck - vegFruitKcal);
-  
 const MEAT_BIAS = 0.08;
 let meatShare=(sp.meat||0)+MEAT_BIAS, fishShare=(sp.fish||0), eggsShare=(sp.eggs||0), dairyShare=(sp.dairy||0);
 const sumAnimal = Math.max(meatShare+fishShare+eggsShare+dairyShare, 0.0001);
@@ -3400,3 +3392,5 @@ window.addEventListener("resize", ()=>{
   });
 });
 </script>
+</body>
+</html>
