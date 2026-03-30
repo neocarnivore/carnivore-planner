@@ -79,6 +79,34 @@ body:not(.light){
   .tab.goals{grid-template-columns:repeat(3,1fr);width:100%}
   .tab.goals button{width:100%}
   .tab.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  
+    .foodListTabs{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .foodListTab{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--input);
+    color:var(--text);
+    font-weight:700;
+    text-align:left;
+  }
+  .foodListIcon{
+    width:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    flex:0 0 28px;
+  }
+  
   .chartCard{display:flex;flex-direction:column;align-items:center}
   .chartHeader{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px}
   .chartBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -368,7 +396,7 @@ body:not(.light){
       <h3>食材別の目安摂取量</h3>
       <div class="row6">
   <div class="kpi">
-    <span class="small" id="labelMeat">肉</span>
+    <span class="small" id="labelMeat">肉類</span>
     <b id="gMeat">–</b><span class="small">g</span>
     <div class="small">≈ <b id="kMeat">–</b> kcal</div>
     <div class="bar p"><span id="meatbar"></span></div>
@@ -1322,6 +1350,40 @@ body:not(.light){
 })();
 </script>
 <!-- ===== 週間マクロ配分：ここまで ===== -->
+  <div class="card" id="foodListTabSection" style="display:none" aria-live="polite">
+    <h3>食材リスト</h3>
+    <div class="foodListTabs">
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🥩</span>
+        <span id="tabLabelMeat">肉類</span>
+      </button>
+
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🐟</span>
+        <span id="tabLabelFish">魚介類</span>
+      </button>
+
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🥚</span>
+        <span id="tabLabelEggs">卵</span>
+      </button>
+
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🧈</span>
+        <span id="tabLabelDairy">乳製品</span>
+      </button>
+
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🥬</span>
+        <span id="tabLabelVeg">野菜</span>
+      </button>
+
+      <button type="button" class="foodListTab">
+        <span class="foodListIcon">🍎</span>
+        <span id="tabLabelFruit">果物</span>
+      </button>
+    </div>
+  </div>
   <p class="small footerNote" style="margin-top:20px">
     各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
@@ -1584,7 +1646,7 @@ function resetFormAll(){
   $("onoff").disabled = true;
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
-  ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
+  ["baseCard","macroCard","mixCard","foodListTabSection"].forEach(id=>$(id).style.display="none");
 
   if($("presetSelect")) $("presetSelect").value = "";
   updatePFMenu();
@@ -2407,9 +2469,10 @@ $("ckcal").textContent = Math.round(ck).toLocaleString();
     (Math.round(carb_g))+"g"
   }｜活動係数AF×日別補正＝TDEE（±12%内）`;
   if(warnMsg){ $("fatWarn").textContent=warnMsg; $("fatWarn").style.display="block"; } else { $("fatWarn").style.display="none"; }
-  $("baseCard").style.display="block";
+    $("baseCard").style.display="block";
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
+  $("foodListTabSection").style.display="block";
 
   /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
@@ -2466,20 +2529,43 @@ if(diet==="BBBE"){
   $("labelDairy").textContent = "バター";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
+
+  $("tabLabelMeat").textContent = "牛肉";
+  $("tabLabelFish").textContent = "ベーコン";
+  $("tabLabelEggs").textContent = "卵";
+  $("tabLabelDairy").textContent = "バター";
+  $("tabLabelVeg").textContent = "野菜";
+  $("tabLabelFruit").textContent = "果物";
 } else if(diet==="Lion"){
-  $("labelMeat").textContent = $("lionMeat").value==="lamb" ? "羊肉" : "牛肉";
+  const lionLabel = $("lionMeat").value==="lamb" ? "羊肉" : "牛肉";
+
+  $("labelMeat").textContent = lionLabel;
   $("labelFish").textContent = "魚介類";
   $("labelEggs").textContent = "卵";
   $("labelDairy").textContent = "乳製品";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
+
+  $("tabLabelMeat").textContent = lionLabel;
+  $("tabLabelFish").textContent = "魚介類";
+  $("tabLabelEggs").textContent = "卵";
+  $("tabLabelDairy").textContent = "乳製品";
+  $("tabLabelVeg").textContent = "野菜";
+  $("tabLabelFruit").textContent = "果物";
 } else {
-  $("labelMeat").textContent = "肉";
+  $("labelMeat").textContent = "肉類";
   $("labelFish").textContent = "魚介類";
   $("labelEggs").textContent = "卵";
   $("labelDairy").textContent = "乳製品";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
+
+  $("tabLabelMeat").textContent = "肉類";
+  $("tabLabelFish").textContent = "魚介類";
+  $("tabLabelEggs").textContent = "卵";
+  $("tabLabelDairy").textContent = "乳製品";
+  $("tabLabelVeg").textContent = "野菜";
+  $("tabLabelFruit").textContent = "果物";
 }
 
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
@@ -2571,7 +2657,7 @@ function restoreFormFresh(){
   $("onoff").disabled = true;
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
-  ["baseCard","macroCard","mixCard"].forEach(id=>$(id).style.display="none");
+  ["baseCard","macroCard","mixCard","foodListTabSection"].forEach(id=>$(id).style.display="none");
 }
 if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 restoreLastPreset();
