@@ -445,7 +445,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 }
 
 .foodSubContent{
-  overflow:visible;
+  overflow:hidden;
 }
 
 .foodListItem.is-open{
@@ -3278,7 +3278,11 @@ document.addEventListener("click", (e)=>{
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       content.style.height = "0px";
-      item.classList.remove("is-open");
+
+      setTimeout(()=>{
+        item.classList.remove("is-open");
+        content.style.height = "0px";
+      }, 720);
     });
   });
 }
@@ -3313,6 +3317,11 @@ document.addEventListener("click", (e)=>{
   setTimeout(()=>{
     item.classList.remove("is-opening");
     content.style.height = "auto";
+
+    const parentContent = item.closest(".foodListContent");
+    if(parentContent && parentContent.closest(".foodListItem")?.classList.contains("is-open")){
+      parentContent.style.height = parentContent.scrollHeight + "px";
+    }
   }, 720);
 }else{
   item.classList.remove("is-opening");
@@ -3321,7 +3330,16 @@ document.addEventListener("click", (e)=>{
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       content.style.height = "0px";
-      item.classList.remove("is-open");
+
+      setTimeout(()=>{
+        item.classList.remove("is-open");
+        content.style.height = "0px";
+
+        const parentContent = item.closest(".foodListContent");
+        if(parentContent && parentContent.closest(".foodListItem")?.classList.contains("is-open")){
+          parentContent.style.height = parentContent.scrollHeight + "px";
+        }
+      }, 720);
     });
   });
 }
