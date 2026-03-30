@@ -92,23 +92,29 @@ body:not(.light){
   padding-bottom:8px;
 }
 
-.foodListItem,
-.foodSubItem{
+.foodListItem{
   background:var(--card);
   border:1.5px solid rgba(140,140,140,.14);
-  border-radius:38px;
+  border-radius:28px;
   box-shadow:none;
   overflow:hidden;
 }
 
-.foodListBtn,
-.foodSubBtn{
+.foodSubItem{
+  background:var(--card);
+  border:1.5px solid rgba(140,140,140,.14);
+  border-radius:18px;
+  box-shadow:none;
+  overflow:hidden;
+}
+
+.foodListBtn{
   width:100%;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
-  padding:18px 22px 16px;
+  gap:10px;
+  padding:12px 14px 11px;
   border:0;
   background:transparent;
   color:var(--text);
@@ -118,54 +124,118 @@ body:not(.light){
   transition:transform .14s ease, filter .18s ease, background-color .18s ease;
 }
 
-.foodListBtn:hover,
-.foodSubBtn:hover{
-  filter:brightness(.99);
+.foodSubBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:9px 12px 8px;
+  border:0;
+  background:#fff;
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .14s ease, filter .18s ease, background-color .18s ease;
 }
 
-.foodListBtn:active,
-.foodSubBtn:active{
-  transform:scale(.988);
+body:not(.light) .foodSubBtn{
+  background:#0a0a0a;
 }
 
-.foodListLabel,
-.foodSubLabel{
+.foodListLabel{
   display:inline-flex;
   align-items:center;
-  min-height:36px;
-  padding:0 18px;
+  min-height:30px;
+  padding:0 14px;
   border-radius:999px;
   color:#fff;
-  font-size:clamp(14px,1.55vw,18px);
+  font-size:13px;
   font-weight:800;
   line-height:1.2;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
 }
 
-.foodListBtn[data-tone="p"] .foodListLabel,
+.foodSubLabel{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:0 11px;
+  border-radius:999px;
+  background:#fff !important;
+  color:var(--text);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.2;
+  box-shadow:none;
+}
+
+body:not(.light) .foodSubLabel{
+  background:#0a0a0a !important;
+  color:#fff;
+}
+
+.foodListBtn[data-tone="p"],
+.foodSubBtn[data-tone="p"]{
+  border-left:3px solid var(--p);
+}
+.foodListBtn[data-tone="f"],
+.foodSubBtn[data-tone="f"]{
+  border-left:3px solid var(--f);
+}
+.foodListBtn[data-tone="c"],
+.foodSubBtn[data-tone="c"]{
+  border-left:3px solid var(--c);
+}
+
+.foodListItem:nth-child(1) > .foodListBtn[data-tone="p"]{ border-left-color:color-mix(in srgb, var(--p) 100%, white 0%); }
+.foodListItem:nth-child(2) > .foodListBtn[data-tone="p"]{ border-left-color:color-mix(in srgb, var(--p) 74%, white 26%); }
+
+.foodListItem:nth-child(3) > .foodListBtn[data-tone="f"]{ border-left-color:color-mix(in srgb, var(--f) 100%, white 0%); }
+.foodListItem:nth-child(4) > .foodListBtn[data-tone="f"]{ border-left-color:color-mix(in srgb, var(--f) 76%, white 24%); }
+
+.foodListItem:nth-child(5) > .foodListBtn[data-tone="c"]{ border-left-color:color-mix(in srgb, var(--c) 100%, white 0%); }
+.foodListItem:nth-child(6) > .foodListBtn[data-tone="c"]{ border-left-color:color-mix(in srgb, var(--c) 76%, white 24%); }
+
+.foodSubBtn[data-tone="p"]{
+  border:1.5px solid var(--p);
+}
 .foodSubBtn[data-tone="p"] .foodSubLabel{
-  background:linear-gradient(90deg,var(--p) 0%, color-mix(in srgb, var(--p) 72%, #ffffff 0%) 100%);
-  background:var(--p);
+  border:1px solid var(--p);
 }
 
-.foodListBtn[data-tone="f"] .foodListLabel,
+.foodSubBtn[data-tone="f"]{
+  border:1.5px solid var(--f);
+}
 .foodSubBtn[data-tone="f"] .foodSubLabel{
-  background:linear-gradient(90deg,var(--f) 0%, color-mix(in srgb, var(--f) 72%, #ffffff 0%) 100%);
-  background:var(--f);
+  border:1px solid var(--f);
 }
 
-.foodListBtn[data-tone="c"] .foodListLabel,
+.foodSubBtn[data-tone="c"]{
+  border:1.5px solid var(--c);
+}
 .foodSubBtn[data-tone="c"] .foodSubLabel{
-  background:linear-gradient(90deg,var(--c) 0%, color-mix(in srgb, var(--c) 72%, #ffffff 0%) 100%);
-  background:var(--c);
+  border:1px solid var(--c);
 }
 
-.foodListArrow,
+.foodListArrow{
+  position:relative;
+  width:34px;
+  height:34px;
+  min-width:34px;
+  border-radius:999px;
+  background:#ffffff;
+  border:1.5px solid rgba(140,140,140,.16);
+  box-shadow:0 8px 18px rgba(0,0,0,.05);
+  transition:transform .32s cubic-bezier(.22,1,.36,1), box-shadow .24s ease, background-color .24s ease;
+}
+
 .foodSubArrow{
   position:relative;
-  width:42px;
-  height:42px;
-  min-width:42px;
+  width:28px;
+  height:28px;
+  min-width:28px;
   border-radius:999px;
   background:#ffffff;
   border:1.5px solid rgba(140,140,140,.16);
@@ -188,7 +258,7 @@ body:not(.light) .foodSubArrow{
   position:absolute;
   top:50%;
   left:50%;
-  width:11px;
+  width:9px;
   height:2px;
   border-radius:999px;
   transform-origin:center;
@@ -266,6 +336,29 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   gap:10px;
 }
 
+.foodListItem.is-hidden,
+.foodSubItem.is-hidden{
+  display:none !important;
+}
+
+.foodListBtn.is-disabled,
+.foodSubBtn.is-disabled{
+  opacity:.38;
+  filter:saturate(.72);
+  cursor:default;
+}
+
+.foodListBtn.is-disabled:active,
+.foodSubBtn.is-disabled:active{
+  transform:scale(.992);
+}
+
+.foodListBtn.is-denied,
+.foodSubBtn.is-denied{
+  transform:scale(.992);
+  filter:brightness(.98);
+}
+
 .foodSubContentInner{
   padding:6px 18px 18px;
 }
@@ -279,30 +372,47 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 }
 
 @media (max-width:749px){
-  .foodListItem,
-  .foodSubItem{
-    border-radius:28px;
-  }
+  .foodListItem{
+  border-radius:22px;
+}
 
-  .foodListBtn,
-  .foodSubBtn{
-    padding:14px 14px 12px;
-    gap:12px;
-  }
+.foodSubItem{
+  border-radius:16px;
+}
 
-  .foodListLabel,
-  .foodSubLabel{
-    min-height:32px;
-    padding:0 14px;
-    font-size:12px;
-  }
+.foodListBtn{
+  padding:10px 12px 9px;
+  gap:10px;
+}
 
-  .foodListArrow,
-  .foodSubArrow{
-    width:36px;
-    height:36px;
-    min-width:36px;
-  }
+.foodSubBtn{
+  padding:8px 10px 7px;
+  gap:8px;
+}
+
+.foodListLabel{
+  min-height:28px;
+  padding:0 12px;
+  font-size:12px;
+}
+
+.foodSubLabel{
+  min-height:24px;
+  padding:0 10px;
+  font-size:11px;
+}
+
+.foodListArrow{
+  width:30px;
+  height:30px;
+  min-width:30px;
+}
+
+.foodSubArrow{
+  width:24px;
+  height:24px;
+  min-width:24px;
+}
 
   .foodListContentInner{
     padding:8px 8px 14px;
@@ -2005,6 +2115,7 @@ function resetFormAll(){
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard","foodListTabSection"].forEach(id=>$(id).style.display="none");
+  setFoodListAvailability();
 
   if($("presetSelect")) $("presetSelect").value = "";
   updatePFMenu();
@@ -2831,6 +2942,7 @@ $("ckcal").textContent = Math.round(ck).toLocaleString();
   $("macroCard").style.display="block";
   $("mixCard").style.display="block";
   $("foodListTabSection").style.display="block";
+  setFoodListAvailability();
 
   /* 食材配分 */
   const sp = splits6By(diet, carbSel, fitnessType, onoff);
@@ -2993,6 +3105,7 @@ function restoreFormFresh(){
   setNoneOptionVisible("fitnessType", false);
   setNoneOptionVisible("onoff", false);
   ["baseCard","macroCard","mixCard","foodListTabSection"].forEach(id=>$(id).style.display="none");
+  setFoodListAvailability();
 }
 if(!restoreFromSessionAndAutoCalc()){ restoreFormFresh(); }
 restoreLastPreset();
@@ -3004,6 +3117,14 @@ document.addEventListener("click", (e)=>{
   const topBtn = e.target.closest(".foodListBtn");
   const subBtn = e.target.closest(".foodSubBtn");
 
+  const deniedTap = (btn) => {
+    btn.classList.remove("is-denied");
+    requestAnimationFrame(()=>{
+      btn.classList.add("is-denied");
+      setTimeout(()=>btn.classList.remove("is-denied"), 140);
+    });
+  };
+
   const syncOpenFoodHeights = () => {
     requestAnimationFrame(() => {
       document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
@@ -3014,6 +3135,40 @@ document.addEventListener("click", (e)=>{
       });
     });
   };
+
+  if(topBtn){
+    if(topBtn.classList.contains("is-disabled")){
+      deniedTap(topBtn);
+      return;
+    }
+
+    const item = topBtn.parentElement;
+    const content = item.querySelector(":scope > .foodListContent");
+    if(!item || !content) return;
+
+    const isOpen = item.classList.contains("is-open");
+    item.classList.toggle("is-open", !isOpen);
+    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
+    syncOpenFoodHeights();
+    return;
+  }
+
+  if(subBtn){
+    if(subBtn.classList.contains("is-disabled")){
+      deniedTap(subBtn);
+      return;
+    }
+
+    const item = subBtn.parentElement;
+    const content = item.querySelector(":scope > .foodSubContent");
+    if(!item || !content) return;
+
+    const isOpen = item.classList.contains("is-open");
+    item.classList.toggle("is-open", !isOpen);
+    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
+    syncOpenFoodHeights();
+  }
+});
 
   if(topBtn){
     const item = topBtn.parentElement;
@@ -3038,6 +3193,154 @@ document.addEventListener("click", (e)=>{
     syncOpenFoodHeights();
   }
 });
+function setFoodListAvailability(){
+  const section = $("foodListTabSection");
+  if(!section) return;
+
+  const diet = $("diet").value;
+  const lionMeat = $("lionMeat") ? $("lionMeat").value : "";
+
+  const topItems = Array.from(section.querySelectorAll(".foodListItem"));
+  const topByName = {};
+  topItems.forEach(item=>{
+    const label = item.querySelector(".foodListLabel")?.textContent.trim();
+    if(label) topByName[label] = item;
+  });
+
+  const allSubItems = section.querySelectorAll(".foodSubItem");
+  const allLeafs = section.querySelectorAll(".foodLeaf");
+
+  allLeafs.forEach(p=>{
+    if(!p.dataset.defaultText) p.dataset.defaultText = p.textContent.trim();
+  });
+
+  function topSubs(topName){
+    const top = topByName[topName];
+    if(!top) return [];
+    return Array.from(top.querySelectorAll(":scope .foodSubItem"));
+  }
+
+  function subLabel(subItem){
+    return subItem.querySelector(".foodSubLabel")?.textContent.trim() || "";
+  }
+
+  function subByName(topName, subName){
+    return topSubs(topName).find(x => subLabel(x) === subName);
+  }
+
+  function resetItem(item){
+    if(!item) return;
+    item.classList.remove("is-hidden","is-open");
+    const btn = item.querySelector(":scope > .foodListBtn, :scope > .foodSubBtn");
+    const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
+    if(btn) btn.classList.remove("is-disabled");
+    if(content) content.style.maxHeight = "0px";
+  }
+
+  function hideItem(item){
+    if(!item) return;
+    item.classList.remove("is-open");
+    item.classList.add("is-hidden");
+    const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
+    if(content) content.style.maxHeight = "0px";
+  }
+
+  function disableItem(item){
+    if(!item) return;
+    item.classList.remove("is-open");
+    const btn = item.querySelector(":scope > .foodListBtn, :scope > .foodSubBtn");
+    const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
+    if(btn) btn.classList.add("is-disabled");
+    if(content) content.style.maxHeight = "0px";
+  }
+
+  function enableItem(item){
+    if(!item) return;
+    const btn = item.querySelector(":scope > .foodListBtn, :scope > .foodSubBtn");
+    item.classList.remove("is-hidden");
+    if(btn) btn.classList.remove("is-disabled");
+  }
+
+  function setLeaf(topName, subName, text){
+    const sub = subByName(topName, subName);
+    const leaf = sub?.querySelector(".foodLeaf");
+    if(leaf) leaf.textContent = text;
+  }
+
+  topItems.forEach(resetItem);
+  allSubItems.forEach(resetItem);
+  allLeafs.forEach(p=>{
+    if(p.dataset.defaultText) p.textContent = p.dataset.defaultText;
+  });
+
+  if(diet === "Carnivore"){
+    disableItem(topByName["野菜"]);
+    disableItem(topByName["果物"]);
+  }
+
+  if(diet === "CarnivoreNoDairy"){
+    disableItem(topByName["乳製品"]);
+    disableItem(topByName["野菜"]);
+    disableItem(topByName["果物"]);
+  }
+
+  if(diet === "BBBE"){
+  disableItem(topByName["魚介類"]);
+  disableItem(topByName["野菜"]);
+  disableItem(topByName["果物"]);
+
+  topSubs("肉類").forEach(sub=>{
+    const name = subLabel(sub);
+    if(name === "牛肉" || name === "加工肉（無添加）"){
+      enableItem(sub);
+    }else{
+      disableItem(sub);
+    }
+  });
+
+  topSubs("乳製品").forEach(sub=>{
+    const name = subLabel(sub);
+    if(name === "非発酵乳"){
+      enableItem(sub);
+    }else{
+      disableItem(sub);
+    }
+  });
+
+  setLeaf("肉類","加工肉（無添加）","ベーコン");
+  setLeaf("乳製品","非発酵乳","バター");
+}
+
+  if(diet === "Lion"){
+  disableItem(topByName["魚介類"]);
+  disableItem(topByName["卵"]);
+  disableItem(topByName["乳製品"]);
+  disableItem(topByName["野菜"]);
+  disableItem(topByName["果物"]);
+
+  topSubs("肉類").forEach(sub=>{
+    const name = subLabel(sub);
+    const allow =
+      (lionMeat === "lamb" && name === "羊肉") ||
+      (lionMeat !== "lamb" && name === "牛肉");
+
+    if(allow){
+      enableItem(sub);
+    }else{
+      disableItem(sub);
+    }
+  });
+}
+
+  requestAnimationFrame(()=>{
+    document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
+      el.style.maxHeight = el.scrollHeight + "px";
+    });
+    document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
+      el.style.maxHeight = el.scrollHeight + "px";
+    });
+  });
+}
 
 window.addEventListener("resize", ()=>{
   document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
