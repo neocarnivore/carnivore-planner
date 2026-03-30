@@ -10,9 +10,21 @@
 <script>
 (() => {
   const saved = localStorage.getItem('theme');
-  if (saved === null || saved === 'light') {
-    document.documentElement.className = 'light';
-  }
+  const isLight = saved === null || saved === 'light';
+  if (!isLight) return;
+
+  document.documentElement.classList.add('light');
+
+  const moveLightToBody = () => {
+    if (!document.body) {
+      requestAnimationFrame(moveLightToBody);
+      return;
+    }
+    document.body.classList.add('light');
+    document.documentElement.classList.remove('light');
+  };
+
+  moveLightToBody();
 })();
 </script>
 <style>
