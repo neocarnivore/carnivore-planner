@@ -54,8 +54,7 @@ body:not(.light){
   input,select,button{width:100%;padding:12px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text)}
   button{cursor:pointer;background:var(--acc);border:none;color:#fff;font-weight:700}
   .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .row6{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .row6{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}  .formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .formGrid > .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:430px){
     .formGrid{grid-template-columns:1fr}
@@ -168,44 +167,44 @@ body:not(.light) .foodSubBtn{
 .foodListLabel{
   display:inline-flex;
   align-items:center;
-  min-height:32px;
-  padding:0 15px;
-  border-radius:999px;
-  color:#ffffff;
-  font-size:clamp(13px,1.45vw,17px);
+  min-height:auto;
+  padding:0;
+  border-radius:0;
+  color:inherit;
+  font-size:clamp(15px,1.55vw,19px);
   font-weight:800;
   line-height:1.2;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow:none;
 }
 
-.foodListBtn[data-tone="p"] .foodListLabel{
-  background:var(--p);
+.foodListBtn[data-tone="p"]{
+  border-bottom-color:rgba(42,161,255,.28);
 }
-.foodListBtn[data-tone="f"] .foodListLabel{
-  background:var(--f);
+.foodListBtn[data-tone="f"]{
+  border-bottom-color:rgba(255,180,84,.30);
 }
-.foodListBtn[data-tone="c"] .foodListLabel{
-  background:var(--c);
+.foodListBtn[data-tone="c"]{
+  border-bottom-color:rgba(72,209,181,.28);
 }
 
 .foodSubLabel{
   display:inline-flex;
   align-items:center;
-  min-height:26px;
-  padding:0 11px;
-  border-radius:999px;
-  background:#fff !important;
-  color:#151515;
+  min-height:auto;
+  padding:0;
+  border-radius:0;
+  background:transparent !important;
+  color:inherit;
   font-size:12px;
   font-weight:800;
   line-height:1.2;
   box-shadow:none;
-  border:1px solid transparent;
+  border:none;
 }
 
 body:not(.light) .foodSubLabel{
-  background:#000 !important;
-  color:#fff;
+  background:transparent !important;
+  color:inherit;
 }
 
 .foodListItem:has(.foodListBtn[data-tone="p"]){
@@ -224,14 +223,14 @@ body:not(.light) .foodSubLabel{
   border:none;
 }
 
-.foodSubBtn[data-tone="p"] .foodSubLabel{
-  border-color:var(--p);
+.foodSubBtn[data-tone="p"]{
+  border-bottom-color:rgba(42,161,255,.22);
 }
-.foodSubBtn[data-tone="f"] .foodSubLabel{
-  border-color:var(--f);
+.foodSubBtn[data-tone="f"]{
+  border-bottom-color:rgba(255,180,84,.24);
 }
-.foodSubBtn[data-tone="c"] .foodSubLabel{
-  border-color:var(--c);
+.foodSubBtn[data-tone="c"]{
+  border-bottom-color:rgba(72,209,181,.22);
 }
 
 .foodListArrow{
@@ -251,11 +250,6 @@ body:not(.light) .foodSubLabel{
 .foodListItem.is-open > .foodListBtn .foodListArrow{
   background:#fffdfc;
   box-shadow:0 10px 22px rgba(0,0,0,.08);
-}
-
-.foodListItem.is-open > .foodListBtn{
-  border-bottom-left-radius:0;
-  border-bottom-right-radius:0;
 }
 
 .foodListBtn[data-tone="p"] .foodListArrow{
@@ -341,20 +335,21 @@ body:not(.light) .foodSubArrow{
 
 .foodListArrow::before,
 .foodSubArrow::before{
-  transform:translate(-78%,-50%) rotate(45deg);
+  width:10px;
+  height:2px;
+  transform:translate(-50%,-50%) rotate(0deg);
 }
 .foodListArrow::after,
 .foodSubArrow::after{
-  transform:translate(-22%,-50%) rotate(-45deg);
+  width:2px;
+  height:10px;
+  transform:translate(-50%,-50%) rotate(0deg);
 }
 
-.foodListItem.is-open > .foodListBtn .foodListArrow::before,
-.foodSubItem.is-open > .foodSubBtn .foodSubArrow::before{
-  transform:translate(-78%,-50%) rotate(-45deg);
-}
 .foodListItem.is-open > .foodListBtn .foodListArrow::after,
 .foodSubItem.is-open > .foodSubBtn .foodSubArrow::after{
-  transform:translate(-22%,-50%) rotate(45deg);
+  opacity:0;
+  transform:translate(-50%,-50%) scaleY(.15);
 }
 
 .foodListItem.is-open > .foodListBtn .foodListArrow{
@@ -373,11 +368,11 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transform:translateY(-6px);
+  transform:translateY(-8px);
   transition:
-    max-height 1.18s cubic-bezier(.18,.88,.22,1),
-    opacity .68s ease,
-    transform .68s cubic-bezier(.22,1,.36,1);
+    max-height 1.48s cubic-bezier(.16,.86,.22,1),
+    opacity .88s ease,
+    transform .88s cubic-bezier(.22,1,.36,1);
   will-change:max-height, transform;
 }
 
@@ -454,7 +449,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 
 @media (max-width:749px){
   .foodListItem{
-  border-radius:18px;
+  border-radius:0px;
 }
 
 .foodListBtn{
