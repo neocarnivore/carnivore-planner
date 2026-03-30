@@ -174,16 +174,27 @@ body:not(.light) .foodSubBtn{
   padding:0 11px;
   border-radius:999px;
   background:#fff !important;
-  color:var(--text);
+  color:#151515;
   font-size:12px;
   font-weight:800;
   line-height:1.2;
   box-shadow:none;
+  border:1.5px solid transparent;
 }
 
 body:not(.light) .foodSubLabel{
-  background:#0a0a0a !important;
-  color:#fff;
+  background:#fff !important;
+  color:#151515;
+}
+
+.foodSubBtn[data-tone="p"] .foodSubLabel{
+  border-color:var(--p);
+}
+.foodSubBtn[data-tone="f"] .foodSubLabel{
+  border-color:var(--f);
+}
+.foodSubBtn[data-tone="c"] .foodSubLabel{
+  border-color:var(--c);
 }
 
 .foodListItem:has(.foodListBtn[data-tone="p"]){
@@ -202,12 +213,6 @@ body:not(.light) .foodSubLabel{
   border:none;
 }
 
-.foodSubBtn[data-tone="p"] .foodSubLabel,
-.foodSubBtn[data-tone="f"] .foodSubLabel,
-.foodSubBtn[data-tone="c"] .foodSubLabel{
-  border:none;
-}
-
 .foodListArrow{
   position:relative;
   width:42px;
@@ -217,7 +222,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(160,160,160,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:transform .52s cubic-bezier(.22,1,.36,1), box-shadow .32s ease, background-color .32s ease, border-color .32s ease;
+  transition:transform .68s cubic-bezier(.22,1,.36,1), box-shadow .38s ease, background-color .38s ease, border-color .38s ease;
 }
 
 /* ←ここに追加 */
@@ -259,7 +264,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(140,140,140,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:transform .32s cubic-bezier(.22,1,.36,1), box-shadow .24s ease, background-color .24s ease;
+  transition:transform .48s cubic-bezier(.22,1,.36,1), box-shadow .30s ease, background-color .30s ease;
 }
 
 body:not(.light) .foodListArrow,
@@ -339,7 +344,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transition:max-height .82s cubic-bezier(.22,1,.36,1), opacity .42s ease;
+  transition:max-height 1.12s cubic-bezier(.22,1,.36,1), opacity .56s ease;
   will-change:max-height;
 }
 
@@ -2602,9 +2607,17 @@ function splits6By(diet, carbSel, fitnessType, onoff){
     s.fruit -= 0.05;
   }
 }
-    } else if(onoff==="off"){
-      s.eggs += 0.02;
-      s.dairy -= 0.02;
+        } else if(onoff==="off"){
+      if(diet==="TKD"){
+        const plantShift = (s.veg || 0) + (s.fruit || 0);
+        s.veg = 0;
+        s.fruit = 0;
+        s.meat += plantShift * 0.7;
+        s.eggs += plantShift * 0.3;
+      }else{
+        s.eggs += 0.02;
+        s.dairy -= 0.02;
+      }
     }
 
     const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
@@ -3004,12 +3017,16 @@ const level =
 const VEG_FRUIT_KCAL_CAP = { 20: 30, 30: 45, 40: 60, 55: 82.5, 70: 105 };
 
 const isStrictCarnivore = (diet==="Carnivore" || diet==="CarnivoreNoDairy" || diet==="BBBE" || diet==="Lion");
-const carbKcalTotal = isStrictCarnivore ? 0 : ck;
+const isTKDRest = (diet==="TKD" && onoff==="off");
+const carbKcalTotal = (isStrictCarnivore || isTKDRest) ? 0 : ck;
 const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
 
 let vegRatio = 0, fruitRatio = 0;
-if(diet==="Ketovore" || diet==="TKD"){
+if(isTKDRest){
+  vegRatio = 0;
+  fruitRatio = 0;
+}else if(diet==="Ketovore" || diet==="TKD"){
   vegRatio = 0.3;
   fruitRatio = 0.7;
 }else if(diet==="FruitCarnivore"){
@@ -3020,8 +3037,8 @@ if(diet==="Ketovore" || diet==="TKD"){
   fruitRatio = 0;
 }
 
-let kVeg = isStrictCarnivore ? 0 : (vegFruitKcal * vegRatio);
-let kFruit = isStrictCarnivore ? 0 : (vegFruitKcal * fruitRatio);
+let kVeg = (isStrictCarnivore || isTKDRest) ? 0 : (vegFruitKcal * vegRatio);
+let kFruit = (isStrictCarnivore || isTKDRest) ? 0 : (vegFruitKcal * fruitRatio);
 const dairyLactoseKcal = (diet==="CarnivoreNoDairy") ? 0 : Math.max(0, ck - vegFruitKcal);
 
 const MEAT_BIAS = 0.08;
@@ -3300,8 +3317,7 @@ function setFoodListAvailability(){
     disableItem(topByName["果物"]);
   }
 
-  if(diet === "CarnivoreNoDairy"){
-    disableItem(topByName["乳製品"]);
+    if(diet === "TKD" && $("onoff").value === "off"){
     disableItem(topByName["野菜"]);
     disableItem(topByName["果物"]);
   }
