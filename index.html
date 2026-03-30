@@ -426,18 +426,18 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   opacity:0;
   transform:translateY(-10px);
   transition:
-    max-height .78s cubic-bezier(.22,1,.36,1),
-    opacity .42s ease,
-    transform .56s cubic-bezier(.22,1,.36,1);
+    max-height 1.18s cubic-bezier(.22,1,.36,1),
+    opacity .62s ease,
+    transform .82s cubic-bezier(.22,1,.36,1);
   will-change:max-height, transform, opacity;
 }
 
 .foodListItem.is-opening > .foodListContent,
 .foodSubItem.is-opening > .foodSubContent{
   transition:
-    max-height .92s cubic-bezier(.22,1,.36,1),
-    opacity .48s ease,
-    transform .62s cubic-bezier(.22,1,.36,1);
+    max-height 1.34s cubic-bezier(.22,1,.36,1),
+    opacity .7s ease,
+    transform .92s cubic-bezier(.22,1,.36,1);
 }
 
 .foodListItem.is-open > .foodListContent,
@@ -3356,8 +3356,7 @@ document.addEventListener("click", (e)=>{
     item.classList.add("is-opening");
     item.classList.add("is-open");
     content.style.maxHeight = (content.scrollHeight + 120) + "px";
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);  }else{
-    item.classList.remove("is-opening");
+    setTimeout(()=>item.classList.remove("is-opening"), 1400);    item.classList.remove("is-opening");
     item.classList.remove("is-open");
     content.style.maxHeight = "0px";
   }
@@ -3382,7 +3381,7 @@ document.addEventListener("click", (e)=>{
     item.classList.add("is-opening");
     item.classList.add("is-open");
     content.style.maxHeight = (content.scrollHeight + 80) + "px";
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);  }else{
+    setTimeout(()=>item.classList.remove("is-opening"), 1400);
     item.classList.remove("is-opening");
     item.classList.remove("is-open");
     content.style.maxHeight = "0px";
