@@ -1603,18 +1603,38 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
     ck = carb_g * 4;
     fk = fat_g * 9;
 
+// --- 食材カロリー割り当て ---
+let dairy_kcal = fk;
+let fruit_kcal = ck;
+
+// TKD：運動日は脂質→糖質へシフト
+if(diet==="TKD" && onoffType==="on"){
+  const shift = dairy_kcal * 0.5;
+  dairy_kcal -= shift;
+  fruit_kcal += shift;
+}
+
+// --- g換算 ---
+let dairy_g = Math.round(dairy_kcal / 1.6);
+let fruit_g = Math.round(fruit_kcal / 0.6);
+
     return {
-      kcal: Math.round(pk + fk + ck),
-      p: Math.round(protein_g),
-      f: Math.round(fat_g),
-      c: Math.round(carb_g),
-      pk: Math.round(pk),
-      fk: Math.round(fk),
-      ck: Math.round(ck),
-      tdee,
-      gF,
-      dayAdj
-    };
+  kcal: Math.round(pk + fk + ck),
+  p: Math.round(protein_g),
+  f: Math.round(fat_g),
+  c: Math.round(carb_g),
+  pk: Math.round(pk),
+  fk: Math.round(fk),
+  ck: Math.round(ck),
+
+  // 👇追加
+  dairy_g,
+  fruit_g,
+
+  tdee,
+  gF,
+  dayAdj
+};
   }
 
   function buildSmoothPath(points){
