@@ -131,23 +131,17 @@ body:not(.light){
   justify-content:space-between;
   gap:8px;
   padding:9px 12px 8px;
-  border:1.5px solid #e6edf5;
+  border:0;
   background:#fff;
-  color:#151515;
+  color:var(--text);
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .18s ease,
-    filter .26s ease,
-    background-color .26s ease,
-    border-color .26s ease,
-    box-shadow .32s ease;
+  transition:transform .14s ease, filter .18s ease, background-color .18s ease;
 }
 
 body:not(.light) .foodSubBtn{
-  background:#fff;
-  color:#151515;
+  background:#0a0a0a;
 }
 
 .foodListLabel{
@@ -180,7 +174,7 @@ body:not(.light) .foodSubBtn{
   padding:0 11px;
   border-radius:999px;
   background:#fff !important;
-  color:#151515;
+  color:var(--text);
   font-size:12px;
   font-weight:800;
   line-height:1.2;
@@ -188,8 +182,8 @@ body:not(.light) .foodSubBtn{
 }
 
 body:not(.light) .foodSubLabel{
-  background:#fff !important;
-  color:#151515;
+  background:#0a0a0a !important;
+  color:#fff;
 }
 
 .foodListItem:has(.foodListBtn[data-tone="p"]){
@@ -202,14 +196,10 @@ body:not(.light) .foodSubLabel{
   border-color:rgba(72,209,181,.18);
 }
 
-.foodSubBtn[data-tone="p"]{
-  border-color:var(--p);
-}
-.foodSubBtn[data-tone="f"]{
-  border-color:var(--f);
-}
+.foodSubBtn[data-tone="p"],
+.foodSubBtn[data-tone="f"],
 .foodSubBtn[data-tone="c"]{
-  border-color:var(--c);
+  border:none;
 }
 
 .foodSubBtn[data-tone="p"] .foodSubLabel,
@@ -349,9 +339,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transition:
-    max-height 1.08s cubic-bezier(.22,1,.36,1),
-    opacity .58s ease;
+  transition:max-height .82s cubic-bezier(.22,1,.36,1), opacity .42s ease;
   will-change:max-height;
 }
 
@@ -2614,17 +2602,9 @@ function splits6By(diet, carbSel, fitnessType, onoff){
     s.fruit -= 0.05;
   }
 }
-        } else if(onoff==="off"){
+    } else if(onoff==="off"){
       s.eggs += 0.02;
       s.dairy -= 0.02;
-    }
-
-    if(diet==="TKD" && onoff==="off"){
-      const moved = (s.veg || 0) + (s.fruit || 0);
-      s.veg = 0;
-      s.fruit = 0;
-      s.meat += moved * 0.65;
-      s.eggs += moved * 0.35;
     }
 
     const sum = Object.values(s).reduce((a,b)=>a+b,0) || 1;
@@ -2632,6 +2612,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
       s[k] = Math.max(0, s[k] / sum);
     }
     return s;
+  }
 
   return s;
 }
@@ -3390,4 +3371,5 @@ window.addEventListener("resize", ()=>{
   document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
     el.style.maxHeight = (el.scrollHeight + 120) + "px";
   });
+});
 });
