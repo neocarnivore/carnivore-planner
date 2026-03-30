@@ -2594,14 +2594,7 @@ function splits6By(diet, carbSel, fitnessType, onoff){
       }else if(["strength","anaerobic","martial"].includes(fitnessType)){
   s.meat += 0.03;
   s.eggs += 0.02;
-
-  if(diet==="TKD"){
-    s.dairy += 0.002;
-    s.fruit += 0.008;
-  }else{
-    s.dairy += 0.01;
-  }
-
+  s.dairy += 0.01;
   if(diet!=="FruitCarnivore"){
     s.veg -= 0.03;
     s.fruit -= 0.02;
@@ -3016,17 +3009,9 @@ const vegFruitKcalCap = VEG_FRUIT_KCAL_CAP[level] ?? 75;
 const vegFruitKcal = Math.min(carbKcalTotal, vegFruitKcalCap);
 
 let vegRatio = 0, fruitRatio = 0;
-if(diet==="Ketovore"){
+if(diet==="Ketovore" || diet==="TKD"){
   vegRatio = 0.3;
   fruitRatio = 0.7;
-}else if(diet==="TKD"){
-  if(onoff==="on"){
-    vegRatio = 0.22;
-    fruitRatio = 0.78;
-  }else{
-    vegRatio = 0.3;
-    fruitRatio = 0.7;
-  }
 }else if(diet==="FruitCarnivore"){
   vegRatio = 0;
   fruitRatio = 1;
