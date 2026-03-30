@@ -92,15 +92,15 @@ body:not(.light){
 }
 
 .foodListItem{
-  background:#ffffff;
-  border:1.5px solid rgba(232,87,69,.14);
-  border-radius:18px;
+  background:transparent;
+  border:none;
+  border-radius:0;
   box-shadow:none;
   overflow:hidden;
 }
 body:not(.light) .foodListItem{
-  background:#000;
-  border-color:rgba(255,255,255,.12);
+  background:transparent;
+  border:none;
 }
 
 .foodSubItem{
@@ -130,7 +130,7 @@ body:not(.light) .foodSubItem{
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .34s cubic-bezier(.22,1,.36,1);
+  transition:none;
 }
 body:not(.light) .foodListBtn{
   background:#000;
@@ -150,11 +150,7 @@ body:not(.light) .foodListBtn{
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .26s cubic-bezier(.22,1,.36,1),
-    filter .34s ease,
-    background-color .34s ease,
-    border-color .34s ease;
+  transition:none;
 }
 
 body:not(.light) .foodSubBtn{
@@ -250,7 +246,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(160,160,160,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:transform .52s cubic-bezier(.22,1,.36,1), box-shadow .32s ease, background-color .32s ease, border-color .32s ease;
+  transition:none;
 }
 
 /* ←ここに追加 */
@@ -292,10 +288,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(140,140,140,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:
-    transform .46s cubic-bezier(.22,1,.36,1),
-    box-shadow .30s ease,
-    background-color .30s ease;
+  transition:none;
 }
 
 body:not(.light) .foodListArrow,
@@ -376,12 +369,20 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transform:translateY(-10px);
+  transform:translateY(-6px);
   transition:
-    max-height 1.95s cubic-bezier(.16,.86,.22,1),
-    opacity 1.08s ease,
-    transform 1.08s cubic-bezier(.22,1,.36,1);
+    max-height .52s ease,
+    opacity .18s ease,
+    transform .18s ease;
   will-change:max-height, transform;
+}
+
+.foodListItem.is-opening > .foodListContent,
+.foodSubItem.is-opening > .foodSubContent{
+  transition:
+    max-height 1.22s cubic-bezier(.16,.88,.22,1),
+    opacity .42s ease,
+    transform .42s cubic-bezier(.22,1,.36,1);
 }
 
 .foodListItem.is-open > .foodListContent,
@@ -3238,35 +3239,57 @@ document.addEventListener("click", (e)=>{
 };
 
   if(topBtn){
-    if(topBtn.classList.contains("is-disabled")){
-      deniedTap(topBtn);
-      return;
-    }
-
-    const item = topBtn.parentElement;
-    const content = item.querySelector(":scope > .foodListContent");
-    if(!item || !content) return;
-
-    const isOpen = item.classList.contains("is-open");
-    item.classList.toggle("is-open", !isOpen);
-    content.style.maxHeight = !isOpen ? ((content.scrollHeight + 120) + "px") : "0px";
-syncOpenFoodHeights();    return;
+  if(topBtn.classList.contains("is-disabled")){
+    deniedTap(topBtn);
+    return;
   }
 
+  const item = topBtn.parentElement;
+  const content = item.querySelector(":scope > .foodListContent");
+  if(!item || !content) return;
+
+  const isOpen = item.classList.contains("is-open");
+
+  if(!isOpen){
+    item.classList.add("is-opening");
+    item.classList.add("is-open");
+    content.style.maxHeight = (content.scrollHeight + 120) + "px";
+    setTimeout(()=>item.classList.remove("is-opening"), 1300);
+  }else{
+    item.classList.remove("is-opening");
+    item.classList.remove("is-open");
+    content.style.maxHeight = "0px";
+  }
+
+  syncOpenFoodHeights();
+  return;
+}
+
   if(subBtn){
-    if(subBtn.classList.contains("is-disabled")){
-      deniedTap(subBtn);
-      return;
-    }
+  if(subBtn.classList.contains("is-disabled")){
+    deniedTap(subBtn);
+    return;
+  }
 
-    const item = subBtn.parentElement;
-    const content = item.querySelector(":scope > .foodSubContent");
-    if(!item || !content) return;
+  const item = subBtn.parentElement;
+  const content = item.querySelector(":scope > .foodSubContent");
+  if(!item || !content) return;
 
-    const isOpen = item.classList.contains("is-open");
-    item.classList.toggle("is-open", !isOpen);
-    content.style.maxHeight = !isOpen ? ((content.scrollHeight + 80) + "px") : "0px";
-syncOpenFoodHeights();  }
+  const isOpen = item.classList.contains("is-open");
+
+  if(!isOpen){
+    item.classList.add("is-opening");
+    item.classList.add("is-open");
+    content.style.maxHeight = (content.scrollHeight + 80) + "px";
+    setTimeout(()=>item.classList.remove("is-opening"), 1300);
+  }else{
+    item.classList.remove("is-opening");
+    item.classList.remove("is-open");
+    content.style.maxHeight = "0px";
+  }
+
+  syncOpenFoodHeights();
+}
 });
 
 function setFoodListAvailability(){
