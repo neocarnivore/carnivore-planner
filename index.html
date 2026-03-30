@@ -122,8 +122,8 @@ body:not(.light) .foodSubItem{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
-  padding:18px 22px 16px;
+  gap:14px;
+  padding:14px 16px 13px;
   border:0;
   background:#ffffff;
   color:#151515;
@@ -168,11 +168,11 @@ body:not(.light) .foodSubBtn{
 .foodListLabel{
   display:inline-flex;
   align-items:center;
-  min-height:36px;
-  padding:0 18px;
+  min-height:32px;
+  padding:0 15px;
   border-radius:999px;
   color:#ffffff;
-  font-size:clamp(14px,1.55vw,18px);
+  font-size:clamp(13px,1.45vw,17px);
   font-weight:800;
   line-height:1.2;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
@@ -200,7 +200,7 @@ body:not(.light) .foodSubBtn{
   font-weight:800;
   line-height:1.2;
   box-shadow:none;
-  border:1.5px solid transparent;
+  border:1px solid transparent;
 }
 
 body:not(.light) .foodSubLabel{
@@ -400,8 +400,8 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 
 .foodListBtn.is-disabled,
 .foodSubBtn.is-disabled{
-  opacity:.38;
-  filter:saturate(.72);
+  opacity:.56;
+  filter:saturate(.78) grayscale(.16) brightness(.96);
   cursor:default;
 }
 
