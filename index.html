@@ -2788,29 +2788,13 @@ if(diet==="BBBE"){
   $("labelDairy").textContent = "バター";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
-
-  $("tabLabelMeat").textContent = "牛肉";
-  $("tabLabelFish").textContent = "ベーコン";
-  $("tabLabelEggs").textContent = "卵";
-  $("tabLabelDairy").textContent = "バター";
-  $("tabLabelVeg").textContent = "野菜";
-  $("tabLabelFruit").textContent = "果物";
 } else if(diet==="Lion"){
-  const lionLabel = $("lionMeat").value==="lamb" ? "羊肉" : "牛肉";
-
-  $("labelMeat").textContent = lionLabel;
+  $("labelMeat").textContent = $("lionMeat").value==="lamb" ? "羊肉" : "牛肉";
   $("labelFish").textContent = "魚介類";
   $("labelEggs").textContent = "卵";
   $("labelDairy").textContent = "乳製品";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
-
-  $("tabLabelMeat").textContent = lionLabel;
-  $("tabLabelFish").textContent = "魚介類";
-  $("tabLabelEggs").textContent = "卵";
-  $("tabLabelDairy").textContent = "乳製品";
-  $("tabLabelVeg").textContent = "野菜";
-  $("tabLabelFruit").textContent = "果物";
 } else {
   $("labelMeat").textContent = "肉類";
   $("labelFish").textContent = "魚介類";
@@ -2818,13 +2802,6 @@ if(diet==="BBBE"){
   $("labelDairy").textContent = "乳製品";
   $("labelVeg").textContent = "野菜";
   $("labelFruit").textContent = "果物";
-
-  $("tabLabelMeat").textContent = "肉類";
-  $("tabLabelFish").textContent = "魚介類";
-  $("tabLabelEggs").textContent = "卵";
-  $("tabLabelDairy").textContent = "乳製品";
-  $("tabLabelVeg").textContent = "野菜";
-  $("tabLabelFruit").textContent = "果物";
 }
 
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
