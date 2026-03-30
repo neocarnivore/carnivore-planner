@@ -3154,8 +3154,8 @@ if(diet==="TKD" && onoff==="off"){
   fruitRatio = 0.7;
 }else if(diet==="TKD"){
   if(onoff==="on"){
-    vegRatio = 0.1;
-    fruitRatio = 0.9;
+    vegRatio = 0.3;
+    fruitRatio = 0.7;
   }else{
     vegRatio = 0;
     fruitRatio = 0;
@@ -3190,7 +3190,7 @@ let kDairyAdj = kDairy;
 let kFruitAdj = kFruit;
 
 if(diet==="TKD" && onoff==="on"){
-  const shift = kDairyAdj * 0.4; // 乳製品の40%を果物へ
+  const shift = kDairyAdj * 0.3; // 乳製品の40%を果物へ
   kDairyAdj -= shift;
   kFruitAdj += shift;
 }
