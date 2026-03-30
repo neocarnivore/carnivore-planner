@@ -3259,11 +3259,18 @@ document.addEventListener("click", (e)=>{
   if(!isOpen){
     item.classList.add("is-opening");
     item.classList.add("is-open");
-    content.style.maxHeight = (content.scrollHeight + 120) + "px";
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);  }else{
-    item.classList.remove("is-opening");
-    item.classList.remove("is-open");
     content.style.maxHeight = "0px";
+    requestAnimationFrame(()=>{
+      content.style.maxHeight = (content.scrollHeight + 120) + "px";
+    });
+    setTimeout(()=>item.classList.remove("is-opening"), 1000);
+  }else{
+    item.classList.remove("is-opening");
+    content.style.maxHeight = content.scrollHeight + "px";
+    requestAnimationFrame(()=>{
+      item.classList.remove("is-open");
+      content.style.maxHeight = "0px";
+    });
   }
 
   syncOpenFoodHeights();
@@ -3285,11 +3292,18 @@ document.addEventListener("click", (e)=>{
   if(!isOpen){
     item.classList.add("is-opening");
     item.classList.add("is-open");
-    content.style.maxHeight = (content.scrollHeight + 80) + "px";
-    setTimeout(()=>item.classList.remove("is-opening"), 1000);  }else{
-    item.classList.remove("is-opening");
-    item.classList.remove("is-open");
     content.style.maxHeight = "0px";
+    requestAnimationFrame(()=>{
+      content.style.maxHeight = (content.scrollHeight + 80) + "px";
+    });
+    setTimeout(()=>item.classList.remove("is-opening"), 1000);
+  }else{
+    item.classList.remove("is-opening");
+    content.style.maxHeight = content.scrollHeight + "px";
+    requestAnimationFrame(()=>{
+      item.classList.remove("is-open");
+      content.style.maxHeight = "0px";
+    });
   }
 
   syncOpenFoodHeights();
