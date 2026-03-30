@@ -93,9 +93,9 @@ body:not(.light){
 }
 
 .foodListItem{
-  background:var(--card);
-  border:1.5px solid rgba(140,140,140,.14);
-  border-radius:28px;
+  background:#ffffff;
+  border:1.5px solid rgba(232,87,69,.14);
+  border-radius:38px;
   box-shadow:none;
   overflow:hidden;
 }
@@ -113,11 +113,11 @@ body:not(.light){
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:12px 14px 11px;
+  gap:16px;
+  padding:18px 22px 16px;
   border:0;
-  background:transparent;
-  color:var(--text);
+  background:#ffffff;
+  color:#151515;
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
@@ -147,11 +147,12 @@ body:not(.light) .foodSubBtn{
 .foodListLabel{
   display:inline-flex;
   align-items:center;
-  min-height:30px;
-  padding:0 14px;
+  min-height:36px;
+  padding:0 18px;
   border-radius:999px;
-  color:#fff;
-  font-size:13px;
+  background:linear-gradient(90deg,#f8ad43 0%, #ff8244 45%, #ff633f 100%);
+  color:#ffffff;
+  font-size:clamp(14px,1.55vw,18px);
   font-weight:800;
   line-height:1.2;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
@@ -174,19 +175,6 @@ body:not(.light) .foodSubBtn{
 body:not(.light) .foodSubLabel{
   background:#0a0a0a !important;
   color:#fff;
-}
-
-.foodListBtn[data-tone="p"],
-.foodSubBtn[data-tone="p"]{
-  border-left:3px solid var(--p);
-}
-.foodListBtn[data-tone="f"],
-.foodSubBtn[data-tone="f"]{
-  border-left:3px solid var(--f);
-}
-.foodListBtn[data-tone="c"],
-.foodSubBtn[data-tone="c"]{
-  border-left:3px solid var(--c);
 }
 
 .foodListItem:nth-child(1) > .foodListBtn[data-tone="p"]{ border-left-color:color-mix(in srgb, var(--p) 100%, white 0%); }
@@ -221,13 +209,13 @@ body:not(.light) .foodSubLabel{
 
 .foodListArrow{
   position:relative;
-  width:34px;
-  height:34px;
-  min-width:34px;
+  width:42px;
+  height:42px;
+  min-width:42px;
   border-radius:999px;
   background:#ffffff;
-  border:1.5px solid rgba(140,140,140,.16);
-  box-shadow:0 8px 18px rgba(0,0,0,.05);
+  border:1.5px solid rgba(232,87,69,.16);
+  box-shadow:0 8px 18px rgba(232,87,69,.08);
   transition:transform .32s cubic-bezier(.22,1,.36,1), box-shadow .24s ease, background-color .24s ease;
 }
 
@@ -304,10 +292,9 @@ body:not(.light) .foodSubArrow{
   transform:translate(-22%,-50%) rotate(45deg);
 }
 
-.foodListItem.is-open > .foodListBtn .foodListArrow,
-.foodSubItem.is-open > .foodSubBtn .foodSubArrow{
+.foodListItem.is-open > .foodListBtn .foodListArrow{
   background:#fffdfc;
-  box-shadow:0 10px 22px rgba(0,0,0,.06);
+  box-shadow:0 10px 22px rgba(232,87,69,.12);
 }
 
 body:not(.light) .foodListItem.is-open > .foodListBtn .foodListArrow,
@@ -373,39 +360,24 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 
 @media (max-width:749px){
   .foodListItem{
-  border-radius:22px;
-}
-
-.foodSubItem{
-  border-radius:16px;
+  border-radius:28px;
 }
 
 .foodListBtn{
-  padding:10px 12px 9px;
-  gap:10px;
-}
-
-.foodSubBtn{
-  padding:8px 10px 7px;
-  gap:8px;
+  padding:14px 14px 12px;
+  gap:12px;
 }
 
 .foodListLabel{
-  min-height:28px;
-  padding:0 12px;
+  min-height:32px;
+  padding:0 14px;
   font-size:12px;
 }
 
-.foodSubLabel{
-  min-height:24px;
-  padding:0 10px;
-  font-size:11px;
-}
-
 .foodListArrow{
-  width:30px;
-  height:30px;
-  min-width:30px;
+  width:36px;
+  height:36px;
+  min-width:36px;
 }
 
 .foodSubArrow{
