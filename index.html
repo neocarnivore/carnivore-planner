@@ -1609,7 +1609,7 @@ let fruit_kcal = ck;
 
 // TKD：運動日は脂質→糖質へシフト
 if(diet==="TKD" && onoffType==="on"){
-  const shift = dairy_kcal * 0.5;
+  const shift = dairy_kcal * 0.85;
   dairy_kcal -= shift;
   fruit_kcal += shift;
 }
