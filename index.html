@@ -80,33 +80,144 @@ body:not(.light){
   .tab.goals button{width:100%}
   .tab.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
   
-    .foodListTabs{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px;
-  }
-  .foodListTab{
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:10px;
+  .foodListTop{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.foodListItem,
+.foodSubItem{
+  border:1px solid var(--border);
+  border-radius:22px;
+  overflow:hidden;
+  background:var(--card);
+}
+
+.foodListBtn,
+.foodSubBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  border:0;
+  background:var(--input);
+  color:var(--text);
+  text-align:left;
+  font-weight:800;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.foodListBtn[data-tone="p"],
+.foodSubBtn[data-tone="p"]{
+  border-left:4px solid var(--p);
+}
+.foodListBtn[data-tone="f"],
+.foodSubBtn[data-tone="f"]{
+  border-left:4px solid var(--f);
+}
+.foodListBtn[data-tone="c"],
+.foodSubBtn[data-tone="c"]{
+  border-left:4px solid var(--c);
+}
+
+.foodListLabel,
+.foodSubLabel{
+  font-size:15px;
+  line-height:1.35;
+}
+
+.foodListArrow,
+.foodSubArrow{
+  position:relative;
+  width:18px;
+  height:18px;
+  min-width:18px;
+}
+
+.foodListArrow::before,
+.foodListArrow::after,
+.foodSubArrow::before,
+.foodSubArrow::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:9px;
+  height:2px;
+  border-radius:999px;
+  background:var(--text);
+  transform-origin:center;
+  transition:transform .28s ease;
+}
+
+.foodListArrow::before,
+.foodSubArrow::before{
+  transform:translate(-75%,-50%) rotate(45deg);
+}
+.foodListArrow::after,
+.foodSubArrow::after{
+  transform:translate(-25%,-50%) rotate(-45deg);
+}
+
+.foodListItem.is-open > .foodListBtn .foodListArrow::before,
+.foodSubItem.is-open > .foodSubBtn .foodSubArrow::before{
+  transform:translate(-75%,-50%) rotate(-45deg);
+}
+.foodListItem.is-open > .foodListBtn .foodListArrow::after,
+.foodSubItem.is-open > .foodSubBtn .foodSubArrow::after{
+  transform:translate(-25%,-50%) rotate(45deg);
+}
+
+.foodListContent,
+.foodSubContent{
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transition:max-height .42s cubic-bezier(.22,1,.36,1), opacity .24s ease;
+}
+
+.foodListItem.is-open > .foodListContent,
+.foodSubItem.is-open > .foodSubContent{
+  opacity:1;
+}
+
+.foodListContentInner{
+  padding:10px;
+  display:grid;
+  gap:10px;
+}
+
+.foodSubContentInner{
+  padding:4px 16px 16px;
+}
+
+.foodLeaf{
+  margin:0;
+  color:var(--text);
+  font-size:13px;
+  line-height:1.9;
+  white-space:normal;
+}
+
+@media (max-width:749px){
+  .foodListBtn,
+  .foodSubBtn{
     padding:12px 14px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:var(--input);
-    color:var(--text);
-    font-weight:700;
-    text-align:left;
   }
-  .foodListIcon{
-    width:28px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    font-size:18px;
-    flex:0 0 28px;
+  .foodListLabel,
+  .foodSubLabel{
+    font-size:14px;
   }
-  
+  .foodLeaf{
+    font-size:12px;
+    line-height:1.8;
+  }
+}
+
   .chartCard{display:flex;flex-direction:column;align-items:center}
   .chartHeader{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px}
   .chartBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -1351,39 +1462,187 @@ body:not(.light){
 </script>
 <!-- ===== 週間マクロ配分：ここまで ===== -->
   <div class="card" id="foodListTabSection" style="display:none" aria-live="polite">
-    <h3>食材リスト</h3>
-    <div class="foodListTabs">
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🥩</span>
-        <span id="tabLabelMeat">肉類</span>
-      </button>
+  <h3>食材リスト</h3>
 
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🐟</span>
-        <span id="tabLabelFish">魚介類</span>
-      </button>
+  <div class="foodListTop">
 
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🥚</span>
-        <span id="tabLabelEggs">卵</span>
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="p">
+        <span class="foodListLabel">肉類</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
       </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
 
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🧈</span>
-        <span id="tabLabelDairy">乳製品</span>
-      </button>
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">牛肉</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">肩ロース、サーロイン、リブロース、バラ、モモ、ひき肉、スネ、タン、スジ、ハツ、レバー、ミノ、ハラミ、センマイ、ハチノス、テール</p>
+              </div>
+            </div>
+          </div>
 
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🥬</span>
-        <span id="tabLabelVeg">野菜</span>
-      </button>
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">豚肉</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">肩ロース、バラ、ヒレ、モモ、ホルモン、豚トロ、ひき肉、軟骨、レバー、ハツ、ガツ、スペアリブ、ミミガー、テビチ（豚足）、アンダカシー</p>
+              </div>
+            </div>
+          </div>
 
-      <button type="button" class="foodListTab">
-        <span class="foodListIcon">🍎</span>
-        <span id="tabLabelFruit">果物</span>
-      </button>
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">鶏肉</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">もも、むね、ひき肉、手先、手元、ほんじり、ササミ、砂肝、レバー、ハツ、軟骨、皮</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">羊肉</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">ラムチョップ、肩、モモ、挽肉、マトン各部位</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">馬肉</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">赤身、たてがみ、ハツ、レバー</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">ジビエ</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">鹿（ロース・モモ・レバー）、猪、鴨、兎 etc.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="foodSubItem">
+            <button type="button" class="foodSubBtn" data-tone="p">
+              <span class="foodSubLabel">加工肉（無添加）</span>
+              <span class="foodSubArrow" aria-hidden="true"></span>
+            </button>
+            <div class="foodSubContent">
+              <div class="foodSubContentInner">
+                <p class="foodLeaf">生ハム、ベーコン、ソーセージ、サラミ</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
+
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="p">
+        <span class="foodListLabel">魚介類</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
+      </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">青魚</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">サバ、イワシ、サンマ、アジ、サワラ、ニシン、ブリ、カツオ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">白身魚</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">タラ、カレイ、ヒラメ、スズキ、タイ、メバル、アイナメ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">赤身魚</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">マグロ（赤身・トロ）、カツオ、サーモン、マス</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">小魚</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">シシャモ、ワカサギ、キビナゴ、シラス、ちりめんじゃこ、イカナゴ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">干物</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">アジ、ホッケ、サンマ、カマス、ノドグロ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">貝類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">アサリ、シジミ、ハマグリ、ホタテ、サザエ、アワビ、ムール貝</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">甲殻類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">エビ、カニ（ズワイ、タラバ）、シャコ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="p"><span class="foodSubLabel">軟体類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">イカ（スルメ、ヤリ、ケンサキ）、タコ（真ダコ、イイダコ）</p></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="f">
+        <span class="foodListLabel">卵</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
+      </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">鶏卵</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">白玉、赤玉</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">うずら卵</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">うずら卵</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">アヒル卵</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">アヒル卵</p></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="f">
+        <span class="foodListLabel">乳製品</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
+      </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">チーズ類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">モッツァレラ、チェダー、ゴーダ、カマンベール、ブルーチーズ、パルメザン、リコッタ、フェタ</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">発酵乳</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">ヨーグルト（無糖）、ギリシャヨーグルト、サワークリーム、ケフィア</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">非発酵乳</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">バター、生クリーム（純乳脂肪）、ギー</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="f"><span class="foodSubLabel">牛乳</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">生乳、成分無調整牛乳（A2推奨）、低温殺菌牛乳</p></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="c">
+        <span class="foodListLabel">野菜</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
+      </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">芋類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">じゃがいも、里芋、長芋、山芋</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">かぶ系</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">大根、かぶ、にんじん、れんこん、ごぼう</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">葉物・花野菜</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">ほうれん草、小松菜、チンゲン菜、レタス、キャベツ、白菜、水菜、ブロッコリー、カリフラワー etc.</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">ネギ類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">玉ねぎ、白ねぎ、青ねぎ、ニラ etc.</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">きのこ類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">しいたけ、まいたけ、えのき、しめじ、エリンギ、マッシュルーム、なめこ etc.</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">果菜類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">トマト、アボカド、茄子、きゅうり、ピーマン、パプリカ、ズッキーニ、ゴーヤ etc.</p></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foodListItem">
+      <button type="button" class="foodListBtn" data-tone="c">
+        <span class="foodListLabel">果物</span>
+        <span class="foodListArrow" aria-hidden="true"></span>
+      </button>
+      <div class="foodListContent">
+        <div class="foodListContentInner">
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">ベリー類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">ブルーベリー、ラズベリー、ブラックベリー、クランベリー、苺</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">柑橘類</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">グレープフルーツ、レモン、ライム、ゆず</p></div></div></div>
+          <div class="foodSubItem"><button type="button" class="foodSubBtn" data-tone="c"><span class="foodSubLabel">その他（控えめ）</span><span class="foodSubArrow" aria-hidden="true"></span></button><div class="foodSubContent"><div class="foodSubContentInner"><p class="foodLeaf">バナナ、りんご、梨、キウイ、パイナップル、ぶどう、マスカット、みかん、オレンジ、マンゴー、スイカ、メロン、プラム、さくらんぼ、桃、柿 etc.</p></div></div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
+</div>
   <p class="small footerNote" style="margin-top:20px">
     各プランはカーニボア食・ケトジェニック食を支持する医師・医学博士らの文献・著書・研究のもと設計しています。<br>
     参考: Virta Health（<a href="https://www.youtube.com/@VirtaHealth" target="_blank" rel="noopener">YouTube</a>） / The Noakes Foundation（<a href="https://www.youtube.com/@TheNoakesFoundation" target="_blank" rel="noopener">YouTube</a>）
@@ -2665,5 +2924,47 @@ refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
+document.addEventListener("click", (e)=>{
+  const topBtn = e.target.closest(".foodListBtn");
+  const subBtn = e.target.closest(".foodSubBtn");
+
+  if(topBtn){
+    const item = topBtn.parentElement;
+    const content = item.querySelector(":scope > .foodListContent");
+    if(!item || !content) return;
+
+    const isOpen = item.classList.contains("is-open");
+    item.classList.toggle("is-open", !isOpen);
+    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
+    return;
+  }
+
+  if(subBtn){
+    const item = subBtn.parentElement;
+    const content = item.querySelector(":scope > .foodSubContent");
+    if(!item || !content) return;
+
+    const isOpen = item.classList.contains("is-open");
+    item.classList.toggle("is-open", !isOpen);
+    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
+
+    const topContent = item.closest(".foodListContent");
+    const topItem = item.closest(".foodListItem");
+    if(topContent && topItem && topItem.classList.contains("is-open")){
+      requestAnimationFrame(()=>{
+        topContent.style.maxHeight = topContent.scrollHeight + "px";
+      });
+    }
+  }
+});
+
+window.addEventListener("resize", ()=>{
+  document.querySelectorAll(".foodSubItem.is-open > .foodSubContent").forEach(el=>{
+    el.style.maxHeight = el.scrollHeight + "px";
+  });
+  document.querySelectorAll(".foodListItem.is-open > .foodListContent").forEach(el=>{
+    el.style.maxHeight = el.scrollHeight + "px";
+  });
+});
 </script>
 </body>
