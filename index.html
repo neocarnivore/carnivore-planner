@@ -7,23 +7,21 @@
 <meta name="theme-color" content="#0b0b0f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-meat-194.png">
-  
-  <script>
+<script>
 (() => {
   const saved = localStorage.getItem('theme');
   if (saved === null || saved === 'light') {
-    document.documentElement.classList.add('light');
+    document.documentElement.className = 'light';
   }
 })();
 </script>
-
 <style>
   :root{
     --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#5c6e83;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
     --p:#2aa1ff;--f:#ffb454;--c:#48d1b5;
     --axis:rgba(255,255,255,.9);--grid:rgba(255,255,255,.12);--axisLine:rgba(255,255,255,.35)
   }
-  html.light{
+  .light{
     --bg:#f6f8fb;--card:#ffffff;--text:#1a2732;--muted:#5c6e83;--acc:#0aa37f;--red:#d13b3b;--input:#ffffff;--border:#dfe8f2;
     --p:#0a84ff;--f:#ff9900;--c:#0aa37f;
     --axis:#13283d;--grid:rgba(19,40,61,.10);--axisLine:rgba(19,40,61,.35)
@@ -2228,16 +2226,18 @@ function resetFormAll(){
 function applyThemeFromStorage(){
   const saved = localStorage.getItem('theme');
   const isLight = saved === null ? true : saved === 'light';
-  document.documentElement.classList.toggle('light', isLight);  updateThemeBtn();
+  document.body.classList.toggle('light', isLight);
+  updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
 function toggleTheme(){
-  document.documentElement.classList.toggle('light');  localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
   updateThemeBtn(); if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
 function updateThemeBtn(){
   const btn = $('themeToggle');
-  const isLight = document.documentElement.classList.contains('light')
+  const isLight = document.body.classList.contains('light');
   btn.textContent = isLight ? '☀︎/🌙' : '🌙/☀︎';
 }
 $('themeToggle').addEventListener('click', toggleTheme);
