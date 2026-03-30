@@ -7,15 +7,18 @@
 <meta name="theme-color" content="#0b0b0f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-meat-194.png">
-<script>
+  
+  <script>
 (() => {
   const saved = localStorage.getItem('theme');
-  const isLight = saved === null ? true : saved === 'light';
-  if (isLight) document.documentElement.classList.add('light');
+  if (saved === null || saved === 'light') {
+    document.documentElement.classList.add('light');
+  }
 })();
 </script>
+
 <style>
-    :root{
+  :root{
     --bg:#0b0b0f;--card:#151821;--text:#e8eef6;--muted:#5c6e83;--acc:#48d1b5;--red:#ff7575;--input:#0f1218;--border:#23304a;
     --p:#2aa1ff;--f:#ffb454;--c:#48d1b5;
     --axis:rgba(255,255,255,.9);--grid:rgba(255,255,255,.12);--axisLine:rgba(255,255,255,.35)
@@ -2222,22 +2225,19 @@ function resetFormAll(){
 }
 
 /* テーマ */
-/* テーマ */
 function applyThemeFromStorage(){
   const saved = localStorage.getItem('theme');
   const isLight = saved === null ? true : saved === 'light';
-  document.documentElement.classList.toggle('light', isLight);
-  updateThemeBtn();
+  document.documentElement.classList.toggle('light', isLight);  updateThemeBtn();
   if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
 function toggleTheme(){
-  document.documentElement.classList.toggle('light');
-  localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  document.documentElement.classList.toggle('light');  localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
   updateThemeBtn(); if(window._lastDrawArgs) drawWeightChart(window._lastDrawArgs);
 }
 function updateThemeBtn(){
   const btn = $('themeToggle');
-  const isLight = document.documentElement.classList.contains('light');
+  const isLight = document.documentElement.classList.contains('light')
   btn.textContent = isLight ? '☀︎/🌙' : '🌙/☀︎';
 }
 $('themeToggle').addEventListener('click', toggleTheme);
