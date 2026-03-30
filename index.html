@@ -3170,29 +3170,6 @@ document.addEventListener("click", (e)=>{
   }
 });
 
-  if(topBtn){
-    const item = topBtn.parentElement;
-    const content = item.querySelector(":scope > .foodListContent");
-    if(!item || !content) return;
-
-    const isOpen = item.classList.contains("is-open");
-    item.classList.toggle("is-open", !isOpen);
-    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
-    syncOpenFoodHeights();
-    return;
-  }
-
-  if(subBtn){
-    const item = subBtn.parentElement;
-    const content = item.querySelector(":scope > .foodSubContent");
-    if(!item || !content) return;
-
-    const isOpen = item.classList.contains("is-open");
-    item.classList.toggle("is-open", !isOpen);
-    content.style.maxHeight = !isOpen ? (content.scrollHeight + "px") : "0px";
-    syncOpenFoodHeights();
-  }
-});
 function setFoodListAvailability(){
   const section = $("foodListTabSection");
   if(!section) return;
