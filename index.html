@@ -3149,9 +3149,17 @@ let vegRatio = 0, fruitRatio = 0;
 if(diet==="TKD" && onoff==="off"){
   vegRatio = 0;
   fruitRatio = 0;
-}else if(diet==="Ketovore" || diet==="TKD"){
+}else if(diet==="Ketovore"){
   vegRatio = 0.3;
   fruitRatio = 0.7;
+}else if(diet==="TKD"){
+  if(onoff==="on"){
+    vegRatio = 0.1;
+    fruitRatio = 0.9;
+  }else{
+    vegRatio = 0;
+    fruitRatio = 0;
+  }
 }else if(diet==="FruitCarnivore"){
   vegRatio = 0;
   fruitRatio = 1;
@@ -3178,6 +3186,14 @@ const kMeat  = remainKcal * meatShare;
 const kFish  = remainKcal * fishShare;
 const kEggs  = remainKcal * eggsShare;
 const kDairy = (diet==="CarnivoreNoDairy") ? 0 : (dairyLactoseKcal + (remainKcal * dairyShare));
+let kDairyAdj = kDairy;
+let kFruitAdj = kFruit;
+
+if(diet==="TKD" && onoff==="on"){
+  const shift = kDairyAdj * 0.4; // 乳製品の40%を果物へ
+  kDairyAdj -= shift;
+  kFruitAdj += shift;
+}
 
 if(diet==="BBBE"){
   $("labelMeat").textContent = "牛肉";
@@ -3203,11 +3219,12 @@ if(diet==="BBBE"){
 }
 
   $("gMeat").textContent  = Math.round((kMeat /KCAL_PER_100G.meat *100)/10)*10;  $("kMeat").textContent  = Math.round(kMeat);
-  $("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
-  $("gEggs").textContent  = ((kEggs / 75) || 0).toFixed(1);  $("kEggs").textContent  = Math.round(kEggs);
-  $("gDairy").textContent = Math.round((kDairy/KCAL_PER_100G.dairy*100)/10)*10;  $("kDairy").textContent = Math.round(kDairy);
-$("gVeg").textContent   = (isStrictCarnivore ? 0 : Math.round((kVeg  /KCAL_PER_100G.veg  *100)/10)*10);  $("kVeg").textContent   = Math.round(kVeg);
-$("gFruit").textContent = (isStrictCarnivore ? 0 : Math.round((kFruit/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruit);
+$("gFish").textContent  = Math.round((kFish /KCAL_PER_100G.fish *100)/10)*10;  $("kFish").textContent  = Math.round(kFish);
+$("gEggs").textContent  = ((kEggs / 75) || 0).toFixed(1);  $("kEggs").textContent  = Math.round(kEggs);
+$("gDairy").textContent = Math.round((kDairyAdj/KCAL_PER_100G.dairy*100)/10)*10;  $("kDairy").textContent = Math.round(kDairyAdj);
+$("gVeg").textContent   = (isStrictCarnivore ? 0 : Math.round((kVeg/KCAL_PER_100G.veg*100)/10)*10);  $("kVeg").textContent   = Math.round(kVeg);
+$("gFruit").textContent = (isStrictCarnivore ? 0 : Math.round((kFruitAdj/KCAL_PER_100G.fruit*100)/10)*10); $("kFruit").textContent = Math.round(kFruitAdj);
+
 if(diet==="Lion"){
   $("gFish").textContent = 0;  $("kFish").textContent = 0;
   $("gEggs").textContent = 0;  $("kEggs").textContent = 0;
@@ -3215,8 +3232,9 @@ if(diet==="Lion"){
   $("gVeg").textContent = 0;   $("kVeg").textContent = 0;
   $("gFruit").textContent = 0; $("kFruit").textContent = 0;
 }
-  updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairy,veg:kVeg,fruit:kFruit},kcal);
-  updateBars(pk, fk, ck, kcal);
+
+updateFoodBars({meat:kMeat,fish:kFish,eggs:kEggs,dairy:kDairyAdj,veg:kVeg,fruit:kFruitAdj},kcal);
+updateBars(pk, fk, ck, kcal);
   $("metaMeatG").textContent  = `${$("gMeat").textContent}g`;
 $("metaMeatK").textContent  = `${$("kMeat").textContent}kcal`;
 
