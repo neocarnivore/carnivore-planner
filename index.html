@@ -380,9 +380,9 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 .foodListItem.is-opening > .foodListContent,
 .foodSubItem.is-opening > .foodSubContent{
   transition:
-    max-height .92s cubic-bezier(.22,1,.36,1),
+    height .72s cubic-bezier(.22,.61,.36,1),
     opacity .48s ease,
-    transform .62s cubic-bezier(.22,1,.36,1);
+    transform .62s cubic-bezier(.22,.61,.36,1);
 }
 
 .foodListItem.is-open > .foodListContent,
@@ -445,7 +445,7 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 }
 
 .foodSubContent{
-  overflow:visible;
+  overflow:hidden;
 }
 
 .foodListItem.is-open{
@@ -3262,20 +3262,24 @@ document.addEventListener("click", (e)=>{
   content.style.height = "0px";
 
   requestAnimationFrame(()=>{
-    content.style.height = content.scrollHeight + "px";
+    requestAnimationFrame(()=>{
+      content.style.height = content.scrollHeight + "px";
+    });
   });
 
   setTimeout(()=>{
     item.classList.remove("is-opening");
     content.style.height = "auto";
-  }, 520);
+  }, 720);
 }else{
   item.classList.remove("is-opening");
   content.style.height = content.scrollHeight + "px";
 
   requestAnimationFrame(()=>{
-    content.style.height = "0px";
-    item.classList.remove("is-open");
+    requestAnimationFrame(()=>{
+      content.style.height = "0px";
+      item.classList.remove("is-open");
+    });
   });
 }
 
@@ -3301,20 +3305,24 @@ document.addEventListener("click", (e)=>{
   content.style.height = "0px";
 
   requestAnimationFrame(()=>{
-    content.style.height = content.scrollHeight + "px";
+    requestAnimationFrame(()=>{
+      content.style.height = content.scrollHeight + "px";
+    });
   });
 
   setTimeout(()=>{
     item.classList.remove("is-opening");
     content.style.height = "auto";
-  }, 520);
+  }, 720);
 }else{
   item.classList.remove("is-opening");
   content.style.height = content.scrollHeight + "px";
 
   requestAnimationFrame(()=>{
-    content.style.height = "0px";
-    item.classList.remove("is-open");
+    requestAnimationFrame(()=>{
+      content.style.height = "0px";
+      item.classList.remove("is-open");
+    });
   });
 }
 
@@ -3363,16 +3371,14 @@ function setFoodListAvailability(){
     const btn = item.querySelector(":scope > .foodListBtn, :scope > .foodSubBtn");
     const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
     if(btn) btn.classList.remove("is-disabled");
-    if(content) content.style.maxHeight = "0px";
-  }
+    if(content) content.style.height = "0px";  }
 
   function hideItem(item){
     if(!item) return;
     item.classList.remove("is-open");
     item.classList.add("is-hidden");
     const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
-    if(content) content.style.maxHeight = "0px";
-  }
+    if(content) content.style.height = "0px";  }
 
   function disableItem(item){
     if(!item) return;
@@ -3380,8 +3386,7 @@ function setFoodListAvailability(){
     const btn = item.querySelector(":scope > .foodListBtn, :scope > .foodSubBtn");
     const content = item.querySelector(":scope > .foodListContent, :scope > .foodSubContent");
     if(btn) btn.classList.add("is-disabled");
-    if(content) content.style.maxHeight = "0px";
-  }
+    if(content) content.style.height = "0px";  }
 
   function enableItem(item){
     if(!item) return;
