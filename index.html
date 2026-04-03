@@ -665,9 +665,142 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
 #presetManageBtn:active{
   transform:scale(.97);
 }
+/* ===== opening splash：追加 ===== */
+#neoOpening{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255,140,90,.14), transparent 24%),
+    linear-gradient(180deg, var(--bg), #0b0b0f);
+  opacity:1;
+  visibility:visible;
+  transition:opacity .68s ease, visibility .68s ease;
+  pointer-events:none;
+}
+
+body.light #neoOpening{
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255,140,90,.14), transparent 24%),
+    linear-gradient(180deg, #f6f8fb, #eef3f8);
+}
+
+#neoOpening.is-hide{
+  opacity:0;
+  visibility:hidden;
+}
+
+.neoOpening__inner{
+  position:relative;
+  width:120px;
+  height:120px;
+  display:grid;
+  place-items:center;
+}
+
+.neoOpening__meat{
+  font-size:56px;
+  line-height:1;
+  filter:drop-shadow(0 10px 24px rgba(0,0,0,.18));
+  animation:neoMeatPop 1.15s cubic-bezier(.22,1,.36,1) both;
+  transform-origin:50% 60%;
+}
+
+.neoOpening__dot{
+  position:absolute;
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:linear-gradient(180deg,#ffb38a,#ff7e5f);
+  opacity:0;
+}
+
+.neoOpening__dot--1{
+  top:20px;
+  left:18px;
+  animation:neoDot1 1.2s ease-out .08s both;
+}
+.neoOpening__dot--2{
+  top:16px;
+  right:20px;
+  width:8px;
+  height:8px;
+  animation:neoDot2 1.2s ease-out .16s both;
+}
+.neoOpening__dot--3{
+  right:12px;
+  bottom:26px;
+  width:7px;
+  height:7px;
+  animation:neoDot3 1.2s ease-out .24s both;
+}
+
+.neoOpening__text{
+  position:absolute;
+  left:50%;
+  bottom:-18px;
+  transform:translateX(-50%);
+  font-size:11px;
+  letter-spacing:.18em;
+  color:var(--muted);
+  white-space:nowrap;
+  opacity:0;
+  animation:neoTextFade .5s ease .28s forwards;
+}
+
+@keyframes neoMeatPop{
+  0%{
+    opacity:0;
+    transform:translateY(14px) scale(.72) rotate(-8deg);
+  }
+  38%{
+    opacity:1;
+    transform:translateY(0) scale(1.08) rotate(4deg);
+  }
+  62%{
+    transform:scale(.96) rotate(-3deg);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes neoDot1{
+  0%{opacity:0;transform:translate(0,8px) scale(.3)}
+  45%{opacity:1}
+  100%{opacity:0;transform:translate(-8px,-10px) scale(1)}
+}
+@keyframes neoDot2{
+  0%{opacity:0;transform:translate(0,8px) scale(.3)}
+  45%{opacity:1}
+  100%{opacity:0;transform:translate(10px,-12px) scale(1)}
+}
+@keyframes neoDot3{
+  0%{opacity:0;transform:translate(-2px,6px) scale(.3)}
+  45%{opacity:1}
+  100%{opacity:0;transform:translate(8px,10px) scale(1)}
+}
+@keyframes neoTextFade{
+  from{opacity:0;transform:translateX(-50%) translateY(6px)}
+  to{opacity:.9;transform:translateX(-50%) translateY(0)}
+}
+/* ===== opening splash：ここまで ===== */
 </style>
 </head>
 <body>
+<div id="neoOpening" aria-hidden="true">
+  <div class="neoOpening__inner">
+    <div class="neoOpening__dot neoOpening__dot--1"></div>
+    <div class="neoOpening__dot neoOpening__dot--2"></div>
+    <div class="neoOpening__dot neoOpening__dot--3"></div>
+    <div class="neoOpening__meat">🥩</div>
+    <div class="neoOpening__text">CARNIVORE PLANNER</div>
+  </div>
+</div>
+
 <header>
   <div style="display:flex;align-items:center;gap:8px;min-width:0">
     <div>肉食プランナー🥩</div>
@@ -3571,4 +3704,15 @@ window.addEventListener("resize", ()=>{
     el.style.maxHeight = (el.scrollHeight + 120) + "px";
   });
 });
+/* ===== opening splash：追加 ===== */
+window.addEventListener("load", ()=>{
+  const opening = document.getElementById("neoOpening");
+  if(!opening) return;
+
+  setTimeout(()=>{
+    opening.classList.add("is-hide");
+    setTimeout(()=>opening.remove(), 700);
+  }, 1150);
+});
+/* ===== opening splash：ここまで ===== */
 </script>
