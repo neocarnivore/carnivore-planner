@@ -2834,6 +2834,7 @@ $("calcBtn").addEventListener("click", ()=>{
   window.scrollTo({top:0, left:0, behavior:'auto'});
   saveFormToSession();
   sessionStorage.setItem("autocalc","1");
+  sessionStorage.setItem("skipOpeningOnce","1");
   location.reload();
 });
 return;
@@ -3789,8 +3790,15 @@ window.addEventListener("load", ()=>{
   const opening = document.getElementById("neoOpening");
   if(!opening) return;
 
+  if(sessionStorage.getItem("skipOpeningOnce") === "1"){
+    sessionStorage.removeItem("skipOpeningOnce");
+    opening.remove();
+    return;
+  }
+
   setTimeout(()=>{
     opening.classList.add("is-hide");
+    setTimeout(()=>opening.remove(), 700);
   }, 1150);
 });
 /* ===== opening splash：ここまで ===== */
