@@ -788,6 +788,41 @@ body.light #neoOpening{
   to{opacity:.9;transform:translateX(-50%) translateY(0)}
 }
 /* ===== opening splash：ここまで ===== */
+#neoOpening.is-calc{
+  transition:opacity .34s ease, visibility .34s ease;
+}
+
+#neoOpening.is-calc .neoOpening__meat{
+  animation:neoMeatCalc .42s cubic-bezier(.22,1,.36,1) both;
+}
+
+#neoOpening.is-calc .neoOpening__dot{
+  animation-duration:.46s !important;
+}
+
+#neoOpening.is-calc .neoOpening__text{
+  animation:neoTextCalc .22s ease .04s forwards;
+}
+
+@keyframes neoMeatCalc{
+  0%{
+    opacity:0;
+    transform:translateY(8px) scale(.86) rotate(-5deg);
+  }
+  55%{
+    opacity:1;
+    transform:translateY(0) scale(1.04) rotate(2deg);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes neoTextCalc{
+  from{opacity:0;transform:translateX(-50%) translateY(3px)}
+  to{opacity:.88;transform:translateX(-50%) translateY(0)}
+}
 </style>
 </head>
 <body>
@@ -2754,9 +2789,21 @@ $("calcBtn").addEventListener("click", ()=>{
       setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
     }
     window.scrollTo({top:0, left:0, behavior:'auto'});
-    saveFormToSession();
-    sessionStorage.setItem("autocalc","1");
+saveFormToSession();
+sessionStorage.setItem("autocalc","1");
+
+const opening = document.getElementById("neoOpening");
+if(opening){
+  opening.classList.remove("is-hide");
+  opening.classList.add("is-calc");
+
+  setTimeout(()=>{
     location.reload();
+  }, 220);
+  return;
+}
+
+location.reload();
   }else{
     const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
     $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
@@ -3711,8 +3758,8 @@ window.addEventListener("load", ()=>{
 
   setTimeout(()=>{
     opening.classList.add("is-hide");
-    setTimeout(()=>opening.remove(), 700);
-  }, 1150);
+    setTimeout(()=>opening.remove(), 380);
+  }, 760);
 });
 /* ===== opening splash：ここまで ===== */
 </script>
