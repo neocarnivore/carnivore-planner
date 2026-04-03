@@ -2795,6 +2795,10 @@ sessionStorage.setItem("autocalc","1");
 const opening = document.getElementById("neoOpening");
 if(opening){
   opening.classList.remove("is-hide");
+  opening.classList.remove("is-calc");
+
+  void opening.offsetWidth;
+
   opening.classList.add("is-calc");
 
   setTimeout(()=>{
@@ -3758,7 +3762,6 @@ window.addEventListener("load", ()=>{
 
   setTimeout(()=>{
     opening.classList.add("is-hide");
-    setTimeout(()=>opening.remove(), 380);
   }, 760);
 });
 /* ===== opening splash：ここまで ===== */
