@@ -2542,7 +2542,8 @@ function updateThemeBtn(){
 $('themeToggle').addEventListener('click', toggleTheme);
 applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
-$("resetBtn").addEventListener("click", ()=> playActionFx("reset", resetFormAll));$("presetSelect").addEventListener("change", loadSelectedPreset);
+$("resetBtn").addEventListener("click", ()=> playActionFx("reset", resetFormAll));
+$("presetSelect").addEventListener("change", loadSelectedPreset);
 $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
