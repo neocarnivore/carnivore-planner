@@ -11,6 +11,9 @@
 (() => {
   const saved = localStorage.getItem('theme');
   const isLight = saved === null || saved === 'light';
+  if (sessionStorage.getItem("skipOpeningOnce") === "1") {
+    document.documentElement.classList.add("skip-opening");
+  }
   if (!isLight) return;
 
   document.documentElement.classList.add('light');
@@ -679,6 +682,10 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   visibility:visible;
   transition:opacity .68s ease, visibility .68s ease;
   pointer-events:none;
+}
+
+.skip-opening #neoOpening{
+  display:none !important;
 }
 
 body.light #neoOpening{
@@ -3793,6 +3800,7 @@ window.addEventListener("load", ()=>{
   if(sessionStorage.getItem("skipOpeningOnce") === "1"){
     sessionStorage.removeItem("skipOpeningOnce");
     opening.remove();
+    document.documentElement.classList.remove("skip-opening");
     return;
   }
 
