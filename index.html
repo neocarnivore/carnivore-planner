@@ -853,41 +853,7 @@ body.fx-reset #neoActionFx::after{
 }
 /* ===== action fx：ここまで ===== */
 /* ===== opening splash：ここまで ===== */
-#neoOpening.is-calc{
-  transition:opacity .34s ease, visibility .34s ease;
-}
 
-#neoOpening.is-calc .neoOpening__meat{
-  animation:neoMeatCalc .42s cubic-bezier(.22,1,.36,1) both;
-}
-
-#neoOpening.is-calc .neoOpening__dot{
-  animation-duration:.46s !important;
-}
-
-#neoOpening.is-calc .neoOpening__text{
-  animation:neoTextCalc .22s ease .04s forwards;
-}
-
-@keyframes neoMeatCalc{
-  0%{
-    opacity:0;
-    transform:translateY(8px) scale(.86) rotate(-5deg);
-  }
-  55%{
-    opacity:1;
-    transform:translateY(0) scale(1.04) rotate(2deg);
-  }
-  100%{
-    opacity:1;
-    transform:translateY(0) scale(1) rotate(0deg);
-  }
-}
-
-@keyframes neoTextCalc{
-  from{opacity:0;transform:translateX(-50%) translateY(3px)}
-  to{opacity:.88;transform:translateX(-50%) translateY(0)}
-}
 </style>
 </head>
 <body>
