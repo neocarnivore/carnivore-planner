@@ -787,6 +787,71 @@ body.light #neoOpening{
   from{opacity:0;transform:translateX(-50%) translateY(6px)}
   to{opacity:.9;transform:translateX(-50%) translateY(0)}
 }
+/* ===== action fx：追加 ===== */
+#neoActionFx{
+  position:fixed;
+  inset:0;
+  z-index:9998;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+#neoActionFx::before,
+#neoActionFx::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+}
+
+body.fx-calc #neoActionFx::before{
+  background:radial-gradient(circle at 50% 50%, rgba(72,209,181,.22), rgba(72,209,181,0) 58%);
+  animation:neoCalcFlash .26s ease-out both;
+}
+body.fx-calc #neoActionFx::after{
+  inset:auto;
+  left:50%;
+  top:50%;
+  width:110px;
+  height:110px;
+  border-radius:999px;
+  border:2px solid rgba(72,209,181,.35);
+  transform:translate(-50%,-50%) scale(.72);
+  animation:neoCalcPulse .34s cubic-bezier(.22,1,.36,1) both;
+}
+
+body.fx-reset #neoActionFx::before{
+  background:linear-gradient(90deg, rgba(255,117,117,0) 0%, rgba(255,117,117,.16) 50%, rgba(255,117,117,0) 100%);
+  transform:translateX(-100%);
+  animation:neoResetSweep .22s ease-out both;
+}
+body.fx-reset #neoActionFx::after{
+  background:rgba(255,117,117,.08);
+  animation:neoResetFlash .18s ease-out both;
+}
+
+@keyframes neoCalcFlash{
+  0%{opacity:0}
+  25%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes neoCalcPulse{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.72)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.28)}
+}
+@keyframes neoResetSweep{
+  0%{opacity:0;transform:translateX(-100%)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translateX(100%)}
+}
+@keyframes neoResetFlash{
+  0%{opacity:0}
+  35%{opacity:1}
+  100%{opacity:0}
+}
+/* ===== action fx：ここまで ===== */
 /* ===== opening splash：ここまで ===== */
 #neoOpening.is-calc{
   transition:opacity .34s ease, visibility .34s ease;
@@ -835,7 +900,7 @@ body.light #neoOpening{
     <div class="neoOpening__text">CARNIVORE PLANNER</div>
   </div>
 </div>
-
+<div id="neoActionFx" aria-hidden="true"></div>
 <header>
   <div style="display:flex;align-items:center;gap:8px;min-width:0">
     <div>肉食プランナー🥩</div>
@@ -2203,7 +2268,19 @@ const $ = id => document.getElementById(id);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const PRESET_KEY = "planner_presets_v1";
 const LAST_PRESET_KEY = "planner_last_preset_v1";
+function playActionFx(type, done){
+  const cls = type === "calc" ? "fx-calc" : "fx-reset";
+  const dur = type === "calc" ? 340 : 220;
 
+  document.body.classList.remove("fx-calc","fx-reset");
+  void document.body.offsetWidth;
+  document.body.classList.add(cls);
+
+  setTimeout(()=>{
+    document.body.classList.remove("fx-calc","fx-reset");
+    if(typeof done === "function") done();
+  }, dur);
+}
 function closePresetMenu(){
   const menu = $("presetMenu");
   if(menu) menu.classList.remove("show");
@@ -2482,8 +2559,7 @@ function updateThemeBtn(){
 $('themeToggle').addEventListener('click', toggleTheme);
 applyThemeFromStorage();
 $("saveBtn").addEventListener("click", saveCurrentPreset);
-$("resetBtn").addEventListener("click", resetFormAll);
-$("presetSelect").addEventListener("change", loadSelectedPreset);
+$("resetBtn").addEventListener("click", ()=> playActionFx("reset", resetFormAll));$("presetSelect").addEventListener("change", loadSelectedPreset);
 $("presetManageBtn").addEventListener("click", (e)=>{
   e.stopPropagation();
   const menu = $("presetMenu");
@@ -2781,33 +2857,20 @@ $("calcBtn").addEventListener("click", ()=>{
       localStorage.setItem(LAST_PRESET_KEY, selectedName);
     }
 
-    if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
-    const vp = document.querySelector('meta[name="viewport"]');
-    if(vp){
-      const orig = vp.getAttribute('content');
-      vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
-      setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
-    }
-    window.scrollTo({top:0, left:0, behavior:'auto'});
-saveFormToSession();
-sessionStorage.setItem("autocalc","1");
-
-const opening = document.getElementById("neoOpening");
-if(opening){
-  opening.classList.remove("is-hide");
-  opening.classList.remove("is-calc");
-
-  void opening.offsetWidth;
-
-  opening.classList.add("is-calc");
-
-  setTimeout(()=>{
-    location.reload();
-  }, 220);
-  return;
-}
-
-location.reload();
+    playActionFx("calc", ()=>{
+  if(document.activeElement && typeof document.activeElement.blur === 'function'){ document.activeElement.blur(); }
+  const vp = document.querySelector('meta[name="viewport"]');
+  if(vp){
+    const orig = vp.getAttribute('content');
+    vp.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover');
+    setTimeout(()=>{ vp.setAttribute('content', orig); }, 0);
+  }
+  window.scrollTo({top:0, left:0, behavior:'auto'});
+  saveFormToSession();
+  sessionStorage.setItem("autocalc","1");
+  location.reload();
+});
+return;
   }else{
     const pressed = $("calcBtn").getAttribute("aria-pressed")==="true";
     $("calcBtn").setAttribute("aria-pressed", pressed?"false":"true");
