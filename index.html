@@ -9,6 +9,8 @@
 <link rel="apple-touch-icon" href="icon-meat-194.png">
 <script>
 (() => {
+  document.documentElement.classList.add("planner-booting");
+
   const saved = localStorage.getItem('theme');
   const isLight = saved === null || saved === 'light';
   if (sessionStorage.getItem("skipOpeningOnce") === "1") {
@@ -46,6 +48,14 @@
   margin:0;
   background:linear-gradient(180deg,var(--bg),#10131b00);
   color:var(--text);
+}
+
+.planner-booting body{
+  opacity:0;
+}
+
+.planner-booting.skip-opening body{
+  opacity:0;
 }
 
 /* ダークモードだけ背景グラデ変更 */
@@ -3556,6 +3566,9 @@ refreshPresetSelect();
 
 /* 入力が埋まってきたらpFactor候補を描画 */
 updatePFMenu();
+requestAnimationFrame(() => {
+  document.documentElement.classList.remove("planner-booting");
+});
 document.addEventListener("click", (e)=>{
   const topBtn = e.target.closest(".foodListBtn");
   const subBtn = e.target.closest(".foodSubBtn");
