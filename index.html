@@ -715,27 +715,14 @@ body.light #neoOpening{
   height:120px;
   display:grid;
   place-items:center;
-  contain:layout paint;
-  transform:translateZ(0);
 }
 
 .neoOpening__meat{
   font-size:56px;
   line-height:1;
-  text-shadow:0 10px 24px rgba(0,0,0,.18);
+  filter:drop-shadow(0 10px 24px rgba(0,0,0,.18));
   animation:neoMeatPop 1.15s cubic-bezier(.22,1,.36,1) both;
   transform-origin:50% 60%;
-  will-change:transform,opacity;
-  transform:translateZ(0);
-  backface-visibility:hidden;
-}
-
-#neoOpening,
-.neoOpening__dot,
-.neoOpening__text{
-  will-change:transform,opacity;
-  transform:translateZ(0);
-  backface-visibility:hidden;
 }
 
 .neoOpening__dot{
