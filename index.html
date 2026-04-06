@@ -231,6 +231,22 @@ body:not(.light) .foodListMeta{
   color:#fff;
 }
 
+.foodListBtn,
+.foodSubBtn{
+  transition:transform .14s ease, filter .16s ease;
+}
+
+.foodListBtn:active,
+.foodSubBtn:active{
+  transform:scale(.985);
+  filter:brightness(.96);
+}
+.foodListItem.is-open > .foodListBtn,
+.foodSubItem.is-open > .foodSubBtn{
+  transform:translateY(-1px);
+  filter:brightness(1.02);
+}
+
 @media (max-width:749px){
   .foodListMeta{
     min-width:96px;
@@ -1308,6 +1324,12 @@ body.fx-reset #neoActionFx::after{
     position:relative;
     transform:none !important;
   }
+  
+  .weekDay.is-switching .weekBar{
+  filter:brightness(1.08);
+  transform:scale(1.02);
+  transition:transform .18s ease, filter .18s ease;
+}
 
   .weekTopArea{
     height:36px;
@@ -1398,6 +1420,11 @@ body.fx-reset #neoActionFx::after{
     transform:none !important;
     box-sizing:border-box;
   }
+  .weekDay.is-switching .weekBar{
+  filter:brightness(1.08);
+  transform:scale(1.02);
+  transition:transform .18s ease, filter .18s ease;
+}
   body:not(.light) .weekBar{
     background:#000;
     border-color:rgba(255,255,255,.24);
@@ -1968,6 +1995,9 @@ const insideMenu = e.target.closest(".weekMenu");
     if(menuChoice){
       const i = Number(menuChoice.dataset.i);
       const type = menuChoice.dataset.type;
+      const dayEl = document.querySelector(`.weekDay[data-index="${i}"]`);
+dayEl?.classList.add("is-switching");
+setTimeout(()=> dayEl?.classList.remove("is-switching"), 180);
       if(Number.isFinite(i) && state.days[i]){
         state.days[i].type = type;
       }
