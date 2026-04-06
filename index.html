@@ -163,31 +163,11 @@ body:not(.light) .foodSubItem{
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .18s cubic-bezier(.22,1,.36,1),
-    filter .18s ease,
-    border-color .22s ease,
-    background .22s ease;
+  transition:none;
 }
 body:not(.light) .foodListBtn{
   background:#000;
   color:#fff;
-}
-
-.foodListBtn:active,
-.foodSubBtn:active{
-  transform:scale(.992);
-  filter:brightness(.985);
-}
-
-.foodListItem.is-open > .foodListBtn,
-.foodSubItem.is-open > .foodSubBtn{
-  filter:brightness(1.01);
-}
-
-.foodListItem.is-open > .foodListBtn .foodListArrow,
-.foodSubItem.is-open > .foodSubBtn .foodSubArrow{
-  transform:scale(1.06);
 }
 
 .foodSubBtn{
@@ -203,10 +183,7 @@ body:not(.light) .foodListBtn{
   cursor:pointer;
   text-align:left;
   -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .18s cubic-bezier(.22,1,.36,1),
-    filter .18s ease,
-    background .22s ease;
+  transition:none;
 }
 
 body:not(.light) .foodSubBtn{
@@ -337,11 +314,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(160,160,160,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:
-    transform .28s cubic-bezier(.22,1,.36,1),
-    background .22s ease,
-    box-shadow .22s ease,
-    border-color .22s ease;
+  transition:none;
 }
 
 /* ←ここに追加 */
@@ -383,11 +356,7 @@ body:not(.light) .foodSubLabel{
   background:#ffffff;
   border:1.5px solid rgba(140,140,140,.16);
   box-shadow:0 8px 18px rgba(0,0,0,.05);
-  transition:
-    transform .28s cubic-bezier(.22,1,.36,1),
-    background .22s ease,
-    box-shadow .22s ease,
-    border-color .22s ease;
+  transition:none;
 }
 
 body:not(.light) .foodListArrow,
@@ -1512,36 +1481,6 @@ body.fx-reset #neoActionFx::after{
       color .18s ease;
     border:1px solid transparent;
   }
-  
-  .weekDayLabel{
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  transition:
-    transform .18s cubic-bezier(.22,1,.36,1),
-    background .18s ease,
-    box-shadow .18s ease,
-    border-color .18s ease,
-    color .18s ease;
-}
-
-.weekDayLabel:active{
-  transform:scale(.97);
-}
-
-.weekMenuBtn{
-  transition:
-    transform .22s cubic-bezier(.22,1,.36,1),
-    opacity .18s ease,
-    color .18s ease;
-}
-
-.weekDay:has(.weekMenu.show) .weekMenuBtn{
-  transform:translateY(-.4px) rotate(180deg);
-}
-
-.weekMenu{
-  transform-origin:50% 100%;
-}
 
   .weekDay.isToday .weekDayLabel{
     background:rgba(120,128,140,.08);
@@ -3892,7 +3831,4 @@ window.addEventListener("resize", ()=>{
   };
 
   window.addEventListener("pageshow", closeOpening, { once:true });
-  window.addEventListener("load", closeOpening, { once:true });
-})();
-/* ===== opening splash：ここまで ===== */
 </script>
