@@ -1995,9 +1995,6 @@ const insideMenu = e.target.closest(".weekMenu");
     if(menuChoice){
       const i = Number(menuChoice.dataset.i);
       const type = menuChoice.dataset.type;
-      const dayEl = document.querySelector(`.weekDay[data-index="${i}"]`);
-dayEl?.classList.add("is-switching");
-setTimeout(()=> dayEl?.classList.remove("is-switching"), 180);
       if(Number.isFinite(i) && state.days[i]){
         state.days[i].type = type;
       }
