@@ -3149,10 +3149,10 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
 
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  const ticks = months<=1 ? [7,14,21,30]
-            : months<=3 ? [30,60,90]
-            : months<=6 ? [60,120,180]
-            : [90,180,270,360];
+  const ticks = months<=1 ? [0,7,14,21,30]
+            : months<=3 ? [0,30,60,90]
+            : months<=6 ? [0,60,120,180]
+            : [0,90,180,270,360];
 
 const tickXs = [];
 const tickDays = [];
@@ -3244,8 +3244,8 @@ ticks.forEach(d=>{
     const leftPx = clamp(xs[best], tipW/2 + pad, cvs.width - tipW/2 - pad);
     tip.style.left = (leftPx / cvs.width * 100) + "%";
 
-    const yPx = Math.max(tipH/2 + pad, 18);
-    tip.style.top = (yPx / cvs.height * 100) + "%";
+    const yPx = Math.max(tipH/2 + pad, cvs.height * 0.30);
+tip.style.top = (yPx / cvs.height * 100) + "%";
   });
 
   document.addEventListener("click", (e)=>{
