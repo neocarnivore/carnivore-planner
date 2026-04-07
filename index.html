@@ -936,14 +936,14 @@ body.fx-reset #neoActionFx::after{
         </div>
         <div>
           <label>年齢（歳）</label>
-          <input id="age" type="number" inputmode="decimal" step="0.1" placeholder="例：30" min="12" max="99">
-        </div>
+          <input id="age" type="number" inputmode="numeric" step="1" placeholder="例：30" min="15" max="99">
+      </div>
       </div>
 
       <div class="pair">
         <div>
           <label>身長（cm）</label>
-          <input id="height" type="number" inputmode="decimal" step="0.1" placeholder="例：170" min="120" max="220">
+          <input id="height" type="number" inputmode="numeric" step="1" placeholder="例：170" min="130" max="200">
         </div>
         <div>
           <label>体重（kg）</label>
@@ -2662,6 +2662,8 @@ function attachClamp(id, min, max){
 }
 attachClamp('weight', 30, 250);
 attachClamp('targetWeight', 30, 250);
+attachClamp('age', 15, 99);
+attachClamp('height', 130, 200);
 
 /* 糖質欄の表示 */
 function setCarbOptions(diet){
@@ -3246,7 +3248,7 @@ ctx.textBaseline = "alphabetic";
     const leftPx = clamp(xs[best], tipW/2 + pad, cvs.width - tipW/2 - pad);
     tip.style.left = (leftPx / cvs.width * 100) + "%";
 
-    const yPx = Math.max(tipH/2 + pad, cvs.height * 0.30);
+    const yPx = Math.max(tipH/2 + pad, cvs.height * 7.30);
 tip.style.top = (yPx / cvs.height * 100) + "%";
   });
 
