@@ -3179,6 +3179,8 @@ ticks.forEach(d=>{
   tickDays.push(d);
   tickWeights.push(kg);
 });
+ctx.textAlign = "left";
+ctx.textBaseline = "alphabetic";
   for(let i=0;i<=ySteps;i++){
     const val=minY+(yRange/ySteps)*i; const yy=yTo(val);
     const label=`${val.toFixed(1)}kg`; const tw=ctx.measureText(label).width;
