@@ -581,6 +581,23 @@ body:not(.light) .foodSubItem.is-open > .foodSubBtn .foodSubArrow{
   .chartBtns button{background:transparent;border:1px solid var(--border);color:var(--text)}
   .chartBtns button.active{background:var(--acc);color:#fff;border-color:transparent}
   canvas{width:min(820px,100%);height:auto;display:block;border-radius:10px;margin:0 auto}
+  .chartCard{
+  position:relative;
+}
+
+.tip{
+  position:absolute;
+  padding:6px 8px;
+  border-radius:8px;
+  background:var(--acc);
+  color:#fff;
+  border:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  font-size:11px;
+  pointer-events:none;
+  transform:translate(-50%,-110%);
+  white-space:nowrap;
+}
   .footerNote{color:#000 !important}
   .light .footerNote{color:#000 !important}
   .footerNote a{color:var(--p);text-decoration:underline}
@@ -1140,6 +1157,7 @@ body.fx-reset #neoActionFx::after{
           </div>
         </div>
         <canvas id="wtChart" height="260" aria-label="体重推移グラフ" role="img"></canvas>
+        <div id="chartTip" class="tip" style="display:none"></div>
       </div>
     </section>
   </div>
@@ -3131,14 +3149,36 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
 
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--axis').trim();
   ctx.font=`${Math.round(W/60)+11}px system-ui`;
-  const ticks = months<=1? [0,7,14,21,30] : months<=3? [0,30,60,90] : months<=6? [0,60,120,180] : [0,90,180,270,360];
-  ticks.forEach(d=>{
-    const m=d/30; const xx=xTo(Math.min(months,m));
-    const label=`${d}日`; const tw=ctx.measureText(label).width;
-    let xSafe=Math.min(Math.max(xx-tw/2, padL), W-padR-tw);
-    if(d===0) xSafe = padL + 12;
-    ctx.fillText(label, xSafe, H-16);
-  });
+  const ticks = months<=1 ? [7,14,21,30]
+            : months<=3 ? [30,60,90]
+            : months<=6 ? [60,120,180]
+            : [90,180,270,360];
+
+const tickXs = [];
+const tickDays = [];
+const tickWeights = [];
+
+ticks.forEach(d=>{
+  const m = d / 30;
+  const xx = xTo(Math.min(months, m));
+  const label = `▼${d}日`;
+  const tw = ctx.measureText(label).width;
+  const xSafe = clamp(xx, padL + tw/2, W - padR - tw/2);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(label, xSafe, H-22);
+
+  const mClamped = Math.min(months, m);
+  const i0 = Math.floor(mClamped);
+  const i1 = Math.min(xs.length - 1, i0 + 1);
+  const frac = mClamped - i0;
+  const kg = ys[i0] + (ys[i1] - ys[i0]) * frac;
+
+  tickXs.push(xSafe);
+  tickDays.push(d);
+  tickWeights.push(kg);
+});
   for(let i=0;i<=ySteps;i++){
     const val=minY+(yRange/ySteps)*i; const yy=yTo(val);
     const label=`${val.toFixed(1)}kg`; const tw=ctx.measureText(label).width;
@@ -3162,8 +3202,58 @@ function drawWeightChart({startKg, targetKg, months, dailyDeltaKcal, kcalPerKg, 
   xs.forEach((m,i)=>{ const xx=xTo(m), yy=yTo(ys[i]); ctx.beginPath(); ctx.arc(xx,yy,2.5,0,Math.PI*2); ctx.fill(); });
   ctx.restore();
 
-  window._lastDrawArgs = {startKg,w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut};
+  window._lastDrawArgs = {
+  startKg, w, targetKg, months, dailyDeltaKcal, kcalPerKg, isCut,
+  tickXs, tickDays, tickWeights, W, H
+};
 }
+(function bindWeightChartTip(){
+  const cvs = $("wtChart");
+  const tip = $("chartTip");
+  if(!cvs || !tip) return;
+
+  cvs.addEventListener("click", (ev)=>{
+    if(!window._lastDrawArgs) return;
+
+    const rect = cvs.getBoundingClientRect();
+    const x = (ev.clientX - rect.left) * (cvs.width / rect.width);
+
+    const a = window._lastDrawArgs;
+    const xs = a.tickXs || [];
+    const days = a.tickDays || [];
+    const weights = a.tickWeights || [];
+    if(!xs.length) return;
+
+    let best = 0;
+    let bestD = 1e9;
+    xs.forEach((xx, i)=>{
+      const d = (xx - x) * (xx - x);
+      if(d < bestD){
+        bestD = d;
+        best = i;
+      }
+    });
+
+    tip.textContent = `${days[best]}日：${weights[best].toFixed(1)}kg`;
+    tip.style.display = "block";
+
+    const tipW = tip.offsetWidth || 80;
+    const tipH = tip.offsetHeight || 26;
+    const pad = 6;
+
+    const leftPx = clamp(xs[best], tipW/2 + pad, cvs.width - tipW/2 - pad);
+    tip.style.left = (leftPx / cvs.width * 100) + "%";
+
+    const yPx = Math.max(tipH/2 + pad, 18);
+    tip.style.top = (yPx / cvs.height * 100) + "%";
+  });
+
+  document.addEventListener("click", (e)=>{
+    if(!cvs.contains(e.target)){
+      tip.style.display = "none";
+    }
+  });
+})();
 let _resizeId;
 window.addEventListener('resize', ()=>{
   cancelAnimationFrame(_resizeId);
