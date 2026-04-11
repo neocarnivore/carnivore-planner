@@ -1035,7 +1035,6 @@ body.fx-reset #neoActionFx::after{
   <option value="30">30g</option>
   <option value="40">40g</option>
   <option value="55">55g</option>
-  <option value="70">70g</option>
 </select>
 
   <select id="lionMeat" style="display:none">
@@ -1140,7 +1139,7 @@ body.fx-reset #neoActionFx::after{
 </div>
 
 <div class="small" style="margin-top:8px;opacity:.95">
-  100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 60kcal
+  100gあたり代表値（目安）：肉 280kcal / 魚介類 150kcal / 卵 150kcal / 乳製品 160kcal / 野菜 30kcal / 果物 75kcal
 </div>
     </section>
 
@@ -2673,7 +2672,7 @@ function setCarbOptions(diet){
   const allow =
     diet==="Ketovore" ? ["20","30","40"] :
     diet==="TKD" ? ["20","30","40"] :
-    diet==="FruitCarnivore" ? ["40","55","70"] :
+    diet==="FruitCarnivore" ? ["40","55"] :
     [];
 
   Array.from(carb.options).forEach(opt=>{
@@ -2922,7 +2921,7 @@ function classText(bmi){
   if(bmi < 40)   return "肥満II(35–39.9)";
   return "肥満III(≥40)";
 }
-const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:60 };
+const KCAL_PER_100G = { meat:280, fish:150, eggs:150, dairy:160, veg:30, fruit:75 };
 
 /* NaN安全配分 */
 function splits6By(diet, carbSel, fitnessType, onoff){
