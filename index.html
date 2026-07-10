@@ -888,6 +888,139 @@ body.fx-reset #neoActionFx::after{
 }
 /* ===== action fx：ここまで ===== */
 /* ===== opening splash：ここまで ===== */
+/* PC・iPadでも414pxスマホ表示を強制 */
+html{
+  background:#f6f8fb;
+}
+
+body{
+  width:100%;
+  max-width:414px;
+  margin:0 auto;
+  overflow-x:hidden;
+}
+
+header,
+.wrap{
+  width:100%;
+  max-width:none;
+}
+
+/* スマホ時の配置を常時適用 */
+.formGrid{
+  grid-template-columns:1fr;
+}
+
+.formGrid > .pair{
+  grid-template-columns:1fr 1fr;
+}
+
+#dayList .btnGrid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+.foodListItem{
+  border-radius:0;
+}
+
+.foodListBtn{
+  padding:14px 14px 12px;
+  gap:12px;
+}
+
+.foodListLabel{
+  min-height:32px;
+  padding:0 14px;
+  font-size:12px;
+}
+
+.foodSubBtn{
+  min-height:48px;
+}
+
+.foodSubLabel{
+  font-size:11px;
+  padding:5px 10px;
+}
+
+.foodListArrow{
+  width:36px;
+  height:36px;
+  min-width:36px;
+}
+
+.foodSubArrow{
+  width:24px;
+  height:24px;
+  min-width:24px;
+}
+
+.foodListContentInner{
+  padding:8px 8px 14px;
+}
+
+.foodSubContentInner{
+  padding:8px 16px 20px;
+}
+
+.foodLeaf{
+  font-size:12px;
+  line-height:1.8;
+}
+
+.twmChart{
+  gap:4px;
+}
+
+.twmCol{
+  max-width:24px;
+}
+
+.twmSegLabel{
+  font-size:9px;
+}
+
+.twmMetaRow{
+  gap:10px;
+}
+
+.twmLegend{
+  gap:10px;
+}
+
+.twmKcalTop{
+  width:34px;
+  height:34px;
+}
+
+.twmKcalTop .num{
+  font-size:8px;
+}
+
+.twmKcalTop .unit{
+  font-size:6.5px;
+}
+
+.twmLabel{
+  font-size:10px;
+}
+
+/* PCの画面幅による文字拡大を防止 */
+header{
+  font-size:16px;
+}
+
+.big{
+  font-size:22px;
+}
+
+.huge{
+  font-size:28px;
+}
+
+.macroBox .val{
+  font-size:20px;
+}
 
 </style>
 </head>
