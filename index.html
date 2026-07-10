@@ -906,7 +906,7 @@ header,
   max-width:none;
 }
 
-/* スマホ時の配置を常時適用 */
+/* 入力欄をスマホ配置に固定 */
 .formGrid{
   grid-template-columns:1fr;
 }
@@ -915,10 +915,7 @@ header,
   grid-template-columns:1fr 1fr;
 }
 
-#dayList .btnGrid{
-  grid-template-columns:repeat(4,minmax(0,1fr));
-}
-
+/* 食材リストをスマホ表示に固定 */
 .foodListItem{
   border-radius:0;
 }
@@ -940,6 +937,7 @@ header,
 
 .foodSubLabel{
   font-size:11px;
+  line-height:1.35;
   padding:5px 10px;
 }
 
@@ -968,54 +966,51 @@ header,
   line-height:1.8;
 }
 
-.twmChart{
+/* 週間マクロをスマホ表示に固定 */
+.weekChart{
   gap:4px;
 }
 
-.twmCol{
+.weekCol{
   max-width:24px;
 }
 
-.twmSegLabel{
+.weekSegLabel{
   font-size:9px;
 }
 
-.twmMetaRow{
+.weekMetaRow{
   gap:10px;
 }
 
-.twmLegend{
+.weekLegend{
   gap:10px;
 }
 
-.twmKcalTop{
+.weekKcalTop{
   width:34px;
   height:34px;
 }
 
-.twmKcalTop .num{
+.weekKcalTop .num{
   font-size:8px;
 }
 
-.twmKcalTop .unit{
+.weekKcalTop .unit{
   font-size:6.5px;
 }
 
-.twmLabel{
+.weekLabel{
   font-size:10px;
 }
 
-/* PCの画面幅による文字拡大を防止 */
+/* PCで文字が拡大されるのを防ぐ */
 header{
   font-size:16px;
 }
 
 .big{
   font-size:22px;
-}
-
-.huge{
-  font-size:28px;
 }
 
 .macroBox .val{
