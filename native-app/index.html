@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark light"><title>肉食プランナー</title></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark light"><title>肉食プランナー</title><script>window.plannerBoot={stage:'html',error:null};addEventListener('error',e=>{window.plannerBoot.error=e.message;});addEventListener('unhandledrejection',e=>{window.plannerBoot.error=String(e.reason);});</script></head>
 <body><header><h1>肉食プランナー</h1><nav aria-label="モード"><button data-mode="meat">肉食</button><button data-mode="transition">移行食</button><button id="settingsButton">設定・履歴</button></nav></header>
 <main><section id="planner"><div class="tools"><label>プランの日付 <input id="planDate" type="date"></label><button id="savePlan">日付別に保存</button><button id="sharePlan">共有</button><button id="newPlan">新規保存に切替</button></div><p id="editing"></p><iframe id="plannerFrame" title="食事プラン計算機"></iframe></section>
 <section id="settings" hidden><h2>設定・履歴</h2><label>表示 <select id="appearance"><option value="system">端末に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>

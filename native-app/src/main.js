@@ -6,6 +6,7 @@ import { Browser } from '@capacitor/browser';
 import { Filesystem,Directory,Encoding } from '@capacitor/filesystem';
 import { emptyState,validateState,parseBackup,mergeBackup,makeId } from './store.js';
 const $=id=>document.getElementById(id), KEY='neocarnivore.planner.v1';
+window.plannerBoot.stage='main';
 let state, queue=Promise.resolve(), editing=null, readyMode=null, broken=false,raw=null;
 const notice=text=>$('status').textContent=text;
 const label=m=>m==='meat'?'肉食':'移行食';
@@ -25,7 +26,7 @@ window.plannerBridge={
   storage(mode){return {getItem:k=>Object.hasOwn(state.storage[mode],k)?state.storage[mode][k]:null,setItem(k,v){if(['__proto__','constructor'].includes(k))return;state.storage[mode][k]=String(v);autosave();},removeItem(k){delete state.storage[mode][k];autosave();}};},
   session(mode){return {getItem:k=>sessionStorage.getItem(`${mode}:${k}`),setItem:(k,v)=>sessionStorage.setItem(`${mode}:${k}`,v),removeItem:k=>sessionStorage.removeItem(`${mode}:${k}`)};},
   draft(mode,data){if(!broken){state.drafts[mode]=structuredClone(data);autosave();}},
-  loaded(mode){readyMode=mode;const d=state.drafts[mode];if(d)frame().restore(d);theme();},external
+  loaded(mode){readyMode=mode;const d=state.drafts[mode];if(d)frame().restore(d);theme();window.plannerBoot.stage='ready';},external
 };
 async function switchMode(mode,restore){
   if(frame()&&readyMode){state.drafts[readyMode]=frame().snapshot();}
@@ -72,6 +73,8 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function resizeFrame(){const el=$('plannerFrame');if(!$('planner').hidden){const h=window.visualViewport?.height||innerHeight;el.style.height=`${Math.max(180,h-el.getBoundingClientRect().top-$('status').offsetHeight-24)}px`;}}
 window.visualViewport?.addEventListener('resize',resizeFrame);window.addEventListener('resize',resizeFrame);$('plannerFrame').addEventListener('load',resizeFrame);
 try{
+  window.plannerBoot.stage='preferences';
   const {value}=await Preferences.get({key:KEY});raw=value;state=value?validateState(JSON.parse(value)):emptyState();
+  window.plannerBoot.stage='state';
   $('planDate').value=new Date().toLocaleDateString('sv-SE');$('appearance').value=state.appearance;theme();await switchMode(state.mode);notice('端末内で計算・保存できます。');
-}catch{broken=true;state=emptyState();$('planner').hidden=true;$('settings').hidden=false;notice('保存データを読み込めません。既存データは上書きしません。再起動をお試しください。復旧できない場合は削除が必要です。');}
+}catch(e){window.plannerBoot.stage='failed';window.plannerBoot.error=String(e);broken=true;state=emptyState();$('planner').hidden=true;$('settings').hidden=false;notice('保存データを読み込めません。既存データは上書きしません。再起動をお試しください。復旧できない場合は削除が必要です。');}
