@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark light"><title>肉食プランナー</title></head>
+<body><header><h1>肉食プランナー</h1><nav aria-label="モード"><button data-mode="meat">肉食</button><button data-mode="transition">移行食</button><button id="settingsButton">設定・履歴</button></nav></header>
+<main><section id="planner"><div class="tools"><label>プランの日付 <input id="planDate" type="date"></label><button id="savePlan">日付別に保存</button><button id="sharePlan">共有</button><button id="newPlan">新規保存に切替</button></div><p id="editing"></p><iframe id="plannerFrame" title="食事プラン計算機"></iframe></section>
+<section id="settings" hidden><h2>設定・履歴</h2><label>表示 <select id="appearance"><option value="system">端末に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
+<h3>バックアップ</h3><p>入力・プリセット・日付別プランをJSONで保存します。体重などの個人情報が含まれます。端末外への保存先と共有相手をご確認ください。</p><button id="exportData">記録を書き出す</button><label class="file">記録を読み込む <input id="importData" type="file" accept=".json,application/json"></label><p>読み込みは既存の履歴に追加します。設定・現在の入力は維持します。</p>
+<h3>日付別の履歴</h3><div id="history"></div><h3>データ管理</h3><button id="deleteData">すべての保存データを削除</button>
+<h3>このアプリについて</h3><p>数値は既存Web版の推計です。診断・治療・医学的に検証された個別の食事指導を提供するものではありません。食材比率、糖質の減らし方、電解質量、体重推移の係数には独自の仮定を含みます。持病、服薬、妊娠・授乳、成長期の食事変更は医療専門職に相談してください。</p><p><a href="privacy.html">プライバシーポリシー（草案）</a> · <a href="support.html">サポート（草案）</a></p><p>バージョン 0.1.0 / データ形式 v1</p></section></main><p id="status" role="status" aria-live="polite"></p><script type="module" src="/src/main.js"></script></body></html>

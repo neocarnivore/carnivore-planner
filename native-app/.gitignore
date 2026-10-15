@@ -1,0 +1,16 @@
+node_modules/
+dist/
+public/planners/
+playwright-report/
+test-results/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/Pods/
+ios/DerivedData/
+ios/DerivedData-*/
+build/
+audit.json
+*.p12
+*.p8
+*.mobileprovision
+.env*

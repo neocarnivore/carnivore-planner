@@ -1,0 +1,6 @@
+{
+  "appId": "jp.neocarnivore.planner.preview",
+  "appName": "肉食プランナー",
+  "webDir": "dist",
+  "ios": { "contentInset": "never", "preferredContentMode": "mobile" }
+}

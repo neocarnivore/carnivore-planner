@@ -1,0 +1,35 @@
+{
+  "name": "carnivore-planner-ios",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "node scripts/prepare.mjs && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "playwright test",
+    "ios:add": "cap add ios",
+    "ios:sync": "cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.3",
+    "@capacitor/preferences": "8.0.1",
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/share": "8.0.3",
+    "@capacitor/filesystem": "8.1.4"
+  },
+  "devDependencies": {
+    "vite": "8.3.4",
+    "@playwright/test": "1.64.1",
+    "@capacitor/cli": "8.5.3"
+  },
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
+}
