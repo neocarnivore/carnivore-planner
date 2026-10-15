@@ -15,3 +15,4 @@ for (const [mode,icon] of [['meat','icon-meat-194.png'],['transition','icon-avoc
   fs.writeFileSync(path.join(dir,'index.html'),html); fs.copyFileSync(path.join(root,'vendor',mode,icon),path.join(dir,icon));
 }
 fs.copyFileSync(path.join(root,'src/adapter.js'),path.join(root,'public/planners/adapter.js'));
+await import('./verify-bundle.mjs');

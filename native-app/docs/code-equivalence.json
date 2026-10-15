@@ -1,0 +1,45 @@
+{
+  "verification": "Original inline JavaScript matches after reversing only storage API references and the weekday-state bridge.",
+  "modes": {
+    "meat": [
+      {
+        "script": 1,
+        "originalSha256": "618c0f1d695cfb9064481e623bd42a592cc969749c15c4f241f7c475ffc9e829",
+        "restoredBundleSha256": "618c0f1d695cfb9064481e623bd42a592cc969749c15c4f241f7c475ffc9e829",
+        "identical": true
+      },
+      {
+        "script": 2,
+        "originalSha256": "966c7667a3350e669f70be22d73866881b3247e527b77ac9f4a0647af736a336",
+        "restoredBundleSha256": "966c7667a3350e669f70be22d73866881b3247e527b77ac9f4a0647af736a336",
+        "identical": true
+      },
+      {
+        "script": 3,
+        "originalSha256": "a17727a9c7b32e0952349a26caa61352594ced60812d2e2e487b1e4eb5b124a4",
+        "restoredBundleSha256": "a17727a9c7b32e0952349a26caa61352594ced60812d2e2e487b1e4eb5b124a4",
+        "identical": true
+      }
+    ],
+    "transition": [
+      {
+        "script": 1,
+        "originalSha256": "618c0f1d695cfb9064481e623bd42a592cc969749c15c4f241f7c475ffc9e829",
+        "restoredBundleSha256": "618c0f1d695cfb9064481e623bd42a592cc969749c15c4f241f7c475ffc9e829",
+        "identical": true
+      },
+      {
+        "script": 2,
+        "originalSha256": "b8fe4f2e233fa9a0bc3bca56f884455316b0c2e5a552bf0491c6e54a67a0f2a8",
+        "restoredBundleSha256": "b8fe4f2e233fa9a0bc3bca56f884455316b0c2e5a552bf0491c6e54a67a0f2a8",
+        "identical": true
+      },
+      {
+        "script": 3,
+        "originalSha256": "3bef46f6c9a306977355df0d6cff87cde231bf30d257317abbf9c8fa65f62c21",
+        "restoredBundleSha256": "3bef46f6c9a306977355df0d6cff87cde231bf30d257317abbf9c8fa65f62c21",
+        "identical": true
+      }
+    ]
+  }
+}
