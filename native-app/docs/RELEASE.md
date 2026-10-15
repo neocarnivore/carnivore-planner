@@ -7,13 +7,15 @@
 - 公開リポジトリの標準GitHub-hosted runnerは無料。今回のmacos-15が対象。larger runnerを選択しない。Artifactsは7日で削除。非公開リポジトリは無料枠・OS別料金・容量課金の条件が異なるため、有料利用前にSettings → Billing & licensing → Budgets and alertsで上限を確認。
 - Apple Developer Programは年99米ドル、地域通貨・税等は本人の申込画面の表示で確定。TestFlight/App Store配布には加入が必要。署名なしActionsには不要。
 - Codemagic等の別の有料ビルドサービスは契約しない。Macの購入・レンタルも初期工程には不要。
-- 最初の本人操作はGitHub認証だけ。https://github.com/login/device を開き、案内された有効期限内のコードを入力。右上のアカウントがneocarnivoreであることを確認してGitHub CLIを許可。コードが失効したら `gh auth login --hostname github.com --git-protocol https --web` を再実行。パスワードやトークンをチャットに貼らない。
+- GitHub認証はneocarnivoreで完了済み。別PCで再設定する場合は `gh auth login --hostname github.com --git-protocol https --web --scopes workflow` を実行し、https://github.com/login/device で認証。コード管理のrepo権限に加え、Actions定義の送信用workflow権限が必要。パスワードやトークンをチャットに貼らない。
 
 https://docs.github.com/en/billing/concepts/product-billing/github-actions
 
 https://developer.apple.com/programs/
 
 ## 2. 署名なしビルドを確認
+
+署名なしiPhone向けコンパイルとシミュレーター起動・計算画面初期化の検証は完了：https://github.com/neocarnivore/carnivore-planner/actions/runs/38704226994 。詳細と実施範囲はVALIDATION.md。次の本人操作は、本書3以降の有料Apple Developer登録へ進むかの判断になる。未登録のままTestFlight配布はできない。
 
 GitHub → neocarnivore/carnivore-planner → ブランチfeat/unified-ios → Actions → iOS unsigned validation。pushで実行される。緑のチェック、`Compile for iPhone without signing`、`Compile and launch simulator`を確認。Artifacts → ios-validation-番号をダウンロードし、device-build.log、simulator-build.log、simulator-launch.pngを確認。エラー時は失敗した工程のログを使用。
 
