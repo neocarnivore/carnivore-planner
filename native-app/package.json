@@ -8,11 +8,12 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "node scripts/prepare.mjs && vite build",
+    "build": "node scripts/verify-originals.mjs && node scripts/prepare.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "playwright test",
     "ios:add": "cap add ios",
-    "ios:sync": "cap sync ios"
+    "ios:sync": "cap sync ios",
+    "verify:originals": "node scripts/verify-originals.mjs"
   },
   "dependencies": {
     "@capacitor/core": "8.5.3",

@@ -1,4 +1,4 @@
 .github/workflows/*.yml text eol=lf
 native-app/scripts/*.sh text eol=lf
 # Preserve upstream source formatting; existing trailing spaces are intentional snapshots.
-native-app/vendor/** whitespace=-blank-at-eol
+native-app/vendor/** -text whitespace=-blank-at-eol

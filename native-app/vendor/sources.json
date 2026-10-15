@@ -1,0 +1,22 @@
+{
+  "meat": {
+    "repository": "https://github.com/neocarnivore/carnivore-planner",
+    "commit": "f290e896042d60707f9db7f7b474cc425ea65a3f",
+    "sha256": {
+      "index.html": "9bb08d635ee68dff8c2a0f3ac57559d771c9046c3b60c7ca70c05fa14a8183c3",
+      "sw.js": "52df0c7a1e4e2ec1a06b7ead34e48de652cc1a266b283b496407a5f78b7de58c",
+      "manifest.webmanifest": "d4dafcc3c65cbc8b584cdde7e8e8fe85791508664706301e05ca006d71530d07",
+      "icon-meat-194.png": "30503f18dc37d86c25a2f6e290916fa2be55716027b22098f2a9637708f52271"
+    }
+  },
+  "transition": {
+    "repository": "https://github.com/neocarnivore/Pre-Carnivore-Transition-Diet",
+    "commit": "76b574ebc0e8b6f264370e3f30239fdb0bc51e59",
+    "sha256": {
+      "index.html": "71281362e076edc5d488729e838723bbc07763ec014acd9242fc8df2bc96c7be",
+      "sw.js": "52df0c7a1e4e2ec1a06b7ead34e48de652cc1a266b283b496407a5f78b7de58c",
+      "manifest.webmanifest": "ee4f3e05dcc9100713e278093f56dcb28fc2f22e2777d4b742355d97fdb2e515",
+      "icon-avocado-194.png": "c274b8848da114d9c1e3e036a24a4bcc092be14da966c758b6cbd54fc3434ed5"
+    }
+  }
+}

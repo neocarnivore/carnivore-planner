@@ -9,6 +9,8 @@
 
 両者とも index.html にCSS、JavaScript、食品データ、SVG/Canvasグラフを内包。元リポジトリにはAGENTS.md、package.json、ライセンスファイルなし。所有者からの本依頼の範囲で再利用。再配布時は所有者が権利を確認する。ルートのWeb版index.html、manifest、sw.js、アイコンは変更しない。vendor配下に取得時点の原本を保存。
 
+追記：各モードのindex.html、sw.js、manifest.webmanifest、アイコンを上記コミットのGit blobから直接保存し、改行を含むバイト単位で一致させた。vendor/sources.jsonにコミットとSHA-256を記録。`npm run verify:originals`および毎回のbuildで8ファイルの完全一致を検証する。sw.jsとmanifestは原本保管のみでiOS配布物には含めない。
+
 ## 機能と構成
 
 肉食：性別、年齢、身長、体重、食事法、糖質上限、活動、タンパク質階層、目標体重。BMR/BMI/TDEE、PFC、食材配分、電解質推計、体重推移、曜日別の運動日／休息日。移行食：現在糖質（不明時は主食量から推定）、活動等から移行期間、日ごとの糖質・食材配分とグラフ。共通：条件プリセット保存・再編集・名称変更・削除、ライト／ダーク、入力リセット。

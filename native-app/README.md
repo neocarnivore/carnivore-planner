@@ -56,7 +56,7 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -de
 
 ## 構成
 
-- vendor：取得時点のWeb版原本と画像
+- vendor：取得時点のHTML、sw.js、manifest.webmanifest、画像を完全保存。sources.jsonのSHA-256で毎回のbuild時に検証
 - scripts/prepare.mjs：原本から保存APIとネイティブ用の表示のみ調整してpublic/plannersへ生成
 - src：統合UI、永続化、履歴、バックアップ、共有、アダプター
 - ios：生成済みネイティブプロジェクト、起動画面、アイコン、Privacy Manifest
